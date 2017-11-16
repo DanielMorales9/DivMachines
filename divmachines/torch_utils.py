@@ -19,6 +19,7 @@ def cpu(tensor):
     else:
         return tensor
 
+
 def minibatch(*tensors, **kwargs):
 
     batch_size = kwargs.get("batch_size", None)

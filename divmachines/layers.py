@@ -38,4 +38,38 @@ class ZeroEmbedding(Embedding):
         if self.padding_idx is not None:
             self.weight.data[self.padding_idx].fill_(0)
 
-#class TestEmbedding(Embedding):
+
+class TestEmbedding(Embedding):
+    """
+    Specific Embedding for Test
+
+    Parameters
+    ----------
+    embedding_weights: ndarray
+        Embedding's weights for the
+    """
+    def __init__(self,
+                 num_embeddings,
+                 embedding_dim,
+                 padding_idx=None,
+                 max_norm=None,
+                 norm_type=2,
+                 scale_grad_by_freq=False,
+                 sparse=False,
+                 embedding_weights=None):
+        self._embedding_weights = embedding_weights
+        super(TestEmbedding, self).__init__(num_embeddings,
+                                            embedding_dim,
+                                            padding_idx,
+                                            max_norm,
+                                            norm_type,
+                                            scale_grad_by_freq,
+                                            sparse)
+
+    def reset_parameters(self):
+        """
+        Initialize parameters.
+        """
+        for i in range(self._embedding_weights.shape[0]):
+            for j in range(self._embedding_weights.shape[1]):
+                self.weight.data[i, j] = self._embedding_weights[i, j]

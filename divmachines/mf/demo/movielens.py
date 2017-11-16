@@ -22,7 +22,7 @@ interactions = train[['u_idx', 'i_idx', 'rating']].values
 
 model.fit(interactions)
 
-print len(model.predict(np.unique(train[['u_idx']].values)))
+print(len(model.predict(np.unique(train[['u_idx']].values))))
 
 plt.plot(logger.epochs, logger.losses)
 plt.show()

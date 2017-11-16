@@ -14,10 +14,13 @@ def _predict_process_ids(user_ids, item_ids, num_items, use_cuda):
     if np.isscalar(user_ids):
         user_ids = np.array(user_ids, dtype=np.int64)
 
+    if np.isscalar(item_ids):
+        item_ids = np.array(item_ids, dtype=np.int64)
+
     user_ids = torch.from_numpy(user_ids.reshape(-1, 1).astype(np.int64))
     item_ids = torch.from_numpy(item_ids.reshape(-1, 1).astype(np.int64))
 
-    if item_ids.size()[0] != user_ids.size(0):
+    if item_ids.size(0) != user_ids.size(0):
         user_ids = user_ids.expand(user_ids.size(0), item_ids.size()[0])
 
     user_var = Variable(gpu(user_ids, use_cuda))

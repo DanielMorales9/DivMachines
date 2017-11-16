@@ -2,13 +2,14 @@ import torch
 from torch import optim
 import numpy as np
 from torch.autograd import Variable
-from divmachines.layers import ScaledEmbedding, ZeroEmbedding
 from divmachines.torch_utils import shuffle, minibatch, gpu, cpu, set_seed
 from divmachines.logging import Logger
 from divmachines.mf.helper import _predict_process_ids
+from divmachines.mf.models import MatrixFactorizationModel, BiasMatrixFactorizationModel
+from divmachines import Classifier
 
 
-class MatrixFactorization(torch.nn.Module):
+class MatrixFactorization(Classifier):
     """
     A matrix factorization model. Uses a classic
     matrix factorization approach, with latent vectors used
@@ -21,6 +22,8 @@ class MatrixFactorization(torch.nn.Module):
     ----------
     n_factors: int, optional
         Number of factors to use in user and item latent factors
+    model: :class: div.machines.models, optional
+        A matrix Factorization model
     sparse: boolean, optional
         Use sparse gradients for embedding layers.
     loss: function, optional
@@ -47,6 +50,7 @@ class MatrixFactorization(torch.nn.Module):
 
     def __init__(self,
                  n_factors=10,
+                 model=None,
                  sparse=True,
                  n_iter=10,
                  loss=None,
@@ -57,10 +61,10 @@ class MatrixFactorization(torch.nn.Module):
                  random_state=None,
                  use_cuda=False,
                  logger=None):
-
+        
         super(MatrixFactorization, self).__init__()
-
         self._n_factors = n_factors
+        self._model = model
         self._n_iter = n_iter
         self._sparse = sparse
         self._batch_size = batch_size
@@ -90,28 +94,28 @@ class MatrixFactorization(torch.nn.Module):
         self._n_users = len(np.unique(np.squeeze(interactions[:, 0])))
         self._n_items = len(np.unique(np.squeeze(interactions[:, 1])))
 
-        if not self._has_representation:
-            self.x = ScaledEmbedding(self._n_users,
-                                     self._n_factors,
-                                     sparse=self._sparse)
-            self.y = ScaledEmbedding(self._n_items,
-                                     self._n_factors,
-                                     sparse=self._sparse)
+        if self._model is not None:
+            if isinstance(self._model, MatrixFactorizationModel):
+                self._model = gpu(self._model, self._use_cuda)
+            else:
+                raise ValueError("Model must be an instance of MatrixFactorizationModel")
 
-            self.user_biases = ZeroEmbedding(self._n_users, 1, sparse=self._sparse)
-            self.item_biases = ZeroEmbedding(self._n_items, 1, sparse=self._sparse)
-
-            self._has_representation = True
+        else:
+            self._model = gpu(BiasMatrixFactorizationModel(self._n_users,
+                                                            self._n_items,
+                                                            self._n_factors,
+                                                            self._sparse),
+                               self._use_cuda)
 
         if self._optimizer_func is None:
-            self._optimizer = optim.SGD(self.parameters(),
+            self._optimizer = optim.SGD(self._model.parameters(),
                                         weight_decay=self._l2,
                                         lr=self._learning_rate)
         else:
-            self._optimizer = self._optimizer_func(self._net.parameters(),
+            self._optimizer = self._optimizer_func(self._model.parameters(),
                                                    weight_decay=self._l2,
                                                    lr=self._learning_rate)
-        self._initialized = True
+            self._initialized = True
 
     def _check_input(self, user_ids, item_ids, allow_items_none=False):
 
@@ -136,39 +140,6 @@ class MatrixFactorization(torch.nn.Module):
             raise ValueError('Maximum item id greater '
                              'than number of items in model.')
 
-    def forward(self, user_ids, item_ids):
-        """
-        Compute the forward pass of the representation.
-        Parameters
-        ----------
-        user_ids: tensor
-            Tensor of user indices.
-        item_ids: tensor
-            Tensor of item indices.
-        Returns
-        -------
-        predictions: tensor
-            Tensor of predictions.
-        """
-
-        user_bias = self.user_biases(user_ids).squeeze()
-        item_bias = self.item_biases(item_ids).squeeze()
-
-        biases_sum = user_bias + item_bias
-
-        users_batch = self.x(user_ids).squeeze()
-        items_batch = self.y(item_ids).squeeze()
-
-        if len(users_batch.size()) > 2:
-            dot = (users_batch * items_batch).sum(2)
-        elif users_batch.size()[0] > 1:
-            dot = (users_batch * items_batch).sum(1)
-        else:
-            dot = (users_batch * items_batch).sum()
-
-        sum = biases_sum + dot
-        return sum
-
     def fit(self, interactions):
         """
         Fit the model.
@@ -181,8 +152,6 @@ class MatrixFactorization(torch.nn.Module):
         interactions: ndarray
             user, item, rating triples
         """
-
-        self.train(True)
         user_ids = interactions[:, 0]
         item_ids = interactions[:, 1]
         ratings_ids = interactions[:, 2]
@@ -223,7 +192,7 @@ class MatrixFactorization(torch.nn.Module):
                 rating_var = Variable(batch_rating)
 
                 # forward step
-                predictions = self(user_var, item_var)
+                predictions = self._model(user_var, item_var)
 
                 # Zeroing Embeddings' gradients
                 self._optimizer.zero_grad()
@@ -261,12 +230,12 @@ class MatrixFactorization(torch.nn.Module):
         """
 
         self._check_input(user_ids, item_ids, allow_items_none=True)
-        self.train(False)
+        self._model.train(False)
 
         user_ids, item_ids = _predict_process_ids(user_ids, item_ids,
                                                   self._n_items,
                                                   self._use_cuda)
 
-        out = self(user_ids, item_ids)
+        out = self._model(user_ids, item_ids)
 
         return cpu(out.data).numpy().flatten()
