@@ -1,16 +1,48 @@
 import unittest
-from divmachines.mf import MatrixFactorization
-from divmachines.layers import TestEmbedding
-from divmachines.mf.models import BiasMatrixFactorizationModel, \
-    WithoutBiasMatrixFactorizationModel
-from divmachines.mf import MatrixFactorization
 import numpy as np
+import torch
+
+from divmachines import PairwiseClassifier
+from divmachines.layers import TestEmbedding
+from divmachines.mf import SimplePairwiseMatrixFactorizationModel,\
+    PairwiseMatrixFactorizationModel
 
 
-class MatrixFactorizationTest(unittest.TestCase):
+class PairwiseMFModelTest(unittest.TestCase):
 
-    def test_predict_BiasMFModel(self):
-        model = BiasMatrixFactorizationModel(3, 4, n_factors=2)
+    def test_PairwiseWOBiasMFModel_forward(self):
+        model = SimplePairwiseMatrixFactorizationModel(3, 4, n_factors=2)
+        model.x = TestEmbedding(3, 2,
+                                sparse=True,
+                                embedding_weights=np.array([[0, 0],
+                                                            [1, 1],
+                                                            [2, 2]]))
+        model.y = TestEmbedding(4, 2,
+                                sparse=True,
+                                embedding_weights=np.array([[0, 0],
+                                                            [1, 1],
+                                                            [2, 2],
+                                                            [3, 3]]))
+
+        mf = PairwiseClassifier(model=model, n_iter=0, learning_rate=0)
+        mf.fit(np.array([[0, 0, 1],
+                         [0, 1, 2],
+                         [1, 2, 1],
+                         [1, 3, 2],
+                         [2, 2, 1],
+                         [2, 3, 2]]))
+
+        expected = np.array([0, 0, 0])
+        actual = model(torch.autograd.Variable(torch.from_numpy(np.array([0, 1, 2]))),
+                       torch.autograd.Variable(torch.from_numpy(np.array([0, 1, 2]))),
+                       torch.autograd.Variable(torch.from_numpy(np.array([0, 1, 2])))) \
+            .data.numpy()
+        self.assertTrue(np.all(expected == actual))
+
+        self.assertTrue(np.all(expected == actual))
+
+    def test_PairwiseBiasMFModel_forward(self):
+        model = PairwiseMatrixFactorizationModel(3, 4, n_factors=2)
         model.x = TestEmbedding(3, 2,
                                 sparse=True,
                                 embedding_weights=np.array([[0, 0],
@@ -29,7 +61,34 @@ class MatrixFactorizationTest(unittest.TestCase):
                                 sparse=True,
                                 embedding_weights=np.array([[0], [1], [2], [3]]))
 
-        mf = MatrixFactorization(model=model, n_iter=0, learning_rate=0)
+        expected = np.array([0, 0, 0])
+        actual = model(torch.autograd.Variable(torch.from_numpy(np.array([0, 1, 2]))),
+                       torch.autograd.Variable(torch.from_numpy(np.array([0, 1, 2]))),
+                       torch.autograd.Variable(torch.from_numpy(np.array([0, 1, 2]))))\
+            .data.numpy()
+        self.assertTrue(np.all(expected == actual))
+
+    def test_predict_BiasMFModel(self):
+        model = PairwiseMatrixFactorizationModel(3, 4, n_factors=2)
+        model.x = TestEmbedding(3, 2,
+                                sparse=True,
+                                embedding_weights=np.array([[0, 0],
+                                          [1, 1],
+                                          [2, 2]]))
+        model.y = TestEmbedding(4, 2,
+                                sparse=True,
+                                embedding_weights=np.array([[0, 0],
+                                          [1, 1],
+                                          [2, 2],
+                                          [3, 3]]))
+        model.user_biases = TestEmbedding(3, 1,
+                                sparse=True,
+                                embedding_weights=np.array([[0], [1], [2]]))
+        model.item_biases = TestEmbedding(4, 1,
+                                sparse=True,
+                                embedding_weights=np.array([[0], [1], [2], [3]]))
+
+        mf = PairwiseClassifier(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
@@ -43,7 +102,7 @@ class MatrixFactorizationTest(unittest.TestCase):
         self.assertTrue(np.all(expected == actual))
 
     def test_predict_WOBiasMFModel(self):
-        model = WithoutBiasMatrixFactorizationModel(3, 4, n_factors=2)
+        model = SimplePairwiseMatrixFactorizationModel(3, 4, n_factors=2)
         model.x = TestEmbedding(3, 2,
                                 sparse=True,
                                 embedding_weights=np.array([[0, 0],
@@ -56,7 +115,7 @@ class MatrixFactorizationTest(unittest.TestCase):
                                           [2, 2],
                                           [3, 3]]))
 
-        mf = MatrixFactorization(model=model, n_iter=0, learning_rate=0)
+        mf = PairwiseClassifier(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
@@ -69,8 +128,42 @@ class MatrixFactorizationTest(unittest.TestCase):
 
         self.assertTrue(np.all(expected == actual))
 
-    def test_predict_WOBiasMFModel_one_user(self):
-        model = WithoutBiasMatrixFactorizationModel(3, 4, n_factors=2)
+    def test_predict_BiasMFModel_single_user(self):
+            model = PairwiseMatrixFactorizationModel(3, 4, n_factors=2)
+            model.x = TestEmbedding(3, 2,
+                                    sparse=True,
+                                    embedding_weights=np.array([[0, 0],
+                                                                [1, 1],
+                                                                [2, 2]]))
+            model.y = TestEmbedding(4, 2,
+                                    sparse=True,
+                                    embedding_weights=np.array([[0, 0],
+                                                                [1, 1],
+                                                                [2, 2],
+                                                                [3, 3]]))
+
+            model.user_biases = TestEmbedding(3, 1,
+                                              sparse=True,
+                                              embedding_weights=np.array([[0], [1], [2]]))
+            model.item_biases = TestEmbedding(4, 1,
+                                              sparse=True,
+                                              embedding_weights=np.array([[0], [1], [2], [3]]))
+
+            mf = PairwiseClassifier(model=model, n_iter=0, learning_rate=0)
+            mf.fit(np.array([[0, 0, 1],
+                             [0, 1, 2],
+                             [1, 2, 1],
+                             [1, 3, 2],
+                             [2, 2, 1],
+                             [2, 3, 2]]))
+
+            expected = np.array([1, 4, 7, 10])
+            actual = mf.predict(1)
+
+            self.assertTrue(np.all(expected == actual))
+
+    def test_predict_WOBiasMFModel_single_user(self):
+        model = SimplePairwiseMatrixFactorizationModel(3, 4, n_factors=2)
         model.x = TestEmbedding(3, 2,
                                 sparse=True,
                                 embedding_weights=np.array([[0, 0],
@@ -83,7 +176,7 @@ class MatrixFactorizationTest(unittest.TestCase):
                                           [2, 2],
                                           [3, 3]]))
 
-        mf = MatrixFactorization(model=model, n_iter=0, learning_rate=0)
+        mf = PairwiseClassifier(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
@@ -95,42 +188,8 @@ class MatrixFactorizationTest(unittest.TestCase):
         actual = mf.predict(1)
         self.assertTrue(np.all(expected == actual))
 
-    def test_predict_BiasMFModel_single_user(self):
-        model = BiasMatrixFactorizationModel(3, 4, n_factors=2)
-        model.x = TestEmbedding(3, 2,
-                                sparse=True,
-                                embedding_weights=np.array([[0, 0],
-                                          [1, 1],
-                                          [2, 2]]))
-        model.y = TestEmbedding(4, 2,
-                                sparse=True,
-                                embedding_weights=np.array([[0, 0],
-                                          [1, 1],
-                                          [2, 2],
-                                          [3, 3]]))
-
-        model.user_biases = TestEmbedding(3, 1,
-                                sparse=True,
-                                embedding_weights=np.array([[0], [1], [2]]))
-        model.item_biases = TestEmbedding(4, 1,
-                                sparse=True,
-                                embedding_weights=np.array([[0], [1], [2], [3]]))
-
-        mf = MatrixFactorization(model=model, n_iter=0, learning_rate=0)
-        mf.fit(np.array([[0, 0, 1],
-                         [0, 1, 2],
-                         [1, 2, 1],
-                         [1, 3, 2],
-                         [2, 2, 1],
-                         [2, 3, 2]]))
-
-        expected = np.array([1, 4, 7, 10])
-        actual = mf.predict(1)
-
-        self.assertTrue(np.all(expected == actual))
-
     def test_predict_BiasMFModel_single_user_single_item(self):
-        model = BiasMatrixFactorizationModel(3, 4, n_factors=2)
+        model = PairwiseMatrixFactorizationModel(3, 4, n_factors=2)
         model.x = TestEmbedding(3, 2,
                                 sparse=True,
                                 embedding_weights=np.array([[0, 0],
@@ -150,7 +209,7 @@ class MatrixFactorizationTest(unittest.TestCase):
                                           sparse=True,
                                           embedding_weights=np.array([[0], [1], [2], [3]]))
 
-        mf = MatrixFactorization(model=model, n_iter=0, learning_rate=0)
+        mf = PairwiseClassifier(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
@@ -164,7 +223,7 @@ class MatrixFactorizationTest(unittest.TestCase):
         self.assertTrue(np.all(expected == actual))
 
     def test_predict_WOBiasMFModel_multi_users_multi_items(self):
-        model = WithoutBiasMatrixFactorizationModel(3, 4, n_factors=2)
+        model = PairwiseMatrixFactorizationModel(3, 4, n_factors=2)
         model.x = TestEmbedding(3, 2,
                                 sparse=True,
                                 embedding_weights=np.array([[0, 0],
@@ -178,7 +237,7 @@ class MatrixFactorizationTest(unittest.TestCase):
                                                             [3, 3]]))
 
 
-        mf = MatrixFactorization(model=model, n_iter=0, learning_rate=0)
+        mf = PairwiseClassifier(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
@@ -192,7 +251,7 @@ class MatrixFactorizationTest(unittest.TestCase):
         self.assertTrue(np.all(expected == actual))
 
     def test_predict_BiasMFModel_multi_users_multi_items(self):
-        model = BiasMatrixFactorizationModel(3, 4, n_factors=2)
+        model = PairwiseMatrixFactorizationModel(3, 4, n_factors=2)
         model.x = TestEmbedding(3, 2,
                                 sparse=True,
                                 embedding_weights=np.array([[0, 0],
@@ -211,7 +270,7 @@ class MatrixFactorizationTest(unittest.TestCase):
                                           sparse=True,
                                           embedding_weights=np.array([[0], [1], [2], [3]]))
 
-        mf = MatrixFactorization(model=model, n_iter=0, learning_rate=0)
+        mf = PairwiseClassifier(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],

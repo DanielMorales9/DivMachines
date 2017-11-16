@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from divmachines import PairwiseClassifier
+from divmachines import PointwiseClassifier
+from divmachines.fm import FactorizationMachine
 from divmachines.logging import TrainingLogger as TLogger
 
 cols = ['user', 'item', 'rating', 'timestamp']
@@ -16,7 +17,8 @@ train = pd.merge(pd.merge(train, map_user, on="user"), map_item, on="item")
 
 logger = TLogger()
 
-model = PairwiseClassifier(n_iter=100, learning_rate=0.60653066, logger=logger)
+fm = FactorizationMachine()
+model = PointwiseClassifier(n_iter=100, learning_rate=0.60653066, model=fm, logger=logger)
 
 interactions = train[['u_idx', 'i_idx', 'rating']].values
 
