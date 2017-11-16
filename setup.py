@@ -1,22 +1,33 @@
 import numpy
-from setuptools import setup, find_packages, Extension
+from setuptools import find_packages
+from distutils.core import setup
+from distutils.extension import Extension
 
-extensions = [
-    Extension('fmpytorch.second_order.second_order_fast_inner',
-              ["fmpytorch/second_order/second_order_fast_inner.c"],
-              include_dirs=[numpy.get_include()]),
-]
+USE_CYTHON = True
+
+ext = '.pyx' if USE_CYTHON else '.c'
 
 
-setup(name="fmpytorch",
+extensions = [Extension("divmachines.mf.fast.fast_inner",
+                            ["divmachines/mf/fast/fast_inner"+ext],
+                                include_dirs=[numpy.get_include()]),
+              Extension('divmachines.fm.second_order.fast.second_order_fast_inner',
+                            ["divmachines/fm/second_order/fast/second_order_fast_inner"+ext],
+                                include_dirs=[numpy.get_include()])]
+
+if USE_CYTHON:
+    from Cython.Build import cythonize
+    extensions = cythonize(extensions)
+
+setup(name="FactorizationPyTorch",
       version="0.1",
-      description="A fast factorization machine in pytorch",
-      author="Jack Hessel",
-      author_email="jmhessel@gmail.com",
+      description="A set of Factorization methods in pytorch",
+      author="Daniel Morales",
+      author_email="dnlmrls9@gmail.com",
       license="MIT",
       packages=find_packages(),
       ext_modules=extensions,
-      install_requires=['numpy'],
+      install_requires=['torch', 'numpy'],
       zip_safe=False,
       classifiers=[
           'Intended Audience :: Science/Research',

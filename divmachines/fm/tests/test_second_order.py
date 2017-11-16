@@ -18,6 +18,7 @@ BATCH_SIZE = 32
 N_FACTORS = 5
 N_TESTS = 10
 
+
 class ModelSlow(torch.nn.Module):
     def __init__(self):
         super(ModelSlow, self).__init__()
@@ -80,6 +81,7 @@ def _forward_backward_check(dtype):
     
 def test_forward_backward_float():
     _forward_backward_check(np.float32)
+
 
 def test_forward_backward_double():
     _forward_backward_check(np.float64)

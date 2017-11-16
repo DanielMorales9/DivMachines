@@ -52,8 +52,16 @@ for batch in range(10000):
     loss = F.mse_loss(out, cur_y)
     loss.backward()
     opt.step()
-    print(batch, loss)
 end = time.time()
 
 elapsed = end-start
 print("{:.3f}ms per batch".format(elapsed/100 * 1000))
+
+# Let's test
+cur_x = np.random.random(size=(BATCH_SIZE, INPUT_SIZE)).astype(np.float32)
+cur_y = true_function(cur_x)
+cur_x, cur_y = Variable(torch.from_numpy(cur_x)), Variable(torch.from_numpy(cur_y))
+print(F.mse_loss(out, cur_y))
+
+
+

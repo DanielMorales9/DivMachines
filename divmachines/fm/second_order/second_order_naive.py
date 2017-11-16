@@ -1,4 +1,4 @@
-import torch
+from torch import *
 from torch.autograd import Variable
 from torch import nn
 
@@ -23,5 +23,5 @@ class SecondOrderInteraction(torch.nn.Module):
                 for j in range(i+1, self.n_feats):
                     output[b,i,j] = all_interactions[i,j] * x[b,i] * x[b,j]
 
-        res = output.sum(1).sum(1,keepdim=True)
+        res = output.sum(1).sum(1, keepdim=True)
         return res

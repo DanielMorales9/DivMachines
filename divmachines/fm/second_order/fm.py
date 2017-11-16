@@ -5,15 +5,11 @@ The second-order factorization machine class.
 from __future__ import print_function
 
 import torch
-import torch.nn.functional as F
-import torch.optim as optim
-
 from torch import nn
-from torch.autograd import Variable
 
 try:
     FAST_VERSION = True
-    from .second_order_fast import SecondOrderInteraction
+    from divmachines.fm.second_order.fast import SecondOrderInteraction
 except ImportError:
     FAST_VERSION = False
     from .second_order_naive import SecondOrderInteraction

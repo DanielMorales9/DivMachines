@@ -65,6 +65,7 @@ def fast_forward(self, x, v):
 
     output_factor = np.zeros(self.batch_size,
                              dtype=self.x.numpy().dtype)
+
     _compute_output(self.sum_of_products,
                     self.sum_of_squares,
                     self.n_factors,
@@ -109,7 +110,6 @@ def _compute_grad_v(floating[:,:] sop,
                 grad_v[i,f] += (x[b,i] * sop[b,f] - v[i,f] * x[b,i] * x[b,i]) * dLdy[b,0]
                 
 def fast_backward(self, grad_output):
-    
     # this contains d L / d x_{i,j}
     grad_input = grad_output.new(self.batch_size, self.n_feats).zero_()
     
