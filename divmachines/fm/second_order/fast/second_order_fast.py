@@ -4,11 +4,21 @@ import torch
 from torch.autograd import Variable
 from torch import nn
 
-from .second_order_fast_inner import fast_forward, fast_backward
+from divmachines.fm.second_order.fast.second_order_fast_inner import fast_forward, fast_backward
 
 
 class SecondOrderInteraction(torch.nn.Module):
+    """
+        Factorized parameters for the Second Order Interactions
+        (Fast Version)
 
+        Parameters
+        ----------
+        n_features: int
+            Length of the input vector.
+        n_factors: int, optional
+            Number of factors of the factorized parameters
+    """
     def __init__(self, n_feats, n_factors):
         super(SecondOrderInteraction, self).__init__()
         self.n_feats = n_feats

@@ -1,8 +1,7 @@
+from __future__ import print_function
 import torch
-from torch import nn
-from torch._C import range
+from torch.nn import Module, Parameter
 from torch.autograd import Variable
-from torch.nn import Module
 
 
 class SecondOrderInteraction(Module):
@@ -20,22 +19,18 @@ class SecondOrderInteraction(Module):
     def __init__(self, n_features, n_factors):
         super(SecondOrderInteraction, self).__init__()
         self.batch_size = None
-        self.n_feats = n_features
+        self.n_features = n_features
         self.n_factors = n_factors
 
-        self.v = nn.Parameter(torch.Tensor(self.n_feats, self.n_factors))
+        self.v = Parameter(torch.Tensor(self.n_features, self.n_factors))
         self.v.data.uniform_(-0.01, 0.01)
 
     def forward(self, x):
         self.batch_size = x.size()[0]
-        self.n_feats = x.size()[-1]
-        self.n_factors = self.v.size()[-1]
-        output = Variable(x.data.new(self.batch_size, self.n_feats, self.n_feats).zero_())
-        all_interactions = torch.mm(self.v, self.v.t())
-        for b in range(self.batch_size):
-            for i in range(self.n_feats):
-                for j in range(i+1, self.n_feats):
-                    output[b, i, j] = all_interactions[i, j] * x[b, i] * x[b, j]
+        pow_x = torch.pow(x, 2)
+        pow_v = torch.pow(self.v, 2)
+        pow_sum = torch.pow(torch.mm(x, self.v), 2)
+        sum_pow = torch.mm(pow_x, pow_v)
+        out = 0.5* (pow_sum - sum_pow).sum(1)
 
-        res = output.sum(1).sum(1, keepdim=True)
-        return res
+        return out.unsqueeze(-1)

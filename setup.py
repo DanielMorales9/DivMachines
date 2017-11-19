@@ -19,7 +19,7 @@ if USE_CYTHON:
     from Cython.Build import cythonize
     extensions = cythonize(extensions)
 
-setup(name="FactorizationPyTorch",
+setup(name="divmachines",
       version="0.1",
       description="A set of Factorization methods in pytorch",
       author="Daniel Morales",
@@ -27,7 +27,7 @@ setup(name="FactorizationPyTorch",
       license="MIT",
       packages=find_packages(),
       ext_modules=extensions,
-      install_requires=['torch', 'numpy'],
+      install_requires=['torch', 'numpy', 'scipy', 'scikit-learn', 'Cython'],
       zip_safe=False,
       classifiers=[
           'Intended Audience :: Science/Research',

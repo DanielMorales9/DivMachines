@@ -10,12 +10,12 @@
         "include_dirs": [
             "/usr/local/lib/python2.7/dist-packages/numpy/core/include"
         ], 
-        "name": "fm.second_order.second_order_fast_inner", 
+        "name": "divmachines.fm.second_order.fast.second_order_fast_inner", 
         "sources": [
-            "fm/second_order/second_order_fast_inner.pyx"
+            "divmachines/fm/second_order/fast/second_order_fast_inner.pyx"
         ]
     }, 
-    "module_name": "fm.second_order.second_order_fast_inner"
+    "module_name": "divmachines.fm.second_order.fast.second_order_fast_inner"
 }
 END: Cython Metadata */
 
@@ -537,8 +537,8 @@ static CYTHON_INLINE float __PYX_NAN() {
   #endif
 #endif
 
-#define __PYX_HAVE__fm__second_order__second_order_fast_inner
-#define __PYX_HAVE_API__fm__second_order__second_order_fast_inner
+#define __PYX_HAVE__divmachines__fm__second_order__fast__second_order_fast_inner
+#define __PYX_HAVE_API__divmachines__fm__second_order__fast__second_order_fast_inner
 #include <string.h>
 #include <stdio.h>
 #include "numpy/arrayobject.h"
@@ -771,7 +771,7 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "fm/second_order/second_order_fast_inner.pyx",
+  "divmachines/fm/second_order/fast/second_order_fast_inner.pyx",
   "__init__.pxd",
   "stringsource",
   "type.pxd",
@@ -2151,7 +2151,7 @@ static PyTypeObject *__pyx_ptype_5numpy_ndarray = 0;
 static PyTypeObject *__pyx_ptype_5numpy_ufunc = 0;
 static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *, char *, char *, int *); /*proto*/
 
-/* Module declarations from 'fm.second_order.second_order_fast_inner' */
+/* Module declarations from 'divmachines.fm.second_order.fast.second_order_fast_inner' */
 static PyTypeObject *__pyx_array_type = 0;
 static PyTypeObject *__pyx_MemviewEnum_type = 0;
 static PyTypeObject *__pyx_memoryview_type = 0;
@@ -2198,10 +2198,10 @@ static void __pyx_memoryview__slice_assign_scalar(char *, Py_ssize_t *, Py_ssize
 static PyObject *__pyx_unpickle_Enum__set_state(struct __pyx_MemviewEnum_obj *, PyObject *); /*proto*/
 static __Pyx_TypeInfo __Pyx_TypeInfo_float = { "float", NULL, sizeof(float), { 0 }, 0, 'R', 0, 0 };
 static __Pyx_TypeInfo __Pyx_TypeInfo_double = { "double", NULL, sizeof(double), { 0 }, 0, 'R', 0, 0 };
-#define __Pyx_MODULE_NAME "fm.second_order.second_order_fast_inner"
-int __pyx_module_is_main_fm__second_order__second_order_fast_inner = 0;
+#define __Pyx_MODULE_NAME "divmachines.fm.second_order.fast.second_order_fast_inner"
+int __pyx_module_is_main_divmachines__fm__second_order__fast__second_order_fast_inner = 0;
 
-/* Implementation of 'fm.second_order.second_order_fast_inner' */
+/* Implementation of 'divmachines.fm.second_order.fast.second_order_fast_inner' */
 static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_zip;
 static PyObject *__pyx_builtin_reversed;
@@ -2359,14 +2359,14 @@ static const char __pyx_k_Invalid_mode_expected_c_or_fortr[] = "Invalid mode, ex
 static const char __pyx_k_Non_native_byte_order_not_suppor[] = "Non-native byte order not supported";
 static const char __pyx_k_Out_of_bounds_on_buffer_access_a[] = "Out of bounds on buffer access (axis %d)";
 static const char __pyx_k_Unable_to_convert_item_to_object[] = "Unable to convert item to object";
-static const char __pyx_k_fm_second_order_second_order_fas[] = "fm/second_order/second_order_fast_inner.pyx";
+static const char __pyx_k_divmachines_fm_second_order_fast[] = "divmachines/fm/second_order/fast/second_order_fast_inner.pyx";
 static const char __pyx_k_got_differing_extents_in_dimensi[] = "got differing extents in dimension %d (got %d and %d)";
 static const char __pyx_k_ndarray_is_not_Fortran_contiguou[] = "ndarray is not Fortran contiguous";
 static const char __pyx_k_no_default___reduce___due_to_non[] = "no default __reduce__ due to non-trivial __cinit__";
 static const char __pyx_k_numpy_core_umath_failed_to_impor[] = "numpy.core.umath failed to import";
 static const char __pyx_k_unable_to_allocate_shape_and_str[] = "unable to allocate shape and strides.";
 static const char __pyx_k_Format_string_allocated_too_shor_2[] = "Format string allocated too short.";
-static const char __pyx_k_fm_second_order_second_order_fas_2[] = "fm.second_order.second_order_fast_inner";
+static const char __pyx_k_divmachines_fm_second_order_fast_2[] = "divmachines.fm.second_order.fast.second_order_fast_inner";
 static PyObject *__pyx_kp_s_;
 static PyObject *__pyx_n_s_ASCII;
 static PyObject *__pyx_kp_s_Buffer_view_does_not_expose_stri;
@@ -2420,6 +2420,8 @@ static PyObject *__pyx_kp_s_contiguous_and_indirect;
 static PyObject *__pyx_n_s_dLdy;
 static PyObject *__pyx_n_s_defaults;
 static PyObject *__pyx_n_s_dict;
+static PyObject *__pyx_kp_s_divmachines_fm_second_order_fast;
+static PyObject *__pyx_n_s_divmachines_fm_second_order_fast_2;
 static PyObject *__pyx_n_s_double;
 static PyObject *__pyx_n_s_dtype;
 static PyObject *__pyx_n_s_dtype_is_object;
@@ -2432,8 +2434,6 @@ static PyObject *__pyx_n_s_fast_backward;
 static PyObject *__pyx_n_s_fast_forward;
 static PyObject *__pyx_n_s_flags;
 static PyObject *__pyx_n_s_float;
-static PyObject *__pyx_kp_s_fm_second_order_second_order_fas;
-static PyObject *__pyx_n_s_fm_second_order_second_order_fas_2;
 static PyObject *__pyx_n_s_format;
 static PyObject *__pyx_n_s_fortran;
 static PyObject *__pyx_n_u_fortran;
@@ -2522,20 +2522,20 @@ static PyObject *__pyx_n_s_x;
 static PyObject *__pyx_n_s_zero;
 static PyObject *__pyx_n_s_zeros;
 static PyObject *__pyx_n_s_zip;
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner__compute_sop_sos(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults); /* proto */
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_12_compute_sop_sos(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_sos, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size); /* proto */
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_14_compute_sop_sos(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_sos, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size); /* proto */
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_2_compute_output(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults); /* proto */
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_18_compute_output(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_sos, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_output); /* proto */
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_20_compute_output(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_sos, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_output); /* proto */
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_forward(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_x, PyObject *__pyx_v_v); /* proto */
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_6_compute_grad_input(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults); /* proto */
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_24_compute_grad_input(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_tgi); /* proto */
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_26_compute_grad_input(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_tgi); /* proto */
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_8_compute_grad_v(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults); /* proto */
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_30_compute_grad_v(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, __Pyx_memviewslice __pyx_v_dLdy, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_grad_v); /* proto */
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_32_compute_grad_v(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, __Pyx_memviewslice __pyx_v_dLdy, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_grad_v); /* proto */
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_backward(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_grad_output); /* proto */
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner__compute_sop_sos(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults); /* proto */
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_12_compute_sop_sos(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_sos, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size); /* proto */
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_14_compute_sop_sos(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_sos, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size); /* proto */
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_2_compute_output(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults); /* proto */
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_18_compute_output(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_sos, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_output); /* proto */
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_20_compute_output(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_sos, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_output); /* proto */
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_4fast_forward(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_x, PyObject *__pyx_v_v); /* proto */
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_6_compute_grad_input(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults); /* proto */
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_24_compute_grad_input(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_tgi); /* proto */
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_26_compute_grad_input(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_tgi); /* proto */
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_8_compute_grad_v(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults); /* proto */
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_30_compute_grad_v(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, __Pyx_memviewslice __pyx_v_dLdy, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_grad_v); /* proto */
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_32_compute_grad_v(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, __Pyx_memviewslice __pyx_v_dLdy, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_grad_v); /* proto */
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_10fast_backward(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_grad_output); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
@@ -2656,7 +2656,7 @@ static PyObject *__pyx_codeobj__59;
 static PyObject *__pyx_codeobj__61;
 static PyObject *__pyx_codeobj__68;
 
-/* "fm/second_order/second_order_fast_inner.pyx":17
+/* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":17
  * 
  * @cython.boundscheck(False)
  * def _compute_sop_sos(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -2665,9 +2665,9 @@ static PyObject *__pyx_codeobj__68;
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_2fm_12second_order_23second_order_fast_inner_1_compute_sop_sos(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_2fm_12second_order_23second_order_fast_inner_1_compute_sop_sos = {"_compute_sop_sos", (PyCFunction)__pyx_pw_2fm_12second_order_23second_order_fast_inner_1_compute_sop_sos, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_2fm_12second_order_23second_order_fast_inner_1_compute_sop_sos(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_1_compute_sop_sos(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_1_compute_sop_sos = {"_compute_sop_sos", (PyCFunction)__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_1_compute_sop_sos, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_1_compute_sop_sos(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_signatures = 0;
   PyObject *__pyx_v_args = 0;
   PyObject *__pyx_v_kwargs = 0;
@@ -2737,18 +2737,18 @@ static PyObject *__pyx_pw_2fm_12second_order_23second_order_fast_inner_1_compute
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 17, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("fm.second_order.second_order_fast_inner.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("divmachines.fm.second_order.fast.second_order_fast_inner.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_2fm_12second_order_23second_order_fast_inner__compute_sop_sos(__pyx_self, __pyx_v_signatures, __pyx_v_args, __pyx_v_kwargs, __pyx_v_defaults);
+  __pyx_r = __pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner__compute_sop_sos(__pyx_self, __pyx_v_signatures, __pyx_v_args, __pyx_v_kwargs, __pyx_v_defaults);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner__compute_sop_sos(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults) {
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner__compute_sop_sos(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults) {
   PyObject *__pyx_v_dest_sig = NULL;
   Py_ssize_t __pyx_v_i;
   PyTypeObject *__pyx_v_ndarray = 0;
@@ -3357,7 +3357,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner__compute_
   __Pyx_XDECREF(__pyx_t_9);
   __Pyx_XDECREF(__pyx_t_11);
   __Pyx_XDECREF(__pyx_t_12);
-  __Pyx_AddTraceback("fm.second_order.second_order_fast_inner.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("divmachines.fm.second_order.fast.second_order_fast_inner.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_dest_sig);
@@ -3380,9 +3380,9 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner__compute_
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_0__pyx_pw_2fm_12second_order_23second_order_fast_inner_13_compute_sop_sos(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_0__pyx_mdef_2fm_12second_order_23second_order_fast_inner_13_compute_sop_sos = {"__pyx_fuse_0_compute_sop_sos", (PyCFunction)__pyx_fuse_0__pyx_pw_2fm_12second_order_23second_order_fast_inner_13_compute_sop_sos, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_fuse_0__pyx_pw_2fm_12second_order_23second_order_fast_inner_13_compute_sop_sos(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_0__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_13_compute_sop_sos(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_0__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_13_compute_sop_sos = {"__pyx_fuse_0_compute_sop_sos", (PyCFunction)__pyx_fuse_0__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_13_compute_sop_sos, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_fuse_0__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_13_compute_sop_sos(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_sop = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_sos = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_x = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -3485,18 +3485,18 @@ static PyObject *__pyx_fuse_0__pyx_pw_2fm_12second_order_23second_order_fast_inn
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_compute_sop_sos", 1, 7, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 17, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("fm.second_order.second_order_fast_inner._compute_sop_sos", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("divmachines.fm.second_order.fast.second_order_fast_inner._compute_sop_sos", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_2fm_12second_order_23second_order_fast_inner_12_compute_sop_sos(__pyx_self, __pyx_v_sop, __pyx_v_sos, __pyx_v_x, __pyx_v_v, __pyx_v_n_feats, __pyx_v_n_factors, __pyx_v_batch_size);
+  __pyx_r = __pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_12_compute_sop_sos(__pyx_self, __pyx_v_sop, __pyx_v_sos, __pyx_v_x, __pyx_v_v, __pyx_v_n_feats, __pyx_v_n_factors, __pyx_v_batch_size);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_12_compute_sop_sos(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_sos, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size) {
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_12_compute_sop_sos(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_sos, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size) {
   int __pyx_v_f;
   int __pyx_v_i;
   int __pyx_v_b;
@@ -3530,7 +3530,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_12_comput
   Py_ssize_t __pyx_t_26;
   __Pyx_RefNannySetupContext("__pyx_fuse_0_compute_sop_sos", 0);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":25
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":25
  *                      int batch_size):
  *     cdef int f, i, b
  *     for b in range(batch_size):             # <<<<<<<<<<<<<<
@@ -3541,7 +3541,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_12_comput
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_b = __pyx_t_2;
 
-    /* "fm/second_order/second_order_fast_inner.pyx":26
+    /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":26
  *     cdef int f, i, b
  *     for b in range(batch_size):
  *         for f in range(n_factors):             # <<<<<<<<<<<<<<
@@ -3552,7 +3552,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_12_comput
     for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
       __pyx_v_f = __pyx_t_4;
 
-      /* "fm/second_order/second_order_fast_inner.pyx":27
+      /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":27
  *     for b in range(batch_size):
  *         for f in range(n_factors):
  *             for i in range(n_feats):             # <<<<<<<<<<<<<<
@@ -3563,7 +3563,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_12_comput
       for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
         __pyx_v_i = __pyx_t_6;
 
-        /* "fm/second_order/second_order_fast_inner.pyx":28
+        /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":28
  *         for f in range(n_factors):
  *             for i in range(n_feats):
  *                 sop[b,f] = sop[b,f] + v[i,f] * x[b,i]             # <<<<<<<<<<<<<<
@@ -3588,7 +3588,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_12_comput
         if (__pyx_t_14 < 0) __pyx_t_14 += __pyx_v_sop.shape[1];
         *((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_sop.data + __pyx_t_13 * __pyx_v_sop.strides[0]) ) + __pyx_t_14 * __pyx_v_sop.strides[1]) )) = ((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_sop.data + __pyx_t_7 * __pyx_v_sop.strides[0]) ) + __pyx_t_8 * __pyx_v_sop.strides[1]) ))) + ((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_v.data + __pyx_t_9 * __pyx_v_v.strides[0]) ) + __pyx_t_10 * __pyx_v_v.strides[1]) ))) * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_x.data + __pyx_t_11 * __pyx_v_x.strides[0]) ) + __pyx_t_12 * __pyx_v_x.strides[1]) )))));
 
-        /* "fm/second_order/second_order_fast_inner.pyx":29
+        /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":29
  *             for i in range(n_feats):
  *                 sop[b,f] = sop[b,f] + v[i,f] * x[b,i]
  *                 sos[b,f] = sos[b,f] + v[i,f] * v[i,f] * x[b,i] * x[b,i]             # <<<<<<<<<<<<<<
@@ -3624,7 +3624,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_12_comput
     }
   }
 
-  /* "fm/second_order/second_order_fast_inner.pyx":17
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":17
  * 
  * @cython.boundscheck(False)
  * def _compute_sop_sos(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -3644,9 +3644,9 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_12_comput
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_1__pyx_pw_2fm_12second_order_23second_order_fast_inner_15_compute_sop_sos(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_1__pyx_mdef_2fm_12second_order_23second_order_fast_inner_15_compute_sop_sos = {"__pyx_fuse_1_compute_sop_sos", (PyCFunction)__pyx_fuse_1__pyx_pw_2fm_12second_order_23second_order_fast_inner_15_compute_sop_sos, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_fuse_1__pyx_pw_2fm_12second_order_23second_order_fast_inner_15_compute_sop_sos(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_1__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_15_compute_sop_sos(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_1__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_15_compute_sop_sos = {"__pyx_fuse_1_compute_sop_sos", (PyCFunction)__pyx_fuse_1__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_15_compute_sop_sos, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_fuse_1__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_15_compute_sop_sos(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_sop = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_sos = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_x = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -3749,18 +3749,18 @@ static PyObject *__pyx_fuse_1__pyx_pw_2fm_12second_order_23second_order_fast_inn
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_compute_sop_sos", 1, 7, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 17, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("fm.second_order.second_order_fast_inner._compute_sop_sos", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("divmachines.fm.second_order.fast.second_order_fast_inner._compute_sop_sos", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_2fm_12second_order_23second_order_fast_inner_14_compute_sop_sos(__pyx_self, __pyx_v_sop, __pyx_v_sos, __pyx_v_x, __pyx_v_v, __pyx_v_n_feats, __pyx_v_n_factors, __pyx_v_batch_size);
+  __pyx_r = __pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_14_compute_sop_sos(__pyx_self, __pyx_v_sop, __pyx_v_sos, __pyx_v_x, __pyx_v_v, __pyx_v_n_feats, __pyx_v_n_factors, __pyx_v_batch_size);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_14_compute_sop_sos(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_sos, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size) {
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_14_compute_sop_sos(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_sos, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size) {
   int __pyx_v_f;
   int __pyx_v_i;
   int __pyx_v_b;
@@ -3794,7 +3794,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_14_comput
   Py_ssize_t __pyx_t_26;
   __Pyx_RefNannySetupContext("__pyx_fuse_1_compute_sop_sos", 0);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":25
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":25
  *                      int batch_size):
  *     cdef int f, i, b
  *     for b in range(batch_size):             # <<<<<<<<<<<<<<
@@ -3805,7 +3805,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_14_comput
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_b = __pyx_t_2;
 
-    /* "fm/second_order/second_order_fast_inner.pyx":26
+    /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":26
  *     cdef int f, i, b
  *     for b in range(batch_size):
  *         for f in range(n_factors):             # <<<<<<<<<<<<<<
@@ -3816,7 +3816,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_14_comput
     for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
       __pyx_v_f = __pyx_t_4;
 
-      /* "fm/second_order/second_order_fast_inner.pyx":27
+      /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":27
  *     for b in range(batch_size):
  *         for f in range(n_factors):
  *             for i in range(n_feats):             # <<<<<<<<<<<<<<
@@ -3827,7 +3827,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_14_comput
       for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
         __pyx_v_i = __pyx_t_6;
 
-        /* "fm/second_order/second_order_fast_inner.pyx":28
+        /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":28
  *         for f in range(n_factors):
  *             for i in range(n_feats):
  *                 sop[b,f] = sop[b,f] + v[i,f] * x[b,i]             # <<<<<<<<<<<<<<
@@ -3852,7 +3852,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_14_comput
         if (__pyx_t_14 < 0) __pyx_t_14 += __pyx_v_sop.shape[1];
         *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_sop.data + __pyx_t_13 * __pyx_v_sop.strides[0]) ) + __pyx_t_14 * __pyx_v_sop.strides[1]) )) = ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_sop.data + __pyx_t_7 * __pyx_v_sop.strides[0]) ) + __pyx_t_8 * __pyx_v_sop.strides[1]) ))) + ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_v.data + __pyx_t_9 * __pyx_v_v.strides[0]) ) + __pyx_t_10 * __pyx_v_v.strides[1]) ))) * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_x.data + __pyx_t_11 * __pyx_v_x.strides[0]) ) + __pyx_t_12 * __pyx_v_x.strides[1]) )))));
 
-        /* "fm/second_order/second_order_fast_inner.pyx":29
+        /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":29
  *             for i in range(n_feats):
  *                 sop[b,f] = sop[b,f] + v[i,f] * x[b,i]
  *                 sos[b,f] = sos[b,f] + v[i,f] * v[i,f] * x[b,i] * x[b,i]             # <<<<<<<<<<<<<<
@@ -3888,7 +3888,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_14_comput
     }
   }
 
-  /* "fm/second_order/second_order_fast_inner.pyx":17
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":17
  * 
  * @cython.boundscheck(False)
  * def _compute_sop_sos(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -3907,7 +3907,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_14_comput
   return __pyx_r;
 }
 
-/* "fm/second_order/second_order_fast_inner.pyx":33
+/* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":33
  * 
  * @cython.boundscheck(False)
  * def _compute_output(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -3916,9 +3916,9 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_14_comput
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_2fm_12second_order_23second_order_fast_inner_3_compute_output(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_2fm_12second_order_23second_order_fast_inner_3_compute_output = {"_compute_output", (PyCFunction)__pyx_pw_2fm_12second_order_23second_order_fast_inner_3_compute_output, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_2fm_12second_order_23second_order_fast_inner_3_compute_output(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_3_compute_output(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_3_compute_output = {"_compute_output", (PyCFunction)__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_3_compute_output, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_3_compute_output(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_signatures = 0;
   PyObject *__pyx_v_args = 0;
   PyObject *__pyx_v_kwargs = 0;
@@ -3988,18 +3988,18 @@ static PyObject *__pyx_pw_2fm_12second_order_23second_order_fast_inner_3_compute
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 33, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("fm.second_order.second_order_fast_inner.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("divmachines.fm.second_order.fast.second_order_fast_inner.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_2fm_12second_order_23second_order_fast_inner_2_compute_output(__pyx_self, __pyx_v_signatures, __pyx_v_args, __pyx_v_kwargs, __pyx_v_defaults);
+  __pyx_r = __pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_2_compute_output(__pyx_self, __pyx_v_signatures, __pyx_v_args, __pyx_v_kwargs, __pyx_v_defaults);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_2_compute_output(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults) {
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_2_compute_output(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults) {
   PyObject *__pyx_v_dest_sig = NULL;
   Py_ssize_t __pyx_v_i;
   PyTypeObject *__pyx_v_ndarray = 0;
@@ -4608,7 +4608,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_2_compute
   __Pyx_XDECREF(__pyx_t_9);
   __Pyx_XDECREF(__pyx_t_11);
   __Pyx_XDECREF(__pyx_t_12);
-  __Pyx_AddTraceback("fm.second_order.second_order_fast_inner.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("divmachines.fm.second_order.fast.second_order_fast_inner.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_dest_sig);
@@ -4631,9 +4631,9 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_2_compute
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_0__pyx_pw_2fm_12second_order_23second_order_fast_inner_19_compute_output(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_0__pyx_mdef_2fm_12second_order_23second_order_fast_inner_19_compute_output = {"__pyx_fuse_0_compute_output", (PyCFunction)__pyx_fuse_0__pyx_pw_2fm_12second_order_23second_order_fast_inner_19_compute_output, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_fuse_0__pyx_pw_2fm_12second_order_23second_order_fast_inner_19_compute_output(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_0__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_19_compute_output(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_0__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_19_compute_output = {"__pyx_fuse_0_compute_output", (PyCFunction)__pyx_fuse_0__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_19_compute_output, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_fuse_0__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_19_compute_output(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_sop = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_sos = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_n_factors;
@@ -4714,18 +4714,18 @@ static PyObject *__pyx_fuse_0__pyx_pw_2fm_12second_order_23second_order_fast_inn
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_compute_output", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 33, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("fm.second_order.second_order_fast_inner._compute_output", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("divmachines.fm.second_order.fast.second_order_fast_inner._compute_output", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_2fm_12second_order_23second_order_fast_inner_18_compute_output(__pyx_self, __pyx_v_sop, __pyx_v_sos, __pyx_v_n_factors, __pyx_v_batch_size, __pyx_v_output);
+  __pyx_r = __pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_18_compute_output(__pyx_self, __pyx_v_sop, __pyx_v_sos, __pyx_v_n_factors, __pyx_v_batch_size, __pyx_v_output);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_18_compute_output(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_sos, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_output) {
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_18_compute_output(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_sos, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_output) {
   int __pyx_v_f;
   int __pyx_v_b;
   PyObject *__pyx_r = NULL;
@@ -4746,7 +4746,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_18_comput
   Py_ssize_t __pyx_t_14;
   __Pyx_RefNannySetupContext("__pyx_fuse_0_compute_output", 0);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":39
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":39
  *                     floating[:] output):
  *     cdef int f, b
  *     for b in range(batch_size):             # <<<<<<<<<<<<<<
@@ -4757,7 +4757,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_18_comput
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_b = __pyx_t_2;
 
-    /* "fm/second_order/second_order_fast_inner.pyx":40
+    /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":40
  *     cdef int f, b
  *     for b in range(batch_size):
  *         for f in range(n_factors):             # <<<<<<<<<<<<<<
@@ -4768,7 +4768,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_18_comput
     for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
       __pyx_v_f = __pyx_t_4;
 
-      /* "fm/second_order/second_order_fast_inner.pyx":41
+      /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":41
  *     for b in range(batch_size):
  *         for f in range(n_factors):
  *             output[b] = output[b] + sop[b,f] * sop[b,f] - sos[b,f]             # <<<<<<<<<<<<<<
@@ -4794,7 +4794,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_18_comput
       *((float *) ( /* dim=0 */ (__pyx_v_output.data + __pyx_t_12 * __pyx_v_output.strides[0]) )) = (((*((float *) ( /* dim=0 */ (__pyx_v_output.data + __pyx_t_5 * __pyx_v_output.strides[0]) ))) + ((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_sop.data + __pyx_t_6 * __pyx_v_sop.strides[0]) ) + __pyx_t_7 * __pyx_v_sop.strides[1]) ))) * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_sop.data + __pyx_t_8 * __pyx_v_sop.strides[0]) ) + __pyx_t_9 * __pyx_v_sop.strides[1]) ))))) - (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_sos.data + __pyx_t_10 * __pyx_v_sos.strides[0]) ) + __pyx_t_11 * __pyx_v_sos.strides[1]) ))));
     }
 
-    /* "fm/second_order/second_order_fast_inner.pyx":42
+    /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":42
  *         for f in range(n_factors):
  *             output[b] = output[b] + sop[b,f] * sop[b,f] - sos[b,f]
  *         output[b] = output[b] * .5             # <<<<<<<<<<<<<<
@@ -4808,7 +4808,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_18_comput
     *((float *) ( /* dim=0 */ (__pyx_v_output.data + __pyx_t_14 * __pyx_v_output.strides[0]) )) = ((*((float *) ( /* dim=0 */ (__pyx_v_output.data + __pyx_t_13 * __pyx_v_output.strides[0]) ))) * .5);
   }
 
-  /* "fm/second_order/second_order_fast_inner.pyx":33
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":33
  * 
  * @cython.boundscheck(False)
  * def _compute_output(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -4827,9 +4827,9 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_18_comput
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_1__pyx_pw_2fm_12second_order_23second_order_fast_inner_21_compute_output(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_1__pyx_mdef_2fm_12second_order_23second_order_fast_inner_21_compute_output = {"__pyx_fuse_1_compute_output", (PyCFunction)__pyx_fuse_1__pyx_pw_2fm_12second_order_23second_order_fast_inner_21_compute_output, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_fuse_1__pyx_pw_2fm_12second_order_23second_order_fast_inner_21_compute_output(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_1__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_21_compute_output(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_1__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_21_compute_output = {"__pyx_fuse_1_compute_output", (PyCFunction)__pyx_fuse_1__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_21_compute_output, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_fuse_1__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_21_compute_output(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_sop = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_sos = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_n_factors;
@@ -4910,18 +4910,18 @@ static PyObject *__pyx_fuse_1__pyx_pw_2fm_12second_order_23second_order_fast_inn
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_compute_output", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 33, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("fm.second_order.second_order_fast_inner._compute_output", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("divmachines.fm.second_order.fast.second_order_fast_inner._compute_output", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_2fm_12second_order_23second_order_fast_inner_20_compute_output(__pyx_self, __pyx_v_sop, __pyx_v_sos, __pyx_v_n_factors, __pyx_v_batch_size, __pyx_v_output);
+  __pyx_r = __pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_20_compute_output(__pyx_self, __pyx_v_sop, __pyx_v_sos, __pyx_v_n_factors, __pyx_v_batch_size, __pyx_v_output);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_20_compute_output(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_sos, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_output) {
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_20_compute_output(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_sos, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_output) {
   int __pyx_v_f;
   int __pyx_v_b;
   PyObject *__pyx_r = NULL;
@@ -4942,7 +4942,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_20_comput
   Py_ssize_t __pyx_t_14;
   __Pyx_RefNannySetupContext("__pyx_fuse_1_compute_output", 0);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":39
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":39
  *                     floating[:] output):
  *     cdef int f, b
  *     for b in range(batch_size):             # <<<<<<<<<<<<<<
@@ -4953,7 +4953,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_20_comput
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_b = __pyx_t_2;
 
-    /* "fm/second_order/second_order_fast_inner.pyx":40
+    /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":40
  *     cdef int f, b
  *     for b in range(batch_size):
  *         for f in range(n_factors):             # <<<<<<<<<<<<<<
@@ -4964,7 +4964,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_20_comput
     for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
       __pyx_v_f = __pyx_t_4;
 
-      /* "fm/second_order/second_order_fast_inner.pyx":41
+      /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":41
  *     for b in range(batch_size):
  *         for f in range(n_factors):
  *             output[b] = output[b] + sop[b,f] * sop[b,f] - sos[b,f]             # <<<<<<<<<<<<<<
@@ -4990,7 +4990,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_20_comput
       *((double *) ( /* dim=0 */ (__pyx_v_output.data + __pyx_t_12 * __pyx_v_output.strides[0]) )) = (((*((double *) ( /* dim=0 */ (__pyx_v_output.data + __pyx_t_5 * __pyx_v_output.strides[0]) ))) + ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_sop.data + __pyx_t_6 * __pyx_v_sop.strides[0]) ) + __pyx_t_7 * __pyx_v_sop.strides[1]) ))) * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_sop.data + __pyx_t_8 * __pyx_v_sop.strides[0]) ) + __pyx_t_9 * __pyx_v_sop.strides[1]) ))))) - (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_sos.data + __pyx_t_10 * __pyx_v_sos.strides[0]) ) + __pyx_t_11 * __pyx_v_sos.strides[1]) ))));
     }
 
-    /* "fm/second_order/second_order_fast_inner.pyx":42
+    /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":42
  *         for f in range(n_factors):
  *             output[b] = output[b] + sop[b,f] * sop[b,f] - sos[b,f]
  *         output[b] = output[b] * .5             # <<<<<<<<<<<<<<
@@ -5004,7 +5004,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_20_comput
     *((double *) ( /* dim=0 */ (__pyx_v_output.data + __pyx_t_14 * __pyx_v_output.strides[0]) )) = ((*((double *) ( /* dim=0 */ (__pyx_v_output.data + __pyx_t_13 * __pyx_v_output.strides[0]) ))) * .5);
   }
 
-  /* "fm/second_order/second_order_fast_inner.pyx":33
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":33
  * 
  * @cython.boundscheck(False)
  * def _compute_output(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -5022,7 +5022,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_20_comput
   return __pyx_r;
 }
 
-/* "fm/second_order/second_order_fast_inner.pyx":44
+/* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":44
  *         output[b] = output[b] * .5
  * 
  * def fast_forward(self, x, v):             # <<<<<<<<<<<<<<
@@ -5031,9 +5031,9 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_20_comput
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_2fm_12second_order_23second_order_fast_inner_5fast_forward(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_2fm_12second_order_23second_order_fast_inner_5fast_forward = {"fast_forward", (PyCFunction)__pyx_pw_2fm_12second_order_23second_order_fast_inner_5fast_forward, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_2fm_12second_order_23second_order_fast_inner_5fast_forward(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_5fast_forward(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_5fast_forward = {"fast_forward", (PyCFunction)__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_5fast_forward, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_5fast_forward(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_self = 0;
   PyObject *__pyx_v_x = 0;
   PyObject *__pyx_v_v = 0;
@@ -5092,18 +5092,18 @@ static PyObject *__pyx_pw_2fm_12second_order_23second_order_fast_inner_5fast_for
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("fast_forward", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 44, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("fm.second_order.second_order_fast_inner.fast_forward", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("divmachines.fm.second_order.fast.second_order_fast_inner.fast_forward", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_forward(__pyx_self, __pyx_v_self, __pyx_v_x, __pyx_v_v);
+  __pyx_r = __pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_4fast_forward(__pyx_self, __pyx_v_self, __pyx_v_x, __pyx_v_v);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_forward(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_x, PyObject *__pyx_v_v) {
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_4fast_forward(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_x, PyObject *__pyx_v_v) {
   PyObject *__pyx_v_output_factor = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -5121,7 +5121,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   PyObject *__pyx_t_12 = NULL;
   __Pyx_RefNannySetupContext("fast_forward", 0);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":45
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":45
  * 
  * def fast_forward(self, x, v):
  *     self.x = x             # <<<<<<<<<<<<<<
@@ -5130,7 +5130,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_x, __pyx_v_x) < 0) __PYX_ERR(0, 45, __pyx_L1_error)
 
-  /* "fm/second_order/second_order_fast_inner.pyx":46
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":46
  * def fast_forward(self, x, v):
  *     self.x = x
  *     self.v = v             # <<<<<<<<<<<<<<
@@ -5139,7 +5139,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_v, __pyx_v_v) < 0) __PYX_ERR(0, 46, __pyx_L1_error)
 
-  /* "fm/second_order/second_order_fast_inner.pyx":48
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":48
  *     self.v = v
  * 
  *     self.batch_size = x.size()[0]             # <<<<<<<<<<<<<<
@@ -5172,7 +5172,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_batch_size, __pyx_t_2) < 0) __PYX_ERR(0, 48, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":49
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":49
  * 
  *     self.batch_size = x.size()[0]
  *     self.n_feats = x.size()[-1]             # <<<<<<<<<<<<<<
@@ -5205,7 +5205,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_n_feats, __pyx_t_1) < 0) __PYX_ERR(0, 49, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":50
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":50
  *     self.batch_size = x.size()[0]
  *     self.n_feats = x.size()[-1]
  *     self.n_factors = v.size()[-1]             # <<<<<<<<<<<<<<
@@ -5238,7 +5238,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_n_factors, __pyx_t_2) < 0) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":53
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":53
  * 
  *     # compute the sum of products for each feature
  *     self.sum_of_products = np.zeros((self.batch_size, self.n_factors),             # <<<<<<<<<<<<<<
@@ -5268,7 +5268,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":54
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":54
  *     # compute the sum of products for each feature
  *     self.sum_of_products = np.zeros((self.batch_size, self.n_factors),
  *                                     dtype=self.x.numpy().dtype)             # <<<<<<<<<<<<<<
@@ -5306,7 +5306,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 54, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":53
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":53
  * 
  *     # compute the sum of products for each feature
  *     self.sum_of_products = np.zeros((self.batch_size, self.n_factors),             # <<<<<<<<<<<<<<
@@ -5321,7 +5321,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_sum_of_products, __pyx_t_6) < 0) __PYX_ERR(0, 53, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":55
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":55
  *     self.sum_of_products = np.zeros((self.batch_size, self.n_factors),
  *                                     dtype=self.x.numpy().dtype)
  *     self.sum_of_squares = np.zeros((self.batch_size, self.n_factors),             # <<<<<<<<<<<<<<
@@ -5351,7 +5351,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":56
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":56
  *                                     dtype=self.x.numpy().dtype)
  *     self.sum_of_squares = np.zeros((self.batch_size, self.n_factors),
  *                                    dtype=self.x.numpy().dtype)             # <<<<<<<<<<<<<<
@@ -5389,7 +5389,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 56, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":55
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":55
  *     self.sum_of_products = np.zeros((self.batch_size, self.n_factors),
  *                                     dtype=self.x.numpy().dtype)
  *     self.sum_of_squares = np.zeros((self.batch_size, self.n_factors),             # <<<<<<<<<<<<<<
@@ -5404,7 +5404,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_sum_of_squares, __pyx_t_5) < 0) __PYX_ERR(0, 55, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":58
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":58
  *                                    dtype=self.x.numpy().dtype)
  * 
  *     _compute_sop_sos(self.sum_of_products,             # <<<<<<<<<<<<<<
@@ -5416,7 +5416,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_sum_of_products); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":59
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":59
  * 
  *     _compute_sop_sos(self.sum_of_products,
  *                      self.sum_of_squares,             # <<<<<<<<<<<<<<
@@ -5426,7 +5426,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_sum_of_squares); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 59, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":60
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":60
  *     _compute_sop_sos(self.sum_of_products,
  *                      self.sum_of_squares,
  *                      self.x.numpy(),             # <<<<<<<<<<<<<<
@@ -5457,7 +5457,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":61
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":61
  *                      self.sum_of_squares,
  *                      self.x.numpy(),
  *                      self.v.numpy(),             # <<<<<<<<<<<<<<
@@ -5488,7 +5488,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":62
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":62
  *                      self.x.numpy(),
  *                      self.v.numpy(),
  *                      self.n_feats,             # <<<<<<<<<<<<<<
@@ -5498,7 +5498,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_feats); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 62, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":63
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":63
  *                      self.v.numpy(),
  *                      self.n_feats,
  *                      self.n_factors,             # <<<<<<<<<<<<<<
@@ -5508,7 +5508,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_factors); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 63, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":64
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":64
  *                      self.n_feats,
  *                      self.n_factors,
  *                      self.batch_size)             # <<<<<<<<<<<<<<
@@ -5593,7 +5593,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":66
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":66
  *                      self.batch_size)
  * 
  *     output_factor = np.zeros(self.batch_size,             # <<<<<<<<<<<<<<
@@ -5613,7 +5613,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_5);
   __pyx_t_5 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":67
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":67
  * 
  *     output_factor = np.zeros(self.batch_size,
  *                              dtype=self.x.numpy().dtype)             # <<<<<<<<<<<<<<
@@ -5651,7 +5651,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_8) < 0) __PYX_ERR(0, 67, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":66
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":66
  *                      self.batch_size)
  * 
  *     output_factor = np.zeros(self.batch_size,             # <<<<<<<<<<<<<<
@@ -5666,7 +5666,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   __pyx_v_output_factor = __pyx_t_8;
   __pyx_t_8 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":69
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":69
  *                              dtype=self.x.numpy().dtype)
  * 
  *     _compute_output(self.sum_of_products,             # <<<<<<<<<<<<<<
@@ -5678,7 +5678,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_sum_of_products); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_12);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":70
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":70
  * 
  *     _compute_output(self.sum_of_products,
  *                     self.sum_of_squares,             # <<<<<<<<<<<<<<
@@ -5688,7 +5688,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_sum_of_squares); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":71
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":71
  *     _compute_output(self.sum_of_products,
  *                     self.sum_of_squares,
  *                     self.n_factors,             # <<<<<<<<<<<<<<
@@ -5698,7 +5698,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_factors); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":72
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":72
  *                     self.sum_of_squares,
  *                     self.n_factors,
  *                     self.batch_size,             # <<<<<<<<<<<<<<
@@ -5708,7 +5708,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_batch_size); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 72, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":73
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":73
  *                     self.n_factors,
  *                     self.batch_size,
  *                     output_factor)             # <<<<<<<<<<<<<<
@@ -5779,7 +5779,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":75
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":75
  *                     output_factor)
  * 
  *     return torch.from_numpy(output_factor).unsqueeze(-1)             # <<<<<<<<<<<<<<
@@ -5845,7 +5845,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   __pyx_t_8 = 0;
   goto __pyx_L0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":44
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":44
  *         output[b] = output[b] * .5
  * 
  * def fast_forward(self, x, v):             # <<<<<<<<<<<<<<
@@ -5866,7 +5866,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   __Pyx_XDECREF(__pyx_t_9);
   __Pyx_XDECREF(__pyx_t_10);
   __Pyx_XDECREF(__pyx_t_12);
-  __Pyx_AddTraceback("fm.second_order.second_order_fast_inner.fast_forward", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("divmachines.fm.second_order.fast.second_order_fast_inner.fast_forward", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_output_factor);
@@ -5875,7 +5875,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
   return __pyx_r;
 }
 
-/* "fm/second_order/second_order_fast_inner.pyx":82
+/* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":82
  * 
  * @cython.boundscheck(False)
  * def _compute_grad_input(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -5884,9 +5884,9 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_4fast_for
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_2fm_12second_order_23second_order_fast_inner_7_compute_grad_input(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_2fm_12second_order_23second_order_fast_inner_7_compute_grad_input = {"_compute_grad_input", (PyCFunction)__pyx_pw_2fm_12second_order_23second_order_fast_inner_7_compute_grad_input, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_2fm_12second_order_23second_order_fast_inner_7_compute_grad_input(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_7_compute_grad_input(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_7_compute_grad_input = {"_compute_grad_input", (PyCFunction)__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_7_compute_grad_input, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_7_compute_grad_input(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_signatures = 0;
   PyObject *__pyx_v_args = 0;
   PyObject *__pyx_v_kwargs = 0;
@@ -5956,18 +5956,18 @@ static PyObject *__pyx_pw_2fm_12second_order_23second_order_fast_inner_7_compute
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 82, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("fm.second_order.second_order_fast_inner.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("divmachines.fm.second_order.fast.second_order_fast_inner.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_2fm_12second_order_23second_order_fast_inner_6_compute_grad_input(__pyx_self, __pyx_v_signatures, __pyx_v_args, __pyx_v_kwargs, __pyx_v_defaults);
+  __pyx_r = __pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_6_compute_grad_input(__pyx_self, __pyx_v_signatures, __pyx_v_args, __pyx_v_kwargs, __pyx_v_defaults);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_6_compute_grad_input(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults) {
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_6_compute_grad_input(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults) {
   PyObject *__pyx_v_dest_sig = NULL;
   Py_ssize_t __pyx_v_i;
   PyTypeObject *__pyx_v_ndarray = 0;
@@ -6576,7 +6576,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_6_compute
   __Pyx_XDECREF(__pyx_t_9);
   __Pyx_XDECREF(__pyx_t_11);
   __Pyx_XDECREF(__pyx_t_12);
-  __Pyx_AddTraceback("fm.second_order.second_order_fast_inner.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("divmachines.fm.second_order.fast.second_order_fast_inner.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_dest_sig);
@@ -6599,9 +6599,9 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_6_compute
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_0__pyx_pw_2fm_12second_order_23second_order_fast_inner_25_compute_grad_input(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_0__pyx_mdef_2fm_12second_order_23second_order_fast_inner_25_compute_grad_input = {"__pyx_fuse_0_compute_grad_input", (PyCFunction)__pyx_fuse_0__pyx_pw_2fm_12second_order_23second_order_fast_inner_25_compute_grad_input, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_fuse_0__pyx_pw_2fm_12second_order_23second_order_fast_inner_25_compute_grad_input(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_0__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_25_compute_grad_input(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_0__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_25_compute_grad_input = {"__pyx_fuse_0_compute_grad_input", (PyCFunction)__pyx_fuse_0__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_25_compute_grad_input, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_fuse_0__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_25_compute_grad_input(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_sop = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_x = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_v = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -6704,18 +6704,18 @@ static PyObject *__pyx_fuse_0__pyx_pw_2fm_12second_order_23second_order_fast_inn
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_compute_grad_input", 1, 7, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 82, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("fm.second_order.second_order_fast_inner._compute_grad_input", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("divmachines.fm.second_order.fast.second_order_fast_inner._compute_grad_input", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_2fm_12second_order_23second_order_fast_inner_24_compute_grad_input(__pyx_self, __pyx_v_sop, __pyx_v_x, __pyx_v_v, __pyx_v_n_feats, __pyx_v_n_factors, __pyx_v_batch_size, __pyx_v_tgi);
+  __pyx_r = __pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_24_compute_grad_input(__pyx_self, __pyx_v_sop, __pyx_v_x, __pyx_v_v, __pyx_v_n_feats, __pyx_v_n_factors, __pyx_v_batch_size, __pyx_v_tgi);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_24_compute_grad_input(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_tgi) {
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_24_compute_grad_input(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_tgi) {
   int __pyx_v_f;
   int __pyx_v_i;
   int __pyx_v_b;
@@ -6747,7 +6747,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_24_comput
   Py_ssize_t __pyx_t_24;
   __Pyx_RefNannySetupContext("__pyx_fuse_0_compute_grad_input", 0);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":90
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":90
  *                         floating[:,:] tgi):
  *     cdef int f,i,b
  *     for b in range(batch_size):             # <<<<<<<<<<<<<<
@@ -6758,7 +6758,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_24_comput
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_b = __pyx_t_2;
 
-    /* "fm/second_order/second_order_fast_inner.pyx":91
+    /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":91
  *     cdef int f,i,b
  *     for b in range(batch_size):
  *         for i in range(n_feats):             # <<<<<<<<<<<<<<
@@ -6769,7 +6769,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_24_comput
     for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
       __pyx_v_i = __pyx_t_4;
 
-      /* "fm/second_order/second_order_fast_inner.pyx":92
+      /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":92
  *     for b in range(batch_size):
  *         for i in range(n_feats):
  *             for f in range(n_factors):             # <<<<<<<<<<<<<<
@@ -6780,7 +6780,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_24_comput
       for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
         __pyx_v_f = __pyx_t_6;
 
-        /* "fm/second_order/second_order_fast_inner.pyx":93
+        /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":93
  *         for i in range(n_feats):
  *             for f in range(n_factors):
  *                 tgi[b,i] = tgi[b,i] + sop[b,f] * v[i,f]             # <<<<<<<<<<<<<<
@@ -6805,7 +6805,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_24_comput
         if (__pyx_t_14 < 0) __pyx_t_14 += __pyx_v_tgi.shape[1];
         *((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_tgi.data + __pyx_t_13 * __pyx_v_tgi.strides[0]) ) + __pyx_t_14 * __pyx_v_tgi.strides[1]) )) = ((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_tgi.data + __pyx_t_7 * __pyx_v_tgi.strides[0]) ) + __pyx_t_8 * __pyx_v_tgi.strides[1]) ))) + ((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_sop.data + __pyx_t_9 * __pyx_v_sop.strides[0]) ) + __pyx_t_10 * __pyx_v_sop.strides[1]) ))) * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_v.data + __pyx_t_11 * __pyx_v_v.strides[0]) ) + __pyx_t_12 * __pyx_v_v.strides[1]) )))));
 
-        /* "fm/second_order/second_order_fast_inner.pyx":94
+        /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":94
  *             for f in range(n_factors):
  *                 tgi[b,i] = tgi[b,i] + sop[b,f] * v[i,f]
  *                 tgi[b,i] = tgi[b,i] - x[b,i] * v[i,f] * v[i,f]             # <<<<<<<<<<<<<<
@@ -6837,7 +6837,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_24_comput
     }
   }
 
-  /* "fm/second_order/second_order_fast_inner.pyx":82
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":82
  * 
  * @cython.boundscheck(False)
  * def _compute_grad_input(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -6857,9 +6857,9 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_24_comput
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_1__pyx_pw_2fm_12second_order_23second_order_fast_inner_27_compute_grad_input(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_1__pyx_mdef_2fm_12second_order_23second_order_fast_inner_27_compute_grad_input = {"__pyx_fuse_1_compute_grad_input", (PyCFunction)__pyx_fuse_1__pyx_pw_2fm_12second_order_23second_order_fast_inner_27_compute_grad_input, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_fuse_1__pyx_pw_2fm_12second_order_23second_order_fast_inner_27_compute_grad_input(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_1__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_27_compute_grad_input(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_1__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_27_compute_grad_input = {"__pyx_fuse_1_compute_grad_input", (PyCFunction)__pyx_fuse_1__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_27_compute_grad_input, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_fuse_1__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_27_compute_grad_input(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_sop = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_x = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_v = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -6962,18 +6962,18 @@ static PyObject *__pyx_fuse_1__pyx_pw_2fm_12second_order_23second_order_fast_inn
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_compute_grad_input", 1, 7, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 82, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("fm.second_order.second_order_fast_inner._compute_grad_input", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("divmachines.fm.second_order.fast.second_order_fast_inner._compute_grad_input", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_2fm_12second_order_23second_order_fast_inner_26_compute_grad_input(__pyx_self, __pyx_v_sop, __pyx_v_x, __pyx_v_v, __pyx_v_n_feats, __pyx_v_n_factors, __pyx_v_batch_size, __pyx_v_tgi);
+  __pyx_r = __pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_26_compute_grad_input(__pyx_self, __pyx_v_sop, __pyx_v_x, __pyx_v_v, __pyx_v_n_feats, __pyx_v_n_factors, __pyx_v_batch_size, __pyx_v_tgi);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_26_compute_grad_input(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_tgi) {
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_26_compute_grad_input(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_tgi) {
   int __pyx_v_f;
   int __pyx_v_i;
   int __pyx_v_b;
@@ -7005,7 +7005,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_26_comput
   Py_ssize_t __pyx_t_24;
   __Pyx_RefNannySetupContext("__pyx_fuse_1_compute_grad_input", 0);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":90
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":90
  *                         floating[:,:] tgi):
  *     cdef int f,i,b
  *     for b in range(batch_size):             # <<<<<<<<<<<<<<
@@ -7016,7 +7016,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_26_comput
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_b = __pyx_t_2;
 
-    /* "fm/second_order/second_order_fast_inner.pyx":91
+    /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":91
  *     cdef int f,i,b
  *     for b in range(batch_size):
  *         for i in range(n_feats):             # <<<<<<<<<<<<<<
@@ -7027,7 +7027,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_26_comput
     for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
       __pyx_v_i = __pyx_t_4;
 
-      /* "fm/second_order/second_order_fast_inner.pyx":92
+      /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":92
  *     for b in range(batch_size):
  *         for i in range(n_feats):
  *             for f in range(n_factors):             # <<<<<<<<<<<<<<
@@ -7038,7 +7038,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_26_comput
       for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
         __pyx_v_f = __pyx_t_6;
 
-        /* "fm/second_order/second_order_fast_inner.pyx":93
+        /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":93
  *         for i in range(n_feats):
  *             for f in range(n_factors):
  *                 tgi[b,i] = tgi[b,i] + sop[b,f] * v[i,f]             # <<<<<<<<<<<<<<
@@ -7063,7 +7063,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_26_comput
         if (__pyx_t_14 < 0) __pyx_t_14 += __pyx_v_tgi.shape[1];
         *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_tgi.data + __pyx_t_13 * __pyx_v_tgi.strides[0]) ) + __pyx_t_14 * __pyx_v_tgi.strides[1]) )) = ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_tgi.data + __pyx_t_7 * __pyx_v_tgi.strides[0]) ) + __pyx_t_8 * __pyx_v_tgi.strides[1]) ))) + ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_sop.data + __pyx_t_9 * __pyx_v_sop.strides[0]) ) + __pyx_t_10 * __pyx_v_sop.strides[1]) ))) * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_v.data + __pyx_t_11 * __pyx_v_v.strides[0]) ) + __pyx_t_12 * __pyx_v_v.strides[1]) )))));
 
-        /* "fm/second_order/second_order_fast_inner.pyx":94
+        /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":94
  *             for f in range(n_factors):
  *                 tgi[b,i] = tgi[b,i] + sop[b,f] * v[i,f]
  *                 tgi[b,i] = tgi[b,i] - x[b,i] * v[i,f] * v[i,f]             # <<<<<<<<<<<<<<
@@ -7095,7 +7095,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_26_comput
     }
   }
 
-  /* "fm/second_order/second_order_fast_inner.pyx":82
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":82
  * 
  * @cython.boundscheck(False)
  * def _compute_grad_input(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -7114,7 +7114,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_26_comput
   return __pyx_r;
 }
 
-/* "fm/second_order/second_order_fast_inner.pyx":98
+/* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":98
  * 
  * @cython.boundscheck(False)
  * def _compute_grad_v(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -7123,9 +7123,9 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_26_comput
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_2fm_12second_order_23second_order_fast_inner_9_compute_grad_v(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_2fm_12second_order_23second_order_fast_inner_9_compute_grad_v = {"_compute_grad_v", (PyCFunction)__pyx_pw_2fm_12second_order_23second_order_fast_inner_9_compute_grad_v, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_2fm_12second_order_23second_order_fast_inner_9_compute_grad_v(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_9_compute_grad_v(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_9_compute_grad_v = {"_compute_grad_v", (PyCFunction)__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_9_compute_grad_v, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_9_compute_grad_v(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_signatures = 0;
   PyObject *__pyx_v_args = 0;
   PyObject *__pyx_v_kwargs = 0;
@@ -7195,18 +7195,18 @@ static PyObject *__pyx_pw_2fm_12second_order_23second_order_fast_inner_9_compute
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 98, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("fm.second_order.second_order_fast_inner.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("divmachines.fm.second_order.fast.second_order_fast_inner.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_2fm_12second_order_23second_order_fast_inner_8_compute_grad_v(__pyx_self, __pyx_v_signatures, __pyx_v_args, __pyx_v_kwargs, __pyx_v_defaults);
+  __pyx_r = __pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_8_compute_grad_v(__pyx_self, __pyx_v_signatures, __pyx_v_args, __pyx_v_kwargs, __pyx_v_defaults);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_8_compute_grad_v(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults) {
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_8_compute_grad_v(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults) {
   PyObject *__pyx_v_dest_sig = NULL;
   Py_ssize_t __pyx_v_i;
   PyTypeObject *__pyx_v_ndarray = 0;
@@ -7815,7 +7815,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_8_compute
   __Pyx_XDECREF(__pyx_t_9);
   __Pyx_XDECREF(__pyx_t_11);
   __Pyx_XDECREF(__pyx_t_12);
-  __Pyx_AddTraceback("fm.second_order.second_order_fast_inner.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("divmachines.fm.second_order.fast.second_order_fast_inner.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_dest_sig);
@@ -7838,9 +7838,9 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_8_compute
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_0__pyx_pw_2fm_12second_order_23second_order_fast_inner_31_compute_grad_v(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_0__pyx_mdef_2fm_12second_order_23second_order_fast_inner_31_compute_grad_v = {"__pyx_fuse_0_compute_grad_v", (PyCFunction)__pyx_fuse_0__pyx_pw_2fm_12second_order_23second_order_fast_inner_31_compute_grad_v, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_fuse_0__pyx_pw_2fm_12second_order_23second_order_fast_inner_31_compute_grad_v(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_0__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_31_compute_grad_v(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_0__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_31_compute_grad_v = {"__pyx_fuse_0_compute_grad_v", (PyCFunction)__pyx_fuse_0__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_31_compute_grad_v, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_fuse_0__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_31_compute_grad_v(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_sop = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_x = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_v = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -7954,18 +7954,18 @@ static PyObject *__pyx_fuse_0__pyx_pw_2fm_12second_order_23second_order_fast_inn
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_compute_grad_v", 1, 8, 8, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 98, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("fm.second_order.second_order_fast_inner._compute_grad_v", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("divmachines.fm.second_order.fast.second_order_fast_inner._compute_grad_v", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_2fm_12second_order_23second_order_fast_inner_30_compute_grad_v(__pyx_self, __pyx_v_sop, __pyx_v_x, __pyx_v_v, __pyx_v_dLdy, __pyx_v_n_feats, __pyx_v_n_factors, __pyx_v_batch_size, __pyx_v_grad_v);
+  __pyx_r = __pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_30_compute_grad_v(__pyx_self, __pyx_v_sop, __pyx_v_x, __pyx_v_v, __pyx_v_dLdy, __pyx_v_n_feats, __pyx_v_n_factors, __pyx_v_batch_size, __pyx_v_grad_v);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_30_compute_grad_v(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, __Pyx_memviewslice __pyx_v_dLdy, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_grad_v) {
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_30_compute_grad_v(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, __Pyx_memviewslice __pyx_v_dLdy, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_grad_v) {
   int __pyx_v_f;
   int __pyx_v_i;
   int __pyx_v_b;
@@ -7993,7 +7993,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_30_comput
   Py_ssize_t __pyx_t_20;
   __Pyx_RefNannySetupContext("__pyx_fuse_0_compute_grad_v", 0);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":107
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":107
  *                     floating[:,:] grad_v):
  *     cdef int f,i,b
  *     for i in range(n_feats):             # <<<<<<<<<<<<<<
@@ -8004,7 +8004,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_30_comput
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_i = __pyx_t_2;
 
-    /* "fm/second_order/second_order_fast_inner.pyx":108
+    /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":108
  *     cdef int f,i,b
  *     for i in range(n_feats):
  *         for f in range(n_factors):             # <<<<<<<<<<<<<<
@@ -8015,7 +8015,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_30_comput
     for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
       __pyx_v_f = __pyx_t_4;
 
-      /* "fm/second_order/second_order_fast_inner.pyx":109
+      /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":109
  *     for i in range(n_feats):
  *         for f in range(n_factors):
  *             for b in range(batch_size):             # <<<<<<<<<<<<<<
@@ -8026,7 +8026,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_30_comput
       for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
         __pyx_v_b = __pyx_t_6;
 
-        /* "fm/second_order/second_order_fast_inner.pyx":110
+        /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":110
  *         for f in range(n_factors):
  *             for b in range(batch_size):
  *                 grad_v[i,f] += (x[b,i] * sop[b,f] - v[i,f] * x[b,i] * x[b,i]) * dLdy[b,0]             # <<<<<<<<<<<<<<
@@ -8066,7 +8066,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_30_comput
     }
   }
 
-  /* "fm/second_order/second_order_fast_inner.pyx":98
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":98
  * 
  * @cython.boundscheck(False)
  * def _compute_grad_v(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -8087,9 +8087,9 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_30_comput
 }
 
 /* Python wrapper */
-static PyObject *__pyx_fuse_1__pyx_pw_2fm_12second_order_23second_order_fast_inner_33_compute_grad_v(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_1__pyx_mdef_2fm_12second_order_23second_order_fast_inner_33_compute_grad_v = {"__pyx_fuse_1_compute_grad_v", (PyCFunction)__pyx_fuse_1__pyx_pw_2fm_12second_order_23second_order_fast_inner_33_compute_grad_v, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_fuse_1__pyx_pw_2fm_12second_order_23second_order_fast_inner_33_compute_grad_v(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_fuse_1__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_33_compute_grad_v(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_1__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_33_compute_grad_v = {"__pyx_fuse_1_compute_grad_v", (PyCFunction)__pyx_fuse_1__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_33_compute_grad_v, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_fuse_1__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_33_compute_grad_v(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_sop = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_x = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_v = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -8203,18 +8203,18 @@ static PyObject *__pyx_fuse_1__pyx_pw_2fm_12second_order_23second_order_fast_inn
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("_compute_grad_v", 1, 8, 8, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 98, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("fm.second_order.second_order_fast_inner._compute_grad_v", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("divmachines.fm.second_order.fast.second_order_fast_inner._compute_grad_v", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_2fm_12second_order_23second_order_fast_inner_32_compute_grad_v(__pyx_self, __pyx_v_sop, __pyx_v_x, __pyx_v_v, __pyx_v_dLdy, __pyx_v_n_feats, __pyx_v_n_factors, __pyx_v_batch_size, __pyx_v_grad_v);
+  __pyx_r = __pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_32_compute_grad_v(__pyx_self, __pyx_v_sop, __pyx_v_x, __pyx_v_v, __pyx_v_dLdy, __pyx_v_n_feats, __pyx_v_n_factors, __pyx_v_batch_size, __pyx_v_grad_v);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_32_compute_grad_v(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, __Pyx_memviewslice __pyx_v_dLdy, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_grad_v) {
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_32_compute_grad_v(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_sop, __Pyx_memviewslice __pyx_v_x, __Pyx_memviewslice __pyx_v_v, __Pyx_memviewslice __pyx_v_dLdy, int __pyx_v_n_feats, int __pyx_v_n_factors, int __pyx_v_batch_size, __Pyx_memviewslice __pyx_v_grad_v) {
   int __pyx_v_f;
   int __pyx_v_i;
   int __pyx_v_b;
@@ -8242,7 +8242,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_32_comput
   Py_ssize_t __pyx_t_20;
   __Pyx_RefNannySetupContext("__pyx_fuse_1_compute_grad_v", 0);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":107
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":107
  *                     floating[:,:] grad_v):
  *     cdef int f,i,b
  *     for i in range(n_feats):             # <<<<<<<<<<<<<<
@@ -8253,7 +8253,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_32_comput
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
     __pyx_v_i = __pyx_t_2;
 
-    /* "fm/second_order/second_order_fast_inner.pyx":108
+    /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":108
  *     cdef int f,i,b
  *     for i in range(n_feats):
  *         for f in range(n_factors):             # <<<<<<<<<<<<<<
@@ -8264,7 +8264,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_32_comput
     for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
       __pyx_v_f = __pyx_t_4;
 
-      /* "fm/second_order/second_order_fast_inner.pyx":109
+      /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":109
  *     for i in range(n_feats):
  *         for f in range(n_factors):
  *             for b in range(batch_size):             # <<<<<<<<<<<<<<
@@ -8275,7 +8275,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_32_comput
       for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
         __pyx_v_b = __pyx_t_6;
 
-        /* "fm/second_order/second_order_fast_inner.pyx":110
+        /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":110
  *         for f in range(n_factors):
  *             for b in range(batch_size):
  *                 grad_v[i,f] += (x[b,i] * sop[b,f] - v[i,f] * x[b,i] * x[b,i]) * dLdy[b,0]             # <<<<<<<<<<<<<<
@@ -8315,7 +8315,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_32_comput
     }
   }
 
-  /* "fm/second_order/second_order_fast_inner.pyx":98
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":98
  * 
  * @cython.boundscheck(False)
  * def _compute_grad_v(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -8335,7 +8335,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_32_comput
   return __pyx_r;
 }
 
-/* "fm/second_order/second_order_fast_inner.pyx":112
+/* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":112
  *                 grad_v[i,f] += (x[b,i] * sop[b,f] - v[i,f] * x[b,i] * x[b,i]) * dLdy[b,0]
  * 
  * def fast_backward(self, grad_output):             # <<<<<<<<<<<<<<
@@ -8344,9 +8344,9 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_32_comput
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_2fm_12second_order_23second_order_fast_inner_11fast_backward(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_2fm_12second_order_23second_order_fast_inner_11fast_backward = {"fast_backward", (PyCFunction)__pyx_pw_2fm_12second_order_23second_order_fast_inner_11fast_backward, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_2fm_12second_order_23second_order_fast_inner_11fast_backward(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_11fast_backward(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_11fast_backward = {"fast_backward", (PyCFunction)__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_11fast_backward, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_11fast_backward(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_self = 0;
   PyObject *__pyx_v_grad_output = 0;
   PyObject *__pyx_r = 0;
@@ -8394,18 +8394,18 @@ static PyObject *__pyx_pw_2fm_12second_order_23second_order_fast_inner_11fast_ba
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("fast_backward", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 112, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("fm.second_order.second_order_fast_inner.fast_backward", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("divmachines.fm.second_order.fast.second_order_fast_inner.fast_backward", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_backward(__pyx_self, __pyx_v_self, __pyx_v_grad_output);
+  __pyx_r = __pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_10fast_backward(__pyx_self, __pyx_v_self, __pyx_v_grad_output);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_backward(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_grad_output) {
+static PyObject *__pyx_pf_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_10fast_backward(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_grad_output) {
   PyObject *__pyx_v_grad_input = NULL;
   PyObject *__pyx_v_grad_v = NULL;
   PyObject *__pyx_r = NULL;
@@ -8425,7 +8425,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_ba
   PyObject *__pyx_t_13 = NULL;
   __Pyx_RefNannySetupContext("fast_backward", 0);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":114
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":114
  * def fast_backward(self, grad_output):
  *     # this contains d L / d x_{i,j}
  *     grad_input = grad_output.new(self.batch_size, self.n_feats).zero_()             # <<<<<<<<<<<<<<
@@ -8511,7 +8511,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_ba
   __pyx_v_grad_input = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":116
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":116
  *     grad_input = grad_output.new(self.batch_size, self.n_feats).zero_()
  * 
  *     _compute_grad_input(self.sum_of_products,             # <<<<<<<<<<<<<<
@@ -8523,7 +8523,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_ba
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_sum_of_products); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 116, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":117
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":117
  * 
  *     _compute_grad_input(self.sum_of_products,
  *                         self.x.numpy(),             # <<<<<<<<<<<<<<
@@ -8554,7 +8554,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_ba
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":118
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":118
  *     _compute_grad_input(self.sum_of_products,
  *                         self.x.numpy(),
  *                         self.v.numpy(),             # <<<<<<<<<<<<<<
@@ -8585,7 +8585,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_ba
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":119
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":119
  *                         self.x.numpy(),
  *                         self.v.numpy(),
  *                         self.n_feats,             # <<<<<<<<<<<<<<
@@ -8595,7 +8595,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_ba
   __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_feats); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 119, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":120
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":120
  *                         self.v.numpy(),
  *                         self.n_feats,
  *                         self.n_factors,             # <<<<<<<<<<<<<<
@@ -8605,7 +8605,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_ba
   __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_factors); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":121
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":121
  *                         self.n_feats,
  *                         self.n_factors,
  *                         self.batch_size,             # <<<<<<<<<<<<<<
@@ -8615,7 +8615,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_ba
   __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_batch_size); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 121, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":122
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":122
  *                         self.n_factors,
  *                         self.batch_size,
  *                         grad_input.numpy())             # <<<<<<<<<<<<<<
@@ -8718,7 +8718,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_ba
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":124
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":124
  *                         grad_input.numpy())
  * 
  *     grad_input = grad_input * grad_output             # <<<<<<<<<<<<<<
@@ -8730,7 +8730,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_ba
   __Pyx_DECREF_SET(__pyx_v_grad_input, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":127
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":127
  * 
  *     # this contains d L / dv_{i,j}
  *     grad_v = grad_output.new(self.n_feats, self.n_factors).zero_()             # <<<<<<<<<<<<<<
@@ -8816,7 +8816,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_ba
   __pyx_v_grad_v = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":129
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":129
  *     grad_v = grad_output.new(self.n_feats, self.n_factors).zero_()
  * 
  *     _compute_grad_v(self.sum_of_products,             # <<<<<<<<<<<<<<
@@ -8828,7 +8828,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_ba
   __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_sum_of_products); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 129, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":130
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":130
  * 
  *     _compute_grad_v(self.sum_of_products,
  *                     self.x.numpy(),             # <<<<<<<<<<<<<<
@@ -8859,7 +8859,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_ba
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":131
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":131
  *     _compute_grad_v(self.sum_of_products,
  *                     self.x.numpy(),
  *                     self.v.numpy(),             # <<<<<<<<<<<<<<
@@ -8890,7 +8890,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_ba
   __Pyx_GOTREF(__pyx_t_10);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":132
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":132
  *                     self.x.numpy(),
  *                     self.v.numpy(),
  *                     grad_output.numpy(),             # <<<<<<<<<<<<<<
@@ -8918,7 +8918,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_ba
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":133
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":133
  *                     self.v.numpy(),
  *                     grad_output.numpy(),
  *                     self.n_feats,             # <<<<<<<<<<<<<<
@@ -8928,7 +8928,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_ba
   __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_feats); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 133, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":134
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":134
  *                     grad_output.numpy(),
  *                     self.n_feats,
  *                     self.n_factors,             # <<<<<<<<<<<<<<
@@ -8938,7 +8938,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_ba
   __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_factors); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 134, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":135
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":135
  *                     self.n_feats,
  *                     self.n_factors,
  *                     self.batch_size,             # <<<<<<<<<<<<<<
@@ -8948,7 +8948,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_ba
   __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_batch_size); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 135, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":136
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":136
  *                     self.n_factors,
  *                     self.batch_size,
  *                     grad_v.numpy())             # <<<<<<<<<<<<<<
@@ -9056,7 +9056,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_ba
   __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":138
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":138
  *                     grad_v.numpy())
  * 
  *     return grad_input, grad_v             # <<<<<<<<<<<<<<
@@ -9074,7 +9074,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_ba
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":112
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":112
  *                 grad_v[i,f] += (x[b,i] * sop[b,f] - v[i,f] * x[b,i] * x[b,i]) * dLdy[b,0]
  * 
  * def fast_backward(self, grad_output):             # <<<<<<<<<<<<<<
@@ -9096,7 +9096,7 @@ static PyObject *__pyx_pf_2fm_12second_order_23second_order_fast_inner_10fast_ba
   __Pyx_XDECREF(__pyx_t_11);
   __Pyx_XDECREF(__pyx_t_12);
   __Pyx_XDECREF(__pyx_t_13);
-  __Pyx_AddTraceback("fm.second_order.second_order_fast_inner.fast_backward", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("divmachines.fm.second_order.fast.second_order_fast_inner.fast_backward", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_grad_input);
@@ -24617,7 +24617,7 @@ static PyBufferProcs __pyx_tp_as_buffer_array = {
 
 static PyTypeObject __pyx_type___pyx_array = {
   PyVarObject_HEAD_INIT(0, 0)
-  "fm.second_order.second_order_fast_inner.array", /*tp_name*/
+  "divmachines.fm.second_order.fast.second_order_fast_inner.array", /*tp_name*/
   sizeof(struct __pyx_array_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_array, /*tp_dealloc*/
@@ -24725,7 +24725,7 @@ static PyMethodDef __pyx_methods_Enum[] = {
 
 static PyTypeObject __pyx_type___pyx_MemviewEnum = {
   PyVarObject_HEAD_INIT(0, 0)
-  "fm.second_order.second_order_fast_inner.Enum", /*tp_name*/
+  "divmachines.fm.second_order.fast.second_order_fast_inner.Enum", /*tp_name*/
   sizeof(struct __pyx_MemviewEnum_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_Enum, /*tp_dealloc*/
@@ -24975,7 +24975,7 @@ static PyBufferProcs __pyx_tp_as_buffer_memoryview = {
 
 static PyTypeObject __pyx_type___pyx_memoryview = {
   PyVarObject_HEAD_INIT(0, 0)
-  "fm.second_order.second_order_fast_inner.memoryview", /*tp_name*/
+  "divmachines.fm.second_order.fast.second_order_fast_inner.memoryview", /*tp_name*/
   sizeof(struct __pyx_memoryview_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_memoryview, /*tp_dealloc*/
@@ -25102,7 +25102,7 @@ static struct PyGetSetDef __pyx_getsets__memoryviewslice[] = {
 
 static PyTypeObject __pyx_type___pyx_memoryviewslice = {
   PyVarObject_HEAD_INIT(0, 0)
-  "fm.second_order.second_order_fast_inner._memoryviewslice", /*tp_name*/
+  "divmachines.fm.second_order.fast.second_order_fast_inner._memoryviewslice", /*tp_name*/
   sizeof(struct __pyx_memoryviewslice_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc__memoryviewslice, /*tp_dealloc*/
@@ -25256,6 +25256,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_dLdy, __pyx_k_dLdy, sizeof(__pyx_k_dLdy), 0, 0, 1, 1},
   {&__pyx_n_s_defaults, __pyx_k_defaults, sizeof(__pyx_k_defaults), 0, 0, 1, 1},
   {&__pyx_n_s_dict, __pyx_k_dict, sizeof(__pyx_k_dict), 0, 0, 1, 1},
+  {&__pyx_kp_s_divmachines_fm_second_order_fast, __pyx_k_divmachines_fm_second_order_fast, sizeof(__pyx_k_divmachines_fm_second_order_fast), 0, 0, 1, 0},
+  {&__pyx_n_s_divmachines_fm_second_order_fast_2, __pyx_k_divmachines_fm_second_order_fast_2, sizeof(__pyx_k_divmachines_fm_second_order_fast_2), 0, 0, 1, 1},
   {&__pyx_n_s_double, __pyx_k_double, sizeof(__pyx_k_double), 0, 0, 1, 1},
   {&__pyx_n_s_dtype, __pyx_k_dtype, sizeof(__pyx_k_dtype), 0, 0, 1, 1},
   {&__pyx_n_s_dtype_is_object, __pyx_k_dtype_is_object, sizeof(__pyx_k_dtype_is_object), 0, 0, 1, 1},
@@ -25268,8 +25270,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_fast_forward, __pyx_k_fast_forward, sizeof(__pyx_k_fast_forward), 0, 0, 1, 1},
   {&__pyx_n_s_flags, __pyx_k_flags, sizeof(__pyx_k_flags), 0, 0, 1, 1},
   {&__pyx_n_s_float, __pyx_k_float, sizeof(__pyx_k_float), 0, 0, 1, 1},
-  {&__pyx_kp_s_fm_second_order_second_order_fas, __pyx_k_fm_second_order_second_order_fas, sizeof(__pyx_k_fm_second_order_second_order_fas), 0, 0, 1, 0},
-  {&__pyx_n_s_fm_second_order_second_order_fas_2, __pyx_k_fm_second_order_second_order_fas_2, sizeof(__pyx_k_fm_second_order_second_order_fas_2), 0, 0, 1, 1},
   {&__pyx_n_s_format, __pyx_k_format, sizeof(__pyx_k_format), 0, 0, 1, 1},
   {&__pyx_n_s_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 0, 1, 1},
   {&__pyx_n_u_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 1, 0, 1},
@@ -25382,7 +25382,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":17
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":17
  * 
  * @cython.boundscheck(False)
  * def _compute_sop_sos(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -25402,7 +25402,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__8);
   __Pyx_GIVEREF(__pyx_tuple__8);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":33
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":33
  * 
  * @cython.boundscheck(False)
  * def _compute_output(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -25422,7 +25422,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__12);
   __Pyx_GIVEREF(__pyx_tuple__12);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":75
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":75
  *                     output_factor)
  * 
  *     return torch.from_numpy(output_factor).unsqueeze(-1)             # <<<<<<<<<<<<<<
@@ -25433,7 +25433,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__13);
   __Pyx_GIVEREF(__pyx_tuple__13);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":82
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":82
  * 
  * @cython.boundscheck(False)
  * def _compute_grad_input(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -25453,7 +25453,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__17);
   __Pyx_GIVEREF(__pyx_tuple__17);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":98
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":98
  * 
  * @cython.boundscheck(False)
  * def _compute_grad_v(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -25773,7 +25773,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__49);
   __Pyx_GIVEREF(__pyx_tuple__49);
 
-  /* "fm/second_order/second_order_fast_inner.pyx":17
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":17
  * 
  * @cython.boundscheck(False)
  * def _compute_sop_sos(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -25783,9 +25783,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__50 = PyTuple_Pack(10, __pyx_n_s_sop, __pyx_n_s_sos, __pyx_n_s_x, __pyx_n_s_v, __pyx_n_s_n_feats, __pyx_n_s_n_factors, __pyx_n_s_batch_size, __pyx_n_s_f, __pyx_n_s_i, __pyx_n_s_b); if (unlikely(!__pyx_tuple__50)) __PYX_ERR(0, 17, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__50);
   __Pyx_GIVEREF(__pyx_tuple__50);
-  __pyx_codeobj__51 = (PyObject*)__Pyx_PyCode_New(7, 0, 10, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__50, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_fm_second_order_second_order_fas, __pyx_n_s_compute_sop_sos, 17, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__51)) __PYX_ERR(0, 17, __pyx_L1_error)
+  __pyx_codeobj__51 = (PyObject*)__Pyx_PyCode_New(7, 0, 10, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__50, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_divmachines_fm_second_order_fast, __pyx_n_s_compute_sop_sos, 17, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__51)) __PYX_ERR(0, 17, __pyx_L1_error)
 
-  /* "fm/second_order/second_order_fast_inner.pyx":33
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":33
  * 
  * @cython.boundscheck(False)
  * def _compute_output(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -25795,9 +25795,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__52 = PyTuple_Pack(7, __pyx_n_s_sop, __pyx_n_s_sos, __pyx_n_s_n_factors, __pyx_n_s_batch_size, __pyx_n_s_output, __pyx_n_s_f, __pyx_n_s_b); if (unlikely(!__pyx_tuple__52)) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__52);
   __Pyx_GIVEREF(__pyx_tuple__52);
-  __pyx_codeobj__53 = (PyObject*)__Pyx_PyCode_New(5, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__52, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_fm_second_order_second_order_fas, __pyx_n_s_compute_output, 33, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__53)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_codeobj__53 = (PyObject*)__Pyx_PyCode_New(5, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__52, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_divmachines_fm_second_order_fast, __pyx_n_s_compute_output, 33, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__53)) __PYX_ERR(0, 33, __pyx_L1_error)
 
-  /* "fm/second_order/second_order_fast_inner.pyx":44
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":44
  *         output[b] = output[b] * .5
  * 
  * def fast_forward(self, x, v):             # <<<<<<<<<<<<<<
@@ -25807,9 +25807,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__54 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_x, __pyx_n_s_v, __pyx_n_s_output_factor); if (unlikely(!__pyx_tuple__54)) __PYX_ERR(0, 44, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__54);
   __Pyx_GIVEREF(__pyx_tuple__54);
-  __pyx_codeobj__55 = (PyObject*)__Pyx_PyCode_New(3, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__54, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_fm_second_order_second_order_fas, __pyx_n_s_fast_forward, 44, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__55)) __PYX_ERR(0, 44, __pyx_L1_error)
+  __pyx_codeobj__55 = (PyObject*)__Pyx_PyCode_New(3, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__54, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_divmachines_fm_second_order_fast, __pyx_n_s_fast_forward, 44, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__55)) __PYX_ERR(0, 44, __pyx_L1_error)
 
-  /* "fm/second_order/second_order_fast_inner.pyx":82
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":82
  * 
  * @cython.boundscheck(False)
  * def _compute_grad_input(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -25819,9 +25819,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__56 = PyTuple_Pack(10, __pyx_n_s_sop, __pyx_n_s_x, __pyx_n_s_v, __pyx_n_s_n_feats, __pyx_n_s_n_factors, __pyx_n_s_batch_size, __pyx_n_s_tgi, __pyx_n_s_f, __pyx_n_s_i, __pyx_n_s_b); if (unlikely(!__pyx_tuple__56)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__56);
   __Pyx_GIVEREF(__pyx_tuple__56);
-  __pyx_codeobj__57 = (PyObject*)__Pyx_PyCode_New(7, 0, 10, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__56, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_fm_second_order_second_order_fas, __pyx_n_s_compute_grad_input, 82, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__57)) __PYX_ERR(0, 82, __pyx_L1_error)
+  __pyx_codeobj__57 = (PyObject*)__Pyx_PyCode_New(7, 0, 10, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__56, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_divmachines_fm_second_order_fast, __pyx_n_s_compute_grad_input, 82, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__57)) __PYX_ERR(0, 82, __pyx_L1_error)
 
-  /* "fm/second_order/second_order_fast_inner.pyx":98
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":98
  * 
  * @cython.boundscheck(False)
  * def _compute_grad_v(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -25831,9 +25831,9 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__58 = PyTuple_Pack(11, __pyx_n_s_sop, __pyx_n_s_x, __pyx_n_s_v, __pyx_n_s_dLdy, __pyx_n_s_n_feats, __pyx_n_s_n_factors, __pyx_n_s_batch_size, __pyx_n_s_grad_v, __pyx_n_s_f, __pyx_n_s_i, __pyx_n_s_b); if (unlikely(!__pyx_tuple__58)) __PYX_ERR(0, 98, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__58);
   __Pyx_GIVEREF(__pyx_tuple__58);
-  __pyx_codeobj__59 = (PyObject*)__Pyx_PyCode_New(8, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__58, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_fm_second_order_second_order_fas, __pyx_n_s_compute_grad_v, 98, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__59)) __PYX_ERR(0, 98, __pyx_L1_error)
+  __pyx_codeobj__59 = (PyObject*)__Pyx_PyCode_New(8, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__58, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_divmachines_fm_second_order_fast, __pyx_n_s_compute_grad_v, 98, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__59)) __PYX_ERR(0, 98, __pyx_L1_error)
 
-  /* "fm/second_order/second_order_fast_inner.pyx":112
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":112
  *                 grad_v[i,f] += (x[b,i] * sop[b,f] - v[i,f] * x[b,i] * x[b,i]) * dLdy[b,0]
  * 
  * def fast_backward(self, grad_output):             # <<<<<<<<<<<<<<
@@ -25843,7 +25843,7 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__60 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_grad_output, __pyx_n_s_grad_input, __pyx_n_s_grad_v); if (unlikely(!__pyx_tuple__60)) __PYX_ERR(0, 112, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__60);
   __Pyx_GIVEREF(__pyx_tuple__60);
-  __pyx_codeobj__61 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__60, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_fm_second_order_second_order_fas, __pyx_n_s_fast_backward, 112, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__61)) __PYX_ERR(0, 112, __pyx_L1_error)
+  __pyx_codeobj__61 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__60, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_divmachines_fm_second_order_fast, __pyx_n_s_fast_backward, 112, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__61)) __PYX_ERR(0, 112, __pyx_L1_error)
 
   /* "View.MemoryView":284
  *         return self.name
@@ -26057,14 +26057,14 @@ static int __pyx_pymod_exec_second_order_fast_inner(PyObject *__pyx_pyinit_modul
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
-  if (__pyx_module_is_main_fm__second_order__second_order_fast_inner) {
+  if (__pyx_module_is_main_divmachines__fm__second_order__fast__second_order_fast_inner) {
     if (PyObject_SetAttrString(__pyx_m, "__name__", __pyx_n_s_main) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   }
   #if PY_MAJOR_VERSION >= 3
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) __PYX_ERR(0, 1, __pyx_L1_error)
-    if (!PyDict_GetItemString(modules, "fm.second_order.second_order_fast_inner")) {
-      if (unlikely(PyDict_SetItemString(modules, "fm.second_order.second_order_fast_inner", __pyx_m) < 0)) __PYX_ERR(0, 1, __pyx_L1_error)
+    if (!PyDict_GetItemString(modules, "divmachines.fm.second_order.fast.second_order_fast_inner")) {
+      if (unlikely(PyDict_SetItemString(modules, "divmachines.fm.second_order.fast.second_order_fast_inner", __pyx_m) < 0)) __PYX_ERR(0, 1, __pyx_L1_error)
     }
   }
   #endif
@@ -26135,7 +26135,7 @@ static int __pyx_pymod_exec_second_order_fast_inner(PyObject *__pyx_pyinit_modul
   if (__Pyx_patch_abc() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
 
-  /* "fm/second_order/second_order_fast_inner.pyx":3
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":3
  * from __future__ import print_function
  * 
  * import numpy as np             # <<<<<<<<<<<<<<
@@ -26147,7 +26147,7 @@ static int __pyx_pymod_exec_second_order_fast_inner(PyObject *__pyx_pyinit_modul
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(0, 3, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":4
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":4
  * 
  * import numpy as np
  * import torch             # <<<<<<<<<<<<<<
@@ -26159,7 +26159,7 @@ static int __pyx_pymod_exec_second_order_fast_inner(PyObject *__pyx_pyinit_modul
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_torch, __pyx_t_1) < 0) __PYX_ERR(0, 4, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":6
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":6
  * import torch
  * 
  * from torch.autograd import Variable             # <<<<<<<<<<<<<<
@@ -26180,7 +26180,7 @@ static int __pyx_pymod_exec_second_order_fast_inner(PyObject *__pyx_pyinit_modul
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":17
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":17
  * 
  * @cython.boundscheck(False)
  * def _compute_sop_sos(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -26189,17 +26189,17 @@ static int __pyx_pymod_exec_second_order_fast_inner(PyObject *__pyx_pyinit_modul
  */
   __pyx_t_2 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 17, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0__pyx_mdef_2fm_12second_order_23second_order_fast_inner_13_compute_sop_sos, 0, __pyx_n_s_compute_sop_sos, NULL, __pyx_n_s_fm_second_order_second_order_fas_2, __pyx_d, ((PyObject *)__pyx_codeobj__51)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 17, __pyx_L1_error)
+  __pyx_t_1 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_13_compute_sop_sos, 0, __pyx_n_s_compute_sop_sos, NULL, __pyx_n_s_divmachines_fm_second_order_fast_2, __pyx_d, ((PyObject *)__pyx_codeobj__51)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 17, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_1, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_float, __pyx_t_1) < 0) __PYX_ERR(0, 17, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1__pyx_mdef_2fm_12second_order_23second_order_fast_inner_15_compute_sop_sos, 0, __pyx_n_s_compute_sop_sos, NULL, __pyx_n_s_fm_second_order_second_order_fas_2, __pyx_d, ((PyObject *)__pyx_codeobj__51)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 17, __pyx_L1_error)
+  __pyx_t_1 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_15_compute_sop_sos, 0, __pyx_n_s_compute_sop_sos, NULL, __pyx_n_s_divmachines_fm_second_order_fast_2, __pyx_d, ((PyObject *)__pyx_codeobj__51)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 17, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_1, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_double, __pyx_t_1) < 0) __PYX_ERR(0, 17, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __pyx_FusedFunction_NewEx(&__pyx_mdef_2fm_12second_order_23second_order_fast_inner_1_compute_sop_sos, 0, __pyx_n_s_compute_sop_sos, NULL, __pyx_n_s_fm_second_order_second_order_fas_2, __pyx_d, ((PyObject *)__pyx_codeobj__51)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 17, __pyx_L1_error)
+  __pyx_t_1 = __pyx_FusedFunction_NewEx(&__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_1_compute_sop_sos, 0, __pyx_n_s_compute_sop_sos, NULL, __pyx_n_s_divmachines_fm_second_order_fast_2, __pyx_d, ((PyObject *)__pyx_codeobj__51)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 17, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_1, __pyx_empty_tuple);
   ((__pyx_FusedFunctionObject *) __pyx_t_1)->__signatures__ = __pyx_t_2;
@@ -26207,7 +26207,7 @@ static int __pyx_pymod_exec_second_order_fast_inner(PyObject *__pyx_pyinit_modul
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_compute_sop_sos, __pyx_t_1) < 0) __PYX_ERR(0, 17, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":33
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":33
  * 
  * @cython.boundscheck(False)
  * def _compute_output(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -26216,17 +26216,17 @@ static int __pyx_pymod_exec_second_order_fast_inner(PyObject *__pyx_pyinit_modul
  */
   __pyx_t_3 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0__pyx_mdef_2fm_12second_order_23second_order_fast_inner_19_compute_output, 0, __pyx_n_s_compute_output, NULL, __pyx_n_s_fm_second_order_second_order_fas_2, __pyx_d, ((PyObject *)__pyx_codeobj__53)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_19_compute_output, 0, __pyx_n_s_compute_output, NULL, __pyx_n_s_divmachines_fm_second_order_fast_2, __pyx_d, ((PyObject *)__pyx_codeobj__53)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_float, __pyx_t_4) < 0) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1__pyx_mdef_2fm_12second_order_23second_order_fast_inner_21_compute_output, 0, __pyx_n_s_compute_output, NULL, __pyx_n_s_fm_second_order_second_order_fas_2, __pyx_d, ((PyObject *)__pyx_codeobj__53)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_21_compute_output, 0, __pyx_n_s_compute_output, NULL, __pyx_n_s_divmachines_fm_second_order_fast_2, __pyx_d, ((PyObject *)__pyx_codeobj__53)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_double, __pyx_t_4) < 0) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_mdef_2fm_12second_order_23second_order_fast_inner_3_compute_output, 0, __pyx_n_s_compute_output, NULL, __pyx_n_s_fm_second_order_second_order_fas_2, __pyx_d, ((PyObject *)__pyx_codeobj__53)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_3_compute_output, 0, __pyx_n_s_compute_output, NULL, __pyx_n_s_divmachines_fm_second_order_fast_2, __pyx_d, ((PyObject *)__pyx_codeobj__53)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_empty_tuple);
   ((__pyx_FusedFunctionObject *) __pyx_t_4)->__signatures__ = __pyx_t_3;
@@ -26234,19 +26234,19 @@ static int __pyx_pymod_exec_second_order_fast_inner(PyObject *__pyx_pyinit_modul
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_compute_output, __pyx_t_4) < 0) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":44
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":44
  *         output[b] = output[b] * .5
  * 
  * def fast_forward(self, x, v):             # <<<<<<<<<<<<<<
  *     self.x = x
  *     self.v = v
  */
-  __pyx_t_5 = PyCFunction_NewEx(&__pyx_mdef_2fm_12second_order_23second_order_fast_inner_5fast_forward, NULL, __pyx_n_s_fm_second_order_second_order_fas_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 44, __pyx_L1_error)
+  __pyx_t_5 = PyCFunction_NewEx(&__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_5fast_forward, NULL, __pyx_n_s_divmachines_fm_second_order_fast_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 44, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_fast_forward, __pyx_t_5) < 0) __PYX_ERR(0, 44, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":82
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":82
  * 
  * @cython.boundscheck(False)
  * def _compute_grad_input(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -26255,17 +26255,17 @@ static int __pyx_pymod_exec_second_order_fast_inner(PyObject *__pyx_pyinit_modul
  */
   __pyx_t_5 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0__pyx_mdef_2fm_12second_order_23second_order_fast_inner_25_compute_grad_input, 0, __pyx_n_s_compute_grad_input, NULL, __pyx_n_s_fm_second_order_second_order_fas_2, __pyx_d, ((PyObject *)__pyx_codeobj__57)); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 82, __pyx_L1_error)
+  __pyx_t_6 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_25_compute_grad_input, 0, __pyx_n_s_compute_grad_input, NULL, __pyx_n_s_divmachines_fm_second_order_fast_2, __pyx_d, ((PyObject *)__pyx_codeobj__57)); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_6, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_float, __pyx_t_6) < 0) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1__pyx_mdef_2fm_12second_order_23second_order_fast_inner_27_compute_grad_input, 0, __pyx_n_s_compute_grad_input, NULL, __pyx_n_s_fm_second_order_second_order_fas_2, __pyx_d, ((PyObject *)__pyx_codeobj__57)); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 82, __pyx_L1_error)
+  __pyx_t_6 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_27_compute_grad_input, 0, __pyx_n_s_compute_grad_input, NULL, __pyx_n_s_divmachines_fm_second_order_fast_2, __pyx_d, ((PyObject *)__pyx_codeobj__57)); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_6, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_double, __pyx_t_6) < 0) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __pyx_FusedFunction_NewEx(&__pyx_mdef_2fm_12second_order_23second_order_fast_inner_7_compute_grad_input, 0, __pyx_n_s_compute_grad_input, NULL, __pyx_n_s_fm_second_order_second_order_fas_2, __pyx_d, ((PyObject *)__pyx_codeobj__57)); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 82, __pyx_L1_error)
+  __pyx_t_6 = __pyx_FusedFunction_NewEx(&__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_7_compute_grad_input, 0, __pyx_n_s_compute_grad_input, NULL, __pyx_n_s_divmachines_fm_second_order_fast_2, __pyx_d, ((PyObject *)__pyx_codeobj__57)); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_6, __pyx_empty_tuple);
   ((__pyx_FusedFunctionObject *) __pyx_t_6)->__signatures__ = __pyx_t_5;
@@ -26273,7 +26273,7 @@ static int __pyx_pymod_exec_second_order_fast_inner(PyObject *__pyx_pyinit_modul
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_compute_grad_input, __pyx_t_6) < 0) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":98
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":98
  * 
  * @cython.boundscheck(False)
  * def _compute_grad_v(floating[:,:] sop,             # <<<<<<<<<<<<<<
@@ -26282,17 +26282,17 @@ static int __pyx_pymod_exec_second_order_fast_inner(PyObject *__pyx_pyinit_modul
  */
   __pyx_t_7 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 98, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_8 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0__pyx_mdef_2fm_12second_order_23second_order_fast_inner_31_compute_grad_v, 0, __pyx_n_s_compute_grad_v, NULL, __pyx_n_s_fm_second_order_second_order_fas_2, __pyx_d, ((PyObject *)__pyx_codeobj__59)); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 98, __pyx_L1_error)
+  __pyx_t_8 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_31_compute_grad_v, 0, __pyx_n_s_compute_grad_v, NULL, __pyx_n_s_divmachines_fm_second_order_fast_2, __pyx_d, ((PyObject *)__pyx_codeobj__59)); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 98, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_8, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_float, __pyx_t_8) < 0) __PYX_ERR(0, 98, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  __pyx_t_8 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1__pyx_mdef_2fm_12second_order_23second_order_fast_inner_33_compute_grad_v, 0, __pyx_n_s_compute_grad_v, NULL, __pyx_n_s_fm_second_order_second_order_fas_2, __pyx_d, ((PyObject *)__pyx_codeobj__59)); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 98, __pyx_L1_error)
+  __pyx_t_8 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_33_compute_grad_v, 0, __pyx_n_s_compute_grad_v, NULL, __pyx_n_s_divmachines_fm_second_order_fast_2, __pyx_d, ((PyObject *)__pyx_codeobj__59)); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 98, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_8, __pyx_empty_tuple);
   if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_double, __pyx_t_8) < 0) __PYX_ERR(0, 98, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  __pyx_t_8 = __pyx_FusedFunction_NewEx(&__pyx_mdef_2fm_12second_order_23second_order_fast_inner_9_compute_grad_v, 0, __pyx_n_s_compute_grad_v, NULL, __pyx_n_s_fm_second_order_second_order_fas_2, __pyx_d, ((PyObject *)__pyx_codeobj__59)); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 98, __pyx_L1_error)
+  __pyx_t_8 = __pyx_FusedFunction_NewEx(&__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_9_compute_grad_v, 0, __pyx_n_s_compute_grad_v, NULL, __pyx_n_s_divmachines_fm_second_order_fast_2, __pyx_d, ((PyObject *)__pyx_codeobj__59)); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 98, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_8, __pyx_empty_tuple);
   ((__pyx_FusedFunctionObject *) __pyx_t_8)->__signatures__ = __pyx_t_7;
@@ -26300,19 +26300,19 @@ static int __pyx_pymod_exec_second_order_fast_inner(PyObject *__pyx_pyinit_modul
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_compute_grad_v, __pyx_t_8) < 0) __PYX_ERR(0, 98, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":112
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":112
  *                 grad_v[i,f] += (x[b,i] * sop[b,f] - v[i,f] * x[b,i] * x[b,i]) * dLdy[b,0]
  * 
  * def fast_backward(self, grad_output):             # <<<<<<<<<<<<<<
  *     # this contains d L / d x_{i,j}
  *     grad_input = grad_output.new(self.batch_size, self.n_feats).zero_()
  */
-  __pyx_t_9 = PyCFunction_NewEx(&__pyx_mdef_2fm_12second_order_23second_order_fast_inner_11fast_backward, NULL, __pyx_n_s_fm_second_order_second_order_fas_2); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 112, __pyx_L1_error)
+  __pyx_t_9 = PyCFunction_NewEx(&__pyx_mdef_11divmachines_2fm_12second_order_4fast_23second_order_fast_inner_11fast_backward, NULL, __pyx_n_s_divmachines_fm_second_order_fast_2); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 112, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_fast_backward, __pyx_t_9) < 0) __PYX_ERR(0, 112, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
 
-  /* "fm/second_order/second_order_fast_inner.pyx":1
+  /* "divmachines/fm/second_order/fast/second_order_fast_inner.pyx":1
  * from __future__ import print_function             # <<<<<<<<<<<<<<
  * 
  * import numpy as np
@@ -26490,11 +26490,11 @@ static int __pyx_pymod_exec_second_order_fast_inner(PyObject *__pyx_pyinit_modul
   __Pyx_XDECREF(__pyx_t_9);
   if (__pyx_m) {
     if (__pyx_d) {
-      __Pyx_AddTraceback("init fm.second_order.second_order_fast_inner", 0, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("init divmachines.fm.second_order.fast.second_order_fast_inner", 0, __pyx_lineno, __pyx_filename);
     }
     Py_DECREF(__pyx_m); __pyx_m = 0;
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init fm.second_order.second_order_fast_inner");
+    PyErr_SetString(PyExc_ImportError, "init divmachines.fm.second_order.fast.second_order_fast_inner");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();

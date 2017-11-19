@@ -8,10 +8,10 @@ from __future__ import print_function
 import numpy as np
 import torch
 import torch.nn.functional as F
-
-from fmpytorch.second_order.second_order_naive import SecondOrderInteraction as SOISlow
-from fmpytorch.second_order.second_order_fast import SecondOrderInteraction as SOIFast
 from torch.autograd import Variable
+
+from divmachines.fm.models import SecondOrderInteraction as SOISlow
+from divmachines.fm.second_order.fast import SecondOrderInteraction as SOIFast
 
 INPUT_SIZE = 50
 BATCH_SIZE = 32
@@ -85,3 +85,6 @@ def test_forward_backward_float():
 
 def test_forward_backward_double():
     _forward_backward_check(np.float64)
+
+test_forward_backward_double()
+test_forward_backward_float()

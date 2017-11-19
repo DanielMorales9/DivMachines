@@ -1,8 +1,8 @@
 import unittest
 import numpy as np
-from divmachines import PointwiseClassifier
+from divmachines.mf import PointwiseClassifierMF
 from divmachines.layers import TestEmbedding
-from divmachines.mf import MatrixFactorizationModel, SimpleMatrixFactorizationModel
+from divmachines.mf.models import MatrixFactorizationModel, SimpleMatrixFactorizationModel
 
 
 class PointwiseMFModelTest(unittest.TestCase):
@@ -27,7 +27,7 @@ class PointwiseMFModelTest(unittest.TestCase):
                                 sparse=True,
                                 embedding_weights=np.array([[0], [1], [2], [3]]))
 
-        mf = PointwiseClassifier(model=model, n_iter=0, learning_rate=0)
+        mf = PointwiseClassifierMF(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
@@ -54,7 +54,7 @@ class PointwiseMFModelTest(unittest.TestCase):
                                           [2, 2],
                                           [3, 3]]))
 
-        mf = PointwiseClassifier(model=model, n_iter=0, learning_rate=0)
+        mf = PointwiseClassifierMF(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
@@ -81,7 +81,7 @@ class PointwiseMFModelTest(unittest.TestCase):
                                           [2, 2],
                                           [3, 3]]))
 
-        mf = PointwiseClassifier(model=model, n_iter=0, learning_rate=0)
+        mf = PointwiseClassifierMF(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
@@ -114,7 +114,7 @@ class PointwiseMFModelTest(unittest.TestCase):
                                 sparse=True,
                                 embedding_weights=np.array([[0], [1], [2], [3]]))
 
-        mf = PointwiseClassifier(model=model, n_iter=0, learning_rate=0)
+        mf = PointwiseClassifierMF(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
@@ -148,7 +148,7 @@ class PointwiseMFModelTest(unittest.TestCase):
                                           sparse=True,
                                           embedding_weights=np.array([[0], [1], [2], [3]]))
 
-        mf = PointwiseClassifier(model=model, n_iter=0, learning_rate=0)
+        mf = PointwiseClassifierMF(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
@@ -176,7 +176,7 @@ class PointwiseMFModelTest(unittest.TestCase):
                                                             [3, 3]]))
 
 
-        mf = PointwiseClassifier(model=model, n_iter=0, learning_rate=0)
+        mf = PointwiseClassifierMF(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
@@ -209,7 +209,7 @@ class PointwiseMFModelTest(unittest.TestCase):
                                           sparse=True,
                                           embedding_weights=np.array([[0], [1], [2], [3]]))
 
-        mf = PointwiseClassifier(model=model, n_iter=0, learning_rate=0)
+        mf = PointwiseClassifierMF(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
