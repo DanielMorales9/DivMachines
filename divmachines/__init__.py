@@ -32,15 +32,6 @@ class Classifier(object):
     def _init_model(self):
         pass
 
-    def _init_optimization_function(self):
-        pass
-
-    def fit(self, *args):
-        pass
-
-    def prediction(self, *args):
-        pass
-
     def _check_input(self, user_ids, item_ids, allow_items_none=False):
 
         if isinstance(user_ids, int):
@@ -63,3 +54,12 @@ class Classifier(object):
         if item_id_max >= self._n_items:
             raise ValueError('Maximum item id greater '
                              'than number of items in model.')
+
+    def _init_optimization_function(self):
+        pass
+
+    def fit(self, *args, **kwargs):
+        pass
+
+    def prediction(self, *args):
+        pass

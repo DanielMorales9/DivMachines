@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 import torch
 
-from divmachines.mf import PairwiseClassifierMF
+from divmachines.mf import Pairwise
 from divmachines.layers import TestEmbedding
 from divmachines.mf.models import SimplePairwiseMatrixFactorizationModel,\
     PairwiseMatrixFactorizationModel
@@ -24,7 +24,7 @@ class PairwiseMFModelTest(unittest.TestCase):
                                                             [2, 2],
                                                             [3, 3]]))
 
-        mf = PairwiseClassifierMF(model=model, n_iter=0, learning_rate=0)
+        mf = Pairwise(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
@@ -88,7 +88,7 @@ class PairwiseMFModelTest(unittest.TestCase):
                                 sparse=True,
                                 embedding_weights=np.array([[0], [1], [2], [3]]))
 
-        mf = PairwiseClassifierMF(model=model, n_iter=0, learning_rate=0)
+        mf = Pairwise(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
@@ -115,7 +115,7 @@ class PairwiseMFModelTest(unittest.TestCase):
                                           [2, 2],
                                           [3, 3]]))
 
-        mf = PairwiseClassifierMF(model=model, n_iter=0, learning_rate=0)
+        mf = Pairwise(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
@@ -149,7 +149,7 @@ class PairwiseMFModelTest(unittest.TestCase):
                                               sparse=True,
                                               embedding_weights=np.array([[0], [1], [2], [3]]))
 
-            mf = PairwiseClassifierMF(model=model, n_iter=0, learning_rate=0)
+            mf = Pairwise(model=model, n_iter=0, learning_rate=0)
             mf.fit(np.array([[0, 0, 1],
                              [0, 1, 2],
                              [1, 2, 1],
@@ -176,7 +176,7 @@ class PairwiseMFModelTest(unittest.TestCase):
                                           [2, 2],
                                           [3, 3]]))
 
-        mf = PairwiseClassifierMF(model=model, n_iter=0, learning_rate=0)
+        mf = Pairwise(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
@@ -209,7 +209,7 @@ class PairwiseMFModelTest(unittest.TestCase):
                                           sparse=True,
                                           embedding_weights=np.array([[0], [1], [2], [3]]))
 
-        mf = PairwiseClassifierMF(model=model, n_iter=0, learning_rate=0)
+        mf = Pairwise(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
@@ -237,7 +237,7 @@ class PairwiseMFModelTest(unittest.TestCase):
                                                             [3, 3]]))
 
 
-        mf = PairwiseClassifierMF(model=model, n_iter=0, learning_rate=0)
+        mf = Pairwise(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
@@ -270,7 +270,7 @@ class PairwiseMFModelTest(unittest.TestCase):
                                           sparse=True,
                                           embedding_weights=np.array([[0], [1], [2], [3]]))
 
-        mf = PairwiseClassifierMF(model=model, n_iter=0, learning_rate=0)
+        mf = Pairwise(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],

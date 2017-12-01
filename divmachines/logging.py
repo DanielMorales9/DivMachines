@@ -9,6 +9,12 @@ class Logger(object):
     def log(self, *args, **kwargs):
         pass
 
+    def flush(self):
+        """
+        Cancels all logs
+        """
+        pass
+
 
 class TrainingLogger(Logger):
     """
@@ -92,3 +98,6 @@ class TrainingLogger(Logger):
                 self._logs.append((loss, epoch, batch))
         else:
             self._logs.append((loss, epoch))
+
+    def flush(self):
+        self._logs = None

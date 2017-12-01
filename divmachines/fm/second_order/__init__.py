@@ -31,6 +31,6 @@ class SecondOrderInteraction(Module):
         pow_v = torch.pow(self.v, 2)
         pow_sum = torch.pow(torch.mm(x, self.v), 2)
         sum_pow = torch.mm(pow_x, pow_v)
-        out = 0.5* (pow_sum - sum_pow).sum(1)
+        out = 0.5 * (pow_sum - sum_pow).sum(1)
 
         return out.unsqueeze(-1)

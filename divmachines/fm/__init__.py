@@ -1,45 +1,41 @@
-# coding=utf-8
+import copy
 import numpy as np
 import torch
 from torch import optim
-from torch.sparse import FloatTensor as SparseFTensor
+from torch.utils.data import Dataset
 from torch.autograd import Variable
+from torch.utils.data import DataLoader
+from .dataset import DenseDataset, SparseDataset
+from .models import FactorizationMachine
+from .utility import vectorize_dic
+from .. import Classifier
+from ..logging import Logger
+from ..torch_utils import set_seed, gpu, cpu
 
-from divmachines import Classifier
-#from divmachines.helper import _predict_process_ids
-from divmachines.logging import Logger
-from divmachines.fm.models import PointwiseModelFM, FactorizationMachine
-from divmachines.torch_utils import set_seed, gpu, sparse_shuffle, sparse_mini_batch, cpu
-from divmachines.fm.utility import vectorize_dic
-
-
-class ClassifierFM(Classifier):
+class FM(Classifier):
     """
     Base Classifier for Factorization Machines
     """
-
     def __init__(self):
-        super(ClassifierFM, self).__init__()
-        self.data = None
-        self._rows = None
-        self._cols = None
-        self._ix = None
-        self._n_features = None
-        self._ratings = None
+        super(FM, self).__init__()
+        self._sparse = False
         self._initialized = False
 
-    def _initialize(self, interactions):
-        # TODO:
-        # 1) What happens if we update the data (new users, new items)?
-        # 2) Update function for context features!
-        self._data, \
-        self._rows, \
-        self._cols, \
-        self._ix = vectorize_dic({"users": interactions[:, 0],
-                                  "items": interactions[:, 1]})
+    def _initialize(self, train):
+        if isinstance(train, Dataset):
+            self._dataset = train
+        elif type(train).__module__ == np.__name__:
+            if self._sparse:
+                self._dataset = SparseDataset(train)
+            else:
+                self._dataset = DenseDataset(train)
+        else:
+            raise TypeError("Training set must be of type dataset or of type ndarray")
 
-        self._ratings = interactions[:, -1]
-        self._n_features = len(np.unique(self._cols))
+        self._n_users = self._dataset.n_users()
+        self._n_items = self._dataset.n_items()
+
+        self._n_features = self._dataset.n_features()
 
         self._init_model()
 
@@ -48,7 +44,7 @@ class ClassifierFM(Classifier):
         self._initialized = True
 
 
-class PointwiseClassifierFM(ClassifierFM):
+class Pointwise(FM):
     """
     Pointwise Classifier. Uses a classic
      factorization approach, with latent vectors used
@@ -64,7 +60,7 @@ class PointwiseClassifierFM(ClassifierFM):
     model: :class: div.machines.models, optional
         A matrix Factorization model
     sparse: boolean, optional
-        Use sparse gradients for embedding layers.
+        Use sparse dataset
     loss: function, optional
         an instance of a Pytorch optimizer or a custom loss.
     l2: float, optional
@@ -85,6 +81,8 @@ class PointwiseClassifierFM(ClassifierFM):
         Run the model on a GPU.
     logger: :class:`divmachines.logging`, optional
         A logger instance for logging during the training process
+    n_workers: int, optional
+        Number of workers for data loading
     """
 
     def __init__(self,
@@ -99,9 +97,10 @@ class PointwiseClassifierFM(ClassifierFM):
                  batch_size=None,
                  random_state=None,
                  use_cuda=False,
-                 logger=None):
+                 logger=None,
+                 n_workers=1):
 
-        super(PointwiseClassifierFM, self).__init__()
+        super(Pointwise, self).__init__()
         self._n_factors = n_factors
         self._model = model
         self._n_iter = n_iter
@@ -114,7 +113,9 @@ class PointwiseClassifierFM(ClassifierFM):
         self._optimizer_func = optimizer_func
         self._loss_func = loss or torch.nn.MSELoss()
         self._logger = logger or Logger()
+        self._n_workers = n_workers
         self._optimizer = None
+        self._dataset = None
 
         set_seed(self._random_state.randint(-10 ** 8, 10 ** 8),
                  cuda=self._use_cuda)
@@ -132,18 +133,35 @@ class PointwiseClassifierFM(ClassifierFM):
     def _init_model(self):
 
         if self._model is not None:
-            if isinstance(self._model, PointwiseModelFM):
+            if isinstance(self._model, FactorizationMachine):
                 self._model = gpu(self._model, self._use_cuda)
             else:
-                raise ValueError("Model must be an instance of PointwiseModelFM")
+                raise ValueError("Model must be an instance of FactorizationMachine")
 
         else:
             self._model = gpu(FactorizationMachine(self._n_features,
                                                    self._n_factors),
                               self._use_cuda)
 
-    def fit(self, interactions):
+    def __deepcopy__(self, memo):
+        model = copy.deepcopy(self._model, memo)
+        random_state = copy.deepcopy(self._random_state, memo)
+        optimizer_func = copy.deepcopy(self._optimizer_func, memo)
+        logger = copy.deepcopy(self._logger, memo)
+        return Pointwise(n_factors=self._n_factors,
+                         model=model,
+                         sparse=self._sparse,
+                         n_iter=self._n_iter,
+                         batch_size=self._batch_size,
+                         random_state=random_state,
+                         use_cuda=self._use_cuda,
+                         n_workers=self._n_workers,
+                         learning_rate=self._learning_rate,
+                         l2=self._l2,
+                         optimizer_func=optimizer_func,
+                         logger=logger)
 
+    def fit(self, train):
         """
         Fit the model.
         When called repeatedly, model fitting will resume from
@@ -152,32 +170,25 @@ class PointwiseClassifierFM(ClassifierFM):
 
         Parameters
         ----------
-        interactions: ndarray
-            user, item, rating triples
+        train: ndarray or :class:`divmachines.fm.dataset`
+            Train samples
         """
 
         if not self._initialized:
-            self._initialize(interactions)
-        for epoch in range(self._n_iter):
-            rows, cols, data, ratings = sparse_shuffle(np.copy(self._rows),
-                                                       np.copy(self._cols),
-                                                       np.copy(self._data),
-                                                       np.copy(self._ratings))
-            print(epoch)
-            for (mini_batch_num,
-                 (sparse_batch_tensor,
-                  batch_rating)) in enumerate(
-                            sparse_mini_batch(rows,
-                                  cols,
-                                  data,
-                                  ratings,
-                                  batch_size=self._batch_size,
-                                  n_features=self._n_features)):
+            self._initialize(train)
 
-                observations_var = Variable(gpu(sparse_batch_tensor.to_dense(),
-                                                self._use_cuda))
-                rating_var = Variable(gpu(batch_rating),
-                                      self._use_cuda)
+        loader = DataLoader(self._dataset,
+                            batch_size=self._batch_size,
+                            num_workers=self._n_workers,
+                            shuffle=True)
+        for epoch in range(self._n_iter):
+            for mini_batch_num, batch in enumerate(loader):
+
+                batch_tensor = gpu(batch[:, :-1], self._use_cuda)
+                batch_ratings = gpu(batch[:, -1], self._use_cuda)
+
+                observations_var = Variable(batch_tensor)
+                rating_var = Variable(batch_ratings)
 
                 # forward step
                 predictions = self._model(observations_var)
@@ -196,34 +207,32 @@ class PointwiseClassifierFM(ClassifierFM):
                 # optimization step
                 self._optimizer.step()
 
-                # def predict(self, user_ids, item_ids=None):
-                #     """
-                #     Make predictions: given a user id, compute the recommendation
-                #     scores for items.
-                #     Parameters
-                #     ----------
-                #     user_ids: int or array
-                #        If int, will predict the recommendation scores for this
-                #        user for all items in item_ids. If an array, will predict
-                #        scores for all (user, item) pairs defined by user_ids and
-                #        item_ids.
-                #     item_ids: array, optional
-                #         Array containing the item ids for which prediction scores
-                #         are desired. If not supplied, predictions for all items
-                #         will be computed.
-                #     Returns
-                #     -------
-                #     predictions: np.array
-                #         Predicted scores for all items in item_ids.
-                #     """
-                #
-                #     self._check_input(user_ids, item_ids, allow_items_none=True)
-                #     self._model.train(False)
-                #
-                #     user_ids, item_ids = _predict_process_ids(user_ids, item_ids,
-                #                                               self._n_items,
-                #                                               self._use_cuda)
-                #
-                #     out = self._model(user_ids, item_ids)
-                #
-                #     return cpu(out.data).numpy().flatten()
+    def predict(self, x):
+        """
+        Make predictions: given a user id, compute the recommendation
+        scores for items.
+        Parameters
+        ----------
+        x: ndarray
+            samples for which predict the ratings/rank score
+        Returns
+        -------
+        predictions: np.array
+            Predicted scores for all items in item_ids.
+        """
+
+        # if the users do not belong to the user set it raise error
+        # self._check_input(user_ids, item_ids, allow_items_none=True)
+        self._model.train(False)
+        self._dataset = self._dataset(x)
+
+        loader = DataLoader(self._dataset,
+                            batch_size=len(x),
+                            shuffle=False,
+                            num_workers=self._n_workers)
+
+        for samples in loader:
+            var = Variable(gpu(samples, self._use_cuda))
+            out = self._model(var)
+
+        return cpu(out.data).numpy().flatten()

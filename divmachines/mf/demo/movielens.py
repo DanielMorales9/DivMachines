@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from divmachines.mf import PairwiseClassifierMF
+from divmachines.mf import Pairwise
 from divmachines.logging import TrainingLogger as TLogger
 
 cols = ['user', 'item', 'rating', 'timestamp']
@@ -16,7 +16,7 @@ train = pd.merge(pd.merge(train, map_user, on="user"), map_item, on="item")
 
 logger = TLogger()
 
-model = PairwiseClassifierMF(n_iter=100, learning_rate=0.60653066, logger=logger)
+model = Pairwise(n_iter=100, learning_rate=0.60653066, logger=logger)
 
 interactions = train[['u_idx', 'i_idx', 'rating']].values
 

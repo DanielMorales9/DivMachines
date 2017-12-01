@@ -31,8 +31,8 @@ def sparse_mini_batch(rows, cols, data, ratings, batch_size=None, n_features=Non
     if n_features is None:
         raise ValueError("Number of features must be provided: n_features")
 
-    data_tensor = FloatTensor(coo_matrix(data, (rows, cols), shape=(n_samples,n_features)).A)
-    rating_tensor = FloatTensor(ratings)
+    data_tensor = FloatTensor(coo_matrix((data, (rows, cols)), shape=(n_samples,n_features)).toarray())
+    rating_tensor = FloatTensor(torch.from_numpy(ratings.astype(np.float32)))
     for i in range(0, n_samples, batch_size):
         yield data_tensor[i:i + batch_size], rating_tensor[i:i + batch_size]
 

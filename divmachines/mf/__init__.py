@@ -5,26 +5,46 @@ from torch import optim
 from torch.autograd import Variable
 
 from divmachines import Classifier
-from divmachines.helper import _predict_process_ids
+from divmachines.helper import _prepare_for_prediction
 from divmachines.logging import Logger
 from divmachines.mf.models import PairwiseMatrixFactorizationModel, MatrixFactorizationModel, PointwiseModelMF, \
     PairwiseModelMF
 from divmachines.torch_utils import set_seed, gpu, shuffle, minibatch, cpu
+from torch.utils.data import TensorDataset, DataLoader
 
 
-class ClassifierMF(Classifier):
+class MatrixFactorizationDataset(TensorDataset):
+    """Matrix Factorization Dataset
+    Parameters
+    ----------
+    interactions: ndarray
+        triple samples user, item, rating
+    use_cuda: boolean, optional
+        flag for using cuda
+    """
+    def __init__(self, interactions, use_cuda=False):
+        self._n_users = len(np.unique(interactions[:, 0]))
+        self._n_items = len(np.unique(interactions[:, 1]))
+        target = gpu(torch.from_numpy(interactions[:, -1].astype(np.float32)), use_cuda)
+        data = gpu(torch.from_numpy(interactions[:, :-1]), use_cuda)
+
+        super(MatrixFactorizationDataset, self).__init__(data, target)
+
+    def n_items(self):
+        return self._n_items
+
+    def n_users(self):
+        return self._n_users
+
+
+class MF(Classifier):
     """
     Base class for all MF Classifier
     """
     def __init__(self):
-        super(ClassifierMF, self).__init__()
-        self._n_users = None
-        self._n_items = None
+        super(MF, self).__init__()
 
     def _initialize(self, interactions):
-
-        self._n_users = len(np.unique(np.squeeze(interactions[:, 0])))
-        self._n_items = len(np.unique(np.squeeze(interactions[:, 1])))
 
         self._init_model()
 
@@ -33,7 +53,7 @@ class ClassifierMF(Classifier):
         self._initialized = True
 
 
-class PointwiseClassifierMF(ClassifierMF):
+class Pointwise(MF):
     """
     Pointwise Classifier. Uses a classic
     matrix factorization approach, with latent vectors used
@@ -70,6 +90,8 @@ class PointwiseClassifierMF(ClassifierMF):
         Run the model on a GPU.
     logger: :class:`divmachines.logging`, optional
         A logger instance for logging during the training process
+    n_workers: int, optional
+        Number of workers for data loading
     """
 
     def __init__(self,
@@ -84,9 +106,10 @@ class PointwiseClassifierMF(ClassifierMF):
                  batch_size=None,
                  random_state=None,
                  use_cuda=False,
-                 logger=None):
+                 logger=None,
+                 n_workers=1):
 
-        super(PointwiseClassifierMF, self).__init__()
+        super(Pointwise, self).__init__()
         self._n_factors = n_factors
         self._model = model
         self._n_iter = n_iter
@@ -95,10 +118,12 @@ class PointwiseClassifierMF(ClassifierMF):
         self._random_state = random_state or np.random.RandomState()
         self._use_cuda = use_cuda
         self._l2 = l2
+        self._n_workers = n_workers
         self._learning_rate = learning_rate
         self._optimizer_func = optimizer_func
         self._loss_func = loss or torch.nn.MSELoss()
         self._logger = logger or Logger()
+        self._dataset = None
         self._optimizer = None
         self._initialized = False
 
@@ -141,43 +166,29 @@ class PointwiseClassifierMF(ClassifierMF):
         interactions: ndarray
             user, item, rating triples
         """
-        user_ids = interactions[:, 0]
-        item_ids = interactions[:, 1]
-        ratings_ids = interactions[:, 2]
-        ratings_ids = ratings_ids.astype(np.float32)
 
         if not self._initialized:
             self._initialize(interactions)
 
-        self._check_input(user_ids, item_ids)
+        self._dataset = MatrixFactorizationDataset(interactions,
+                                                   self._use_cuda)
+
+        self._n_users = self._dataset.n_users()
+        self._n_items = self._dataset.n_items()
+        self._check_input(interactions[:, 0], interactions[:, 1])
+
+        loader = DataLoader(self._dataset,
+                            shuffle=True,
+                            batch_size=self._batch_size,
+                            num_workers=self._n_workers)
 
         for epoch in range(self._n_iter):
 
-            users, items, ratings = shuffle(user_ids,
-                                            item_ids,
-                                            ratings_ids,
-                                            random_state=self._random_state)
-
-            user_ids_tensor = gpu(torch.from_numpy(users),
-                                  self._use_cuda)
-
-            item_ids_tensor = gpu(torch.from_numpy(items),
-                                  self._use_cuda)
-
-            rating_ids_tensor = gpu(torch.from_numpy(ratings),
-                                    self._use_cuda)
-
             for (mini_batch_num,
-                 (batch_user,
-                 batch_item,
-                 batch_rating)) in enumerate(
-                                    minibatch(user_ids_tensor,
-                                              item_ids_tensor,
-                                              rating_ids_tensor,
-                                              batch_size=self._batch_size)):
+                 (batch_data, batch_rating)) in enumerate(loader):
 
-                user_var = Variable(batch_user)
-                item_var = Variable(batch_item)
+                user_var = Variable(batch_data[:, 0])
+                item_var = Variable(batch_data[:, 1])
                 rating_var = Variable(batch_rating)
 
                 # forward step
@@ -221,16 +232,16 @@ class PointwiseClassifierMF(ClassifierMF):
         self._check_input(user_ids, item_ids, allow_items_none=True)
         self._model.train(False)
 
-        user_ids, item_ids = _predict_process_ids(user_ids, item_ids,
-                                                  self._n_items,
-                                                  self._use_cuda)
+        user_ids, item_ids = _prepare_for_prediction(user_ids, item_ids,
+                                                     self._n_items,
+                                                     self._use_cuda)
 
         out = self._model(user_ids, item_ids)
 
         return cpu(out.data).numpy().flatten()
 
 
-class PairwiseClassifierMF(ClassifierMF):
+class Pairwise(MF):
     """
     A pairwise matrix factorization model.
     Uses a classic matrix factorization approach, with latent vectors used
@@ -282,7 +293,7 @@ class PairwiseClassifierMF(ClassifierMF):
                  use_cuda=False,
                  logger=None):
 
-        super(PairwiseClassifierMF, self).__init__()
+        super(Pairwise, self).__init__()
         self._n_factors = n_factors
         self._model = model
         self._n_iter = n_iter
@@ -481,9 +492,9 @@ class PairwiseClassifierMF(ClassifierMF):
         self._check_input(user_ids, item_ids, allow_items_none=True)
         self._model.train(False)
 
-        user_ids, item_ids = _predict_process_ids(user_ids, item_ids,
-                                                  self._n_items,
-                                                  self._use_cuda)
+        user_ids, item_ids = _prepare_for_prediction(user_ids, item_ids,
+                                                     self._n_items,
+                                                     self._use_cuda)
 
         out = self._model(user_ids, item_ids, None)
 
