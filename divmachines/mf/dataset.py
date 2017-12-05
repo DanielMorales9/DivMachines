@@ -26,12 +26,13 @@ class DenseDataset(Dataset):
         self._dic = dic
 
         if dic is not None:
-            x, self._ix = make_indexable(dic, x, ix)
+            self._x, self._ix = make_indexable(dic, x, ix)
+        else:
+            self._x = x
 
-        self._len = x.shape[0]
-        self._n_items = len(np.unique(x[:, 1]))
-        self._n_users = len(np.unique(x[:, 0]))
-        self._x = x
+        self._len = self._x.shape[0]
+        self._n_users = len(np.unique(self._x[:, 0]))
+        self._n_items = len(np.unique(self._x[:, 1]))
         self._y = y
 
     def __call__(self, x, y=None, dic=None):

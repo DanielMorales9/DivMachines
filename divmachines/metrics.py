@@ -14,22 +14,30 @@ def create_scorers(metrics):
         or a dict with names as keys and callables as values.
     Returns
     -------
-    scoring : list of callable
-        A list of scorer function
+    scoring : dic
+        A dic of scorer functions
     """
     if callable(metrics):
-        return metrics
+        return {metrics.__name__: metrics}
     elif isinstance(metrics, str):
-        return [_get_scores(metrics)]
+        return {metrics: _get_scores(metrics)}
     elif isinstance(metrics, (list, tuple, set)):
-        scorers = []
+        scorers = {}
         for metric in metrics:
-            scorers.append(create_scorers(metric))
+            for k, v in create_scorers(metric).items:
+                scorers[k] = v
         return scorers
     elif isinstance(metrics, dict):
-        raise ValueError("Dictionaries are not allowed")
+        return _check_dictionary(metrics)
     elif metrics is None:
         raise ValueError("At least one metric must be provided")
+
+
+def _check_dictionary(metrics):
+    for k, v in metrics:
+        if not (callable(v) and isinstance(k, str)):
+            raise ValueError('Incorrect formatting of metrics dictionary')
+    return metrics
 
 
 def mean_absolute_error(y_pred, y_true):

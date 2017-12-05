@@ -16,20 +16,19 @@ header = header.split()
 items = pd.read_csv(GENRE_PATH, sep="|", header=None, encoding='iso-8859-2')
 items.columns = header
 proj = ['user', 'item']
-proj.extend(header[5:])
+# proj.extend(header[5:])
 proj.append('rating')
-train = pd.merge(data, items, on='item', how='inner').sample(frac=0.005)[proj].values
+train = pd.merge(data, items, on='item', how='inner')[proj].values
 
-model = FM(n_iter=100,
+model = MF(n_iter=100,
            learning_rate=1e-1)
 x = train[:, :-1]
 y = train[:, -1]
 
-print(cross_validate(model,
-                     x,
-                     y,
+for k, v in cross_validate(model, x, y,
                      cv='userHoldOut',
                      fit_params={'dic': {'users': 0, 'items': 1}},
                      metrics='mean_square_error',
                      verbose=10,
-                     n_jobs=1))
+                     n_jobs=-1, return_times=True, return_train_score=True).items():
+    print("%s\t %s" % (k, v))
