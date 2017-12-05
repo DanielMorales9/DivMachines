@@ -30,7 +30,7 @@ def create_scorers(metrics):
     elif isinstance(metrics, dict):
         return _check_dictionary(metrics)
     elif metrics is None:
-        raise ValueError("At least one metric must be provided")
+        raise ValueError("At least one metrics must be provided")
 
 
 def _check_dictionary(metrics):

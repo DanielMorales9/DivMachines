@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import pandas as pd
-from divmachines.classifier.fm import FM
+from divmachines.classifiers.fm import FM
 from divmachines.logging import TrainingLogger as TLogger
 
 cols = ['user', 'item', 'rating', 'timestamp']
@@ -21,4 +21,4 @@ model.fit(train[['user', 'item']].values,
 plt.plot(logger.epochs, logger.losses)
 plt.show()
 
-#print(model.predict(np.array([0, 1])))
+#print(models.predict(np.array([0, 1])))

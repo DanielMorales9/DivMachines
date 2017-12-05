@@ -1,5 +1,5 @@
 from divmachines.cross_validation import cross_validate
-from divmachines.classifier.fm import FM
+from divmachines.classifiers.fm import FM
 import pandas as pd
 
 DATASET_PATH = '/home/daniel/Desktop/ml-100k/u.data'

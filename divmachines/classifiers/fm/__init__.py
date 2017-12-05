@@ -1,43 +1,36 @@
-# coding=utf-8
 import numpy as np
 import torch
 from torch import optim
 from torch.autograd import Variable
-from divmachines.classifier import Classifier
-from divmachines.helper import _prepare_for_prediction
-from divmachines.logging import Logger
-from divmachines.classifier.mf import MatrixFactorizationModel
-from divmachines.torch_utils import set_seed, gpu, cpu
 from torch.utils.data import DataLoader
-from .dataset import DenseDataset
+from .dataset import DenseDataset, SparseDataset
+from divmachines.models import FactorizationMachine
+from divmachines.classifiers import Classifier
+from divmachines.logging import Logger
+from divmachines.utility.torch import set_seed, gpu, cpu
 
 
-class MF(Classifier):
+class FM(Classifier):
     """
-    Pointwise Classifier. Uses a classic
-    matrix factorization approach, with latent vectors used
-    to represent both users and items. Their dot product gives the
-    predicted score for a user-item pair.
-    The model is trained through a set of observations of user-item
-    pairs.
+    Factorization Machine
 
     Parameters
     ----------
     n_factors: int, optional
         Number of factors to use in user and item latent factors
-    model: :class: div.machines.model, optional
-        A matrix Factorization model
+    model: :class: div.machines.models, optional
+        A matrix Factorization models
     sparse: boolean, optional
-        Use sparse gradients for embedding layers.
+        Use sparse dataset
     loss: function, optional
-        an instance of a Pytorch optimizer or a custom loss.
+        an instance of a PyTorch optimizer or a custom loss.
     l2: float, optional
         L2 loss penalty.
     learning_rate: float, optional
         Initial learning rate.
     optimizer_func: function, optional
         Function that takes in module parameters as the first argument and
-        returns an instance of a Pytorch optimizer. Overrides l2 and learning
+        returns an instance of a PyTorch optimizer. Overrides l2 and learning
         rate if supplied. If no optimizer supplied, then use SGD by default.
     n_iter: int, optional
         Number of iterations to run.
@@ -46,18 +39,18 @@ class MF(Classifier):
     random_state: instance of numpy.random.RandomState, optional
         Random state to use when fitting.
     use_cuda: boolean, optional
-        Run the model on a GPU.
+        Run the models on a GPU.
     logger: :class:`divmachines.logging`, optional
         A logger instance for logging during the training process
     n_jobs: int, optional
-        Number of workers for data loading.
+        Number of jobs for data loading.
         Default is 0, it means that the data loader runs in the main process.
     """
 
     def __init__(self,
                  n_factors=10,
                  model=None,
-                 sparse=True,
+                 sparse=False,
                  n_iter=10,
                  loss=None,
                  l2=0.0,
@@ -69,7 +62,7 @@ class MF(Classifier):
                  logger=None,
                  n_jobs=0):
 
-        super(MF, self).__init__()
+        super(FM, self).__init__()
         self._n_factors = n_factors
         self._model = model
         self._n_iter = n_iter
@@ -78,13 +71,14 @@ class MF(Classifier):
         self._random_state = random_state or np.random.RandomState()
         self._use_cuda = use_cuda
         self._l2 = l2
-        self._n_jobs = n_jobs
         self._learning_rate = learning_rate
         self._optimizer_func = optimizer_func
         self._loss_func = loss or torch.nn.MSELoss()
         self._logger = logger or Logger()
-        self._dataset = None
+        self._n_jobs = n_jobs
         self._optimizer = None
+        self._dataset = None
+        self._sparse = sparse
         self._initialized = False
 
         set_seed(self._random_state.randint(-10 ** 8, 10 ** 8),
@@ -101,9 +95,18 @@ class MF(Classifier):
         self._initialized = True
 
     def _init_dataset(self, x, y=None, dic=None):
-        self._dataset = DenseDataset(x, y=y, dic=dic)
-        self._n_users = self._dataset.n_users()
-        self._n_items = self._dataset.n_items()
+        if type(x).__module__ == np.__name__:
+            if y is None or type(x).__module__ == np.__name__:
+                if self._dataset is not None:
+                    self._dataset = self._dataset(x, y=y, dic=dic)
+                elif self._sparse:
+                    self._dataset = SparseDataset(x, y=y, dic=dic)
+                else:
+                    self._dataset = DenseDataset(x, y=y, dic=dic)
+        else:
+            raise TypeError("Training set must be of type dataset or of type ndarray")
+
+        self._n_features = self._dataset.n_features()
 
     def _init_optim_fun(self):
         if self._optimizer_func is None:
@@ -118,24 +121,22 @@ class MF(Classifier):
                                      lr=self._learning_rate)
 
     def _init_model(self):
+
         if self._model is not None:
-            if issubclass(self._model, torch.nn.Module):
+            if isinstance(self._model, FactorizationMachine):
                 self._model = gpu(self._model, self._use_cuda)
             else:
-                raise ValueError("Model must be an instance of "
-                                 "torch.nn.Module class")
+                raise ValueError("Model must be an instance of FactorizationMachine")
 
         else:
-            self._model = gpu(MatrixFactorizationModel(self._n_users,
-                                                       self._n_items,
-                                                       self._n_factors,
-                                                       self._sparse),
+            self._model = gpu(FactorizationMachine(self._n_features,
+                                                   self._n_factors),
                               self._use_cuda)
 
     def fit(self, x, y, dic=None):
         """
-        Fit the model.
-        When called repeatedly, model fitting will resume from
+        Fit the models.
+        When called repeatedly, models fitting will resume from
         the point at which training stopped in the previous fit
         call.
 
@@ -146,27 +147,28 @@ class MF(Classifier):
         y: ndarray
             Target values for samples
         dic: dict, optional
-            dic indicates the columns to make indexable.
+            dic indicates the columns to vectorize
+            if training samples are in raw format.
         """
 
         if not self._initialized:
             self._initialize(x, y=y, dic=dic)
 
         loader = DataLoader(self._dataset,
-                            shuffle=True,
                             batch_size=self._batch_size,
-                            num_workers=self._n_jobs)
+                            num_workers=self._n_jobs,
+                            shuffle=True)
 
         for epoch in range(self._n_iter):
+            for mini_batch_num, (batch_tensor, batch_ratings) in enumerate(loader):
+                batch_tensor = gpu(batch_tensor, self._use_cuda)
+                batch_ratings = gpu(batch_ratings, self._use_cuda)
 
-            for (mini_batch_num,
-                 (batch_data, batch_rating)) in enumerate(loader):
-                user_var = Variable(gpu(batch_data[:, 0], self._use_cuda))
-                item_var = Variable(gpu(batch_data[:, 1], self._use_cuda))
-                rating_var = Variable(gpu(batch_rating), self._use_cuda).float()
+                observations_var = Variable(batch_tensor)
+                rating_var = Variable(batch_ratings)
 
                 # forward step
-                predictions = self._model(user_var, item_var)
+                predictions = self._model(observations_var)
 
                 # Zeroing Embeddings' gradients
                 self._optimizer.zero_grad()
@@ -174,11 +176,11 @@ class MF(Classifier):
                 # Compute Loss
                 loss = self._loss_func(predictions, rating_var)
 
-                self._logger.log(loss, epoch=epoch, batch=mini_batch_num)
+                # logging
+                self._logger.log(loss, epoch, batch=mini_batch_num)
 
                 # backward step
                 loss.backward()
-
                 # optimization step
                 self._optimizer.step()
 
@@ -188,28 +190,27 @@ class MF(Classifier):
         scores for items.
         Parameters
         ----------
-        x: ndarray
-           It will predict scores for all (user, item) pairs defined in x
+        x: ndarray or :class:`divmachines.fm.dataset`
+            samples for which predict the ratings/rank score
         Returns
         -------
-        predictions: ndarray
-            Predicted scores for all elements
+        predictions: np.array
+            Predicted scores for each sample in x
         """
 
         self._model.train(False)
+        if len(x.shape) == 1:
+            x = np.array([x])
 
-        x = _prepare_for_prediction(x, 2)
-
-        self._dataset = self._dataset(x)
+        self._init_dataset(x)
 
         loader = DataLoader(self._dataset,
-                            batch_size=len(self._dataset),
+                            batch_size=len(x),
+                            shuffle=False,
                             num_workers=self._n_jobs)
-
         out = None
-        for batch_data in loader:
-            user_var = Variable(gpu(batch_data[:, 0], self._use_cuda))
-            item_var = Variable(gpu(batch_data[:, 1], self._use_cuda))
-            out = self._model(user_var, item_var)
+        for samples in loader:
+            var = Variable(gpu(samples, self._use_cuda))
+            out = self._model(var)
 
         return cpu(out.data).numpy().flatten()

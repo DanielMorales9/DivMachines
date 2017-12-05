@@ -1,9 +1,5 @@
 import numpy as np
 import numbers
-import torch
-from torch.autograd import Variable
-
-from divmachines.torch_utils import gpu
 
 
 def _prepare_for_prediction(x, feats):

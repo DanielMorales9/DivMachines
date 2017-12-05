@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 import numpy as np
 import pandas as pd
 
-from divmachines.helper import check_random_state
+from divmachines.utility.helper import check_random_state
 
 
 def _get_cv(cv):
@@ -141,7 +141,7 @@ class NaiveHoldOut(CrossValidator):
     for some of the users.
     The naive hold-out cross validation removes from the test set all
     the user that are not present in the train set.
-    The classifier could not handle the cold start problem.
+    The classifiers could not handle the cold start problem.
     Parameters
     ----------
     ratio: float, optional

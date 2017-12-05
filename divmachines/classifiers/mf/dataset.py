@@ -1,8 +1,6 @@
-import torch
 import numpy as np
 from torch.utils.data import Dataset
-from divmachines.torch_utils import gpu
-from divmachines.utility import make_indexable
+from divmachines.utility.data import make_indexable
 
 
 class DenseDataset(Dataset):

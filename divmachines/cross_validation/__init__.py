@@ -3,7 +3,7 @@ import time
 import numpy as np
 from joblib import Parallel, delayed
 from divmachines.metrics import create_scorers
-from validation.split import _get_cv, _create_cross_validator
+from .split import _get_cv, _create_cross_validator
 
 
 def cross_validate(classifier,
@@ -23,8 +23,8 @@ def cross_validate(classifier,
     ----------
     classifier: :class:`divmachines.classifiers.Classifier`
         Classifier that has fit method.
-        In order to run classifier in parallel make sure that
-        the n_jobs parameters in classifier is 0.
+        In order to run classifiers in parallel make sure that
+        the n_jobs parameters in classifiers is 0.
     x: ndarray
         Training samples
     y: ndarray
@@ -33,8 +33,8 @@ def cross_validate(classifier,
     cv: string, :class:`divmachines.validate`, optional
         Determines the cross-validation splitting strategy.
         Default strategy is KFold with 3 splits.
-        Consider to use Hold-Out cross-validation for model-based classifier.
-        KFold will lead the classifier to fail during prediction phase
+        Consider to use Hold-Out cross-validation for models-based classifiers.
+        KFold will lead the classifiers to fail during prediction phase
         because of the different parameter dimensions.
     metrics: str, list, set, tuple
         Metric to use in the cross validation phase
@@ -152,7 +152,7 @@ def _fit_and_score(classifier,
                    return_train_score=False,
                    return_times=False):
     """
-    Fit classifier and compute scores for a given dataset split.
+    Fit classifiers and compute scores for a given dataset split.
     Parameters
     ----------
     classifier : estimator object implementing 'fit'
@@ -215,11 +215,11 @@ def _fit_and_score(classifier,
 
 def _score(classifier, x, y, scorers):
     """
-    Performs the scores on the classifier
+    Performs the scores on the classifiers
     Parameters
     ----------
     classifier: :class:`divmachines.classifiers.Classifier`
-        An instance of a classifier class
+        An instance of a classifiers class
     x: ndarray
         samples to predict
     y: ndarray
