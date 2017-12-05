@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from divmachines.mf import Pointwise
+from divmachines.mf import MF
 from divmachines.layers import TestEmbedding
 from divmachines.mf.models import MatrixFactorizationModel, SimpleMatrixFactorizationModel
 
@@ -27,13 +27,13 @@ class PointwiseMFModelTest(unittest.TestCase):
                                 sparse=True,
                                 embedding_weights=np.array([[0], [1], [2], [3]], dtype=float))
 
-        mf = Pointwise(model=model, n_iter=0, learning_rate=0)
+        mf = MF(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
                          [1, 3, 2],
                          [2, 2, 1],
-                         [2, 3, 2]]))
+                         [2, 3, 2]]),,
 
         expected = np.array([0, 1, 2, 3, 1, 4, 7, 10, 2, 7, 12, 17])
         actual = mf.predict(np.array([0, 1, 2]))
@@ -54,13 +54,13 @@ class PointwiseMFModelTest(unittest.TestCase):
                                           [2, 2],
                                           [3, 3]], dtype=float))
 
-        mf = Pointwise(model=model, n_iter=0, learning_rate=0)
+        mf = MF(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
                          [1, 3, 2],
                          [2, 2, 1],
-                         [2, 3, 2]]))
+                         [2, 3, 2]]),,
 
         expected = np.array([0, 0, 0, 0, 0, 2, 4, 6, 0, 4, 8, 12])
         actual = mf.predict(np.array([0, 1, 2]))
@@ -81,13 +81,13 @@ class PointwiseMFModelTest(unittest.TestCase):
                                           [2, 2],
                                           [3, 3]], dtype=float))
 
-        mf = Pointwise(model=model, n_iter=0, learning_rate=0)
+        mf = MF(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
                          [1, 3, 2],
                          [2, 2, 1],
-                         [2, 3, 2]]))
+                         [2, 3, 2]]),,
 
         expected = np.array([0, 2, 4, 6])
         actual = mf.predict(1)
@@ -114,13 +114,13 @@ class PointwiseMFModelTest(unittest.TestCase):
                                 sparse=True,
                                 embedding_weights=np.array([[0], [1], [2], [3]], dtype=float))
 
-        mf = Pointwise(model=model, n_iter=0, learning_rate=0)
+        mf = MF(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
                          [1, 3, 2],
                          [2, 2, 1],
-                         [2, 3, 2]]))
+                         [2, 3, 2]]),,
 
         expected = np.array([1, 4, 7, 10])
         actual = mf.predict(1)
@@ -148,13 +148,13 @@ class PointwiseMFModelTest(unittest.TestCase):
                                           sparse=True,
                                           embedding_weights=np.array([[0], [1], [2], [3]], dtype=float))
 
-        mf = Pointwise(model=model, n_iter=0, learning_rate=0)
+        mf = MF(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
                          [1, 3, 2],
                          [2, 2, 1],
-                         [2, 3, 2]]))
+                         [2, 3, 2]]),,
 
         expected = np.array([4])
         actual = mf.predict(1, 1)
@@ -176,13 +176,13 @@ class PointwiseMFModelTest(unittest.TestCase):
                                                             [3, 3]], dtype=float))
 
 
-        mf = Pointwise(model=model, n_iter=0, learning_rate=0)
+        mf = MF(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
                          [1, 3, 2],
                          [2, 2, 1],
-                         [2, 3, 2]]))
+                         [2, 3, 2]]),,
 
         expected = np.array([0, 2])
         actual = mf.predict(np.array([0, 1]), np.array([0, 1]))
@@ -209,13 +209,13 @@ class PointwiseMFModelTest(unittest.TestCase):
                                           sparse=True,
                                           embedding_weights=np.array([[0], [1], [2], [3]], dtype=float))
 
-        mf = Pointwise(model=model, n_iter=0, learning_rate=0)
+        mf = MF(model=model, n_iter=0, learning_rate=0)
         mf.fit(np.array([[0, 0, 1],
                          [0, 1, 2],
                          [1, 2, 1],
                          [1, 3, 2],
                          [2, 2, 1],
-                         [2, 3, 2]]))
+                         [2, 3, 2]]),,
 
         expected = np.array([0, 4])
         actual = mf.predict(np.array([0, 1]), np.array([0, 1]))

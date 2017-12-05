@@ -3,15 +3,74 @@ from itertools import count
 from collections import defaultdict
 
 
+class ColumnDefaultFactory:
+
+    def __init__(self, dic):
+        self._dic = {}
+        for k, _ in dic.items():
+            self._dic[k] = defaultdict(lambda c=count(0): next(c))
+
+    def __call__(self, key):
+        for k in self._dic:
+            if key.startswith(k):
+                return self._dic[k][key]
+
+
+class IndexDictionary(defaultdict):
+
+    def __init__(self, default_factory, **kwargs):
+        super().__init__(default_factory, **kwargs)
+        self.factory = default_factory
+
+    def __missing__(self, key):
+        self[key] = self.default_factory(key)
+        return self[key]
+
+
+def make_indexable(dic, x, ix=None):
+    """
+    Makes the specified dictionary indexable.
+    dic: dict
+        Dictionary to make indexable
+    x: ndarray
+        Original transaction data
+    ix: dict, optional
+        Dictionary of indexes
+    Returns
+    -------
+    x: ndarray
+        Modified transaction data with indexable columns
+    ix: dict, optional
+        It maps the each column value to indexable columns
+    """
+    if ix is None:
+        ix = IndexDictionary(ColumnDefaultFactory(dic))
+
+    dic_lists = dict(dic)
+    for k, v in dic_lists.items():
+        dic_lists[k] = np.array([ix[str(k) + str(el)] for el in x[:, v]])
+
+    new_x = np.zeros(shape=x.shape, dtype=np.int64)
+    for k, v in dic.items():
+        new_x[:, v] = dic_lists[k]
+    return new_x, ix
+
+
 def vectorize_dic(dic, ix=None, p=None):
     """
-    Creates a scipy csr matrix from a list of lists (each inner list is a set of values corresponding to a feature)
+    Creates a scipy csr matrix from a list of lists
+    (each inner list is a set of values corresponding to a feature)
 
     Parameters:
     -----------
-    dic -- dictionary of feature lists. Keys are the name of features
-    ix -- index generator (default None)
-    p -- dimension of feature space (number of columns in the sparse matrix) (default None)
+    dic: dict
+        Dictionary of feature lists.
+        Keys are the name of features
+    ix: dict, optional
+        Index generator (default None)
+    p: int, optional
+        Dimension of feature space
+        (number of columns in the sparse matrix) (default None)
     """
 
     if ix is None:
@@ -49,21 +108,20 @@ def non_zero(interactions, cols):
     return nz
 
 
-def vectorize_interactions(interactions, dic=None, ix=None):
+def vectorize_interactions(interactions, dic=None, ix=None, n_features=None):
     if dic is not None:
-
         vec_dic = dic.copy()
         keys = []
         for k in dic:
             keys.append(dic[k])
             vec_dic[k] = interactions[:, dic[k]]
-        d, r, c, ix = vectorize_dic(vec_dic, ix=ix)
+        d, r, c, ix = vectorize_dic(vec_dic, ix=ix, p=n_features)
         real_valued_cols = list(set(range(interactions.shape[1])) - set(keys))
         cat_nz = len(d)
     else:
         cat_nz = 0
         real_valued_cols = range(interactions.shape[1])
-        ix = defaultdict(lambda c = count(0): next(c))
+        ix = defaultdict(lambda c=count(0): next(c))
 
     nz = non_zero(interactions, real_valued_cols) + cat_nz
     data = np.empty(nz)

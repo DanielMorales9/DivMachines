@@ -1,110 +1,116 @@
 import numpy as np
 from torch.utils.data import Dataset
 from scipy.sparse import coo_matrix
-from divmachines.fm.utility import vectorize_interactions, list2dic
+from divmachines.utility import vectorize_interactions, list2dic
 
 
 class DenseDataset(Dataset):
     """
-    Wrapper for Factorization Machines
+    Wrapper for Factorization Machines Dataset
     Parameter
     ----------
-    interactions: ndarray
-        transaction data, triple users, item, rating
-    feats_dic: dict, optional
+    x: ndarray
+        transaction data.
+    y: ndarray, optional
+        target values for transaction data.
+    dic: dict, optional
         Features dictionary, for each entry (k, v), k corresponds to a
         categorical feature to vectorize and v the corresponding index
         in the interactions array.
     """
-    def __init__(self, interactions, dic=None):
+    def __init__(self, x, y=None, dic=None):
         super(DenseDataset, self).__init__()
-        self._initialize(interactions, dic=dic)
+        self._n_features = None
+        self._initialize(x, y=y, dic=dic)
 
-    def __call__(self, interactions):
-        self._initialize(interactions, dic=self._dic, ix=self._ix)
+    def _initialize(self, x, y=None, dic=None, ix=None):
+        self._len = len(x)
+        self._dic = dic
+        if dic is None:
+            self._x = x.astype(np.float32)
+            self._n_features = self._x.shape[1]
+        else:
+            data, rows, cols, self._ix \
+                = vectorize_interactions(x, dic=dic, ix=ix, n_features=self._n_features)
+            self._n_features = len(np.unique(cols)) if self._n_features is None else self._n_features
+            coo = coo_matrix((data, (rows, cols)), shape=(self._len, self._n_features))
+            self._x = coo.toarray().astype(np.float32)
+        self._y = y.astype(np.float32) if y is not None else None
+
+    def __call__(self, x, y=None, dic=None):
+        self._dic = dic or self._dic
+        self._initialize(x,
+                         y=None,
+                         dic=self._dic,
+                         ix=self._ix)
         return self
 
     def n_features(self):
         return self._n_features
 
-    def n_items(self):
-        return self._n_items
-
-    def n_users(self):
-        return self._n_users
-
     def __len__(self):
         return self._len
 
     def __getitem__(self, item):
-        return self._dataset[item, :]
-
-    def _initialize(self, interactions, dic=None, ix=None):
-        self._dic = dic or {'users': 0, 'items': 1}
-        self._data, \
-        self._rows, \
-        self._cols, \
-        self._ix = vectorize_interactions(interactions[:, :-1], dic=self._dic, ix=ix)
-        ratings = interactions[:, -1]
-        self._len = len(interactions)
-        self._n_features = len(np.unique(self._cols))
-        coo = coo_matrix((self._data, (self._rows, self._cols)), shape=(self._len, self._n_features))
-        self._dataset = np.zeros(shape=(self._len, self._n_features + 1), dtype=np.float32)
-        self._dataset[:, :-1] = coo.toarray()
-        self._dataset[:, -1] = ratings
-        self._n_users = len(np.unique(interactions[:, self._dic['users']]))
-        self._n_items = len(np.unique(interactions[:, self._dic['items']]))
+        if self._y is None:
+            return self._x[item, :]
+        return self._x[item, :], self._y[item]
 
 
 class SparseDataset(Dataset):
     """
-    Wrapper for Factorization Machines
+    Wrapper for Factorization Machines Sparse Dataset
     Parameter
     ----------
-    interactions: ndarray
-        transaction data, triple users, item, rating
-    feats_dic: dict, optional
+    x: ndarray
+        transaction data.
+    y: ndarray, optional
+        target values for transaction data.
+    dic: dict, optional
         Features dictionary, for each entry (k, v), k corresponds to a
         categorical feature to vectorize and v the corresponding index
         in the interactions array.
     """
-    def __init__(self, interactions, dic=None):
+    def __init__(self, x, y=None, dic=None):
         super(SparseDataset, self).__init__()
-        self._initialize(interactions, dic=dic)
+        self._n_features = None
+        self._initialize(x, y=y, dic=dic)
 
-    def _initialize(self, interactions, dic=None, ix=None):
-        self._dic = dic or {'users': 0, 'items': 1}
-        self._data, \
-        self._rows, \
-        self._cols, \
-        self._ix = vectorize_interactions(interactions[:, :-1], dic=self._dic, ix=ix)
-        self._ratings = interactions[:, -1]
-        self._len = len(interactions)
-        self._n_features = len(np.unique(self._cols))
-        self._sparse_dataset = list2dic(self._data, self._rows, self._cols)
-        self._zero = np.zeros(self._n_features+1, dtype=np.float32)
-        self._n_users = len(np.unique(interactions[:, self._dic['users']]))
-        self._n_items = len(np.unique(interactions[:, self._dic['items']]))
+    def _initialize(self, x, y, dic, ix=None):
+        self._len = len(x)
+        self._dic = dic
+        self._y = y.astype(np.float32) if y is not None else None
+        if dic is None:
+            self._n_features = x.shape[1]
+            self._sparse_x = dict()
+            for r, row in enumerate(x):
+                self._sparse_x[r] = [[col, d] for col, d in enumerate(row) if d != 0.]
+        else:
+            d, rows, cols, self._ix\
+                = vectorize_interactions(x,
+                                         dic=dic,
+                                         ix=ix,
+                                         n_features=self._n_features)
+            self._n_features = len(np.unique(cols)) if self._n_features is None else self._n_features
+            self._sparse_x = list2dic(d, rows, cols)
+        self._zero = np.zeros(self._n_features, dtype=np.float32)
 
-    def __call__(self, interactions):
-        self._initialize(interactions, dic=self._dic, ix=self._ix)
+    def n_features(self):
+        return self._n_features
+
+    def __call__(self, x, y=None, dic=None):
+        self._dic = dic or self._dic
+        self._initialize(x, y=y, dic=self._dic, ix=self._ix)
         return self
 
     def __len__(self):
         return self._len
 
-    def n_items(self):
-        return self._n_items
-
-    def n_users(self):
-        return self._n_users
-
-    def n_features(self):
-        return self._n_features
-
     def __getitem__(self, item):
         copy = self._zero.copy()
-        for data, col in self._sparse_dataset[item]:
-            copy[col] = data
-        copy[-1] = self._ratings[item]
-        return copy
+        for d, col in self._sparse_x[item]:
+            copy[col] = d
+        if self._y is None:
+            return copy
+        else:
+            return copy, self._y[item]

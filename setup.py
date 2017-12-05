@@ -10,7 +10,7 @@ setup(name="divmachines",
       author_email="dnlmrls9@gmail.com",
       license="MIT",
       packages=find_packages(),
-      install_requires=['torch', 'numpy', 'scipy', 'scikit-learn'],
+      install_requires=['torch', 'numpy', 'scipy', 'scikit-learn', 'joblib'],
       zip_safe=False,
       classifiers=[
           'Intended Audience :: Science/Research',
@@ -22,4 +22,4 @@ setup(name="divmachines",
           'Operating System :: POSIX',
           'Operating System :: Unix',
           'Operating System :: MacOS']
-)
+      )
