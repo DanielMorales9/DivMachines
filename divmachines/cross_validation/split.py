@@ -70,6 +70,7 @@ class KFold(CrossValidator):
         If None, the random number generator is the RandomState instance used
         by `np.random`. Used when ``shuffle`` == True.
     """
+
     def __init__(self, folds=3, shuffle=True, random_state=None):
         super(KFold, self).__init__()
 
@@ -197,7 +198,7 @@ class NaiveHoldOut(CrossValidator):
             train_users = train_split[self._user_idx].unique()
             train_items = train_split[self._item_idx].unique()
             test_idx = test_split.index[(test_split[self._user_idx].isin(train_users)) &
-                                    (test_split[self._item_idx].isin(train_items))]
+                                        (test_split[self._item_idx].isin(train_items))]
             yield train_idx, test_idx
 
     def _iter_indices_mask(self, x, y, indices):
@@ -258,7 +259,7 @@ class UserHoldOut(CrossValidator):
             grouped = data.groupby(0)
             for user, g in grouped:
                 idx_shuffled = g.index.values.reshape(-1)
-                n_observed = int((1-self._ratio) * len(idx_shuffled))
+                n_observed = int((1 - self._ratio) * len(idx_shuffled))
                 check_random_state(self._random_state).shuffle(idx_shuffled)
                 copy_mask[idx_shuffled[0:n_observed]] = True
 
@@ -270,7 +271,7 @@ class UserHoldOut(CrossValidator):
             train_items = train_split[self._item_idx].unique()
             test_idx = test_split.index[~test_split[self._item_idx].isin(train_items)]
             copy_mask[test_idx] = False
-            print(1 -(sum(copy_mask)/len(copy_mask)))
+            print(1 - (sum(copy_mask) / len(copy_mask)))
             yield copy_mask
 
 

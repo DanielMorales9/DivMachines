@@ -21,9 +21,9 @@ def cross_validate(classifier,
     Cross validation function
     Parameters
     ----------
-    classifier: :class:`divmachines.Classifier`
+    classifier: :class:`divmachines.classifiers.Classifier`
         Classifier that has fit method.
-        In order to run classifiers in parallel make sure that
+        In order to run classifier in parallel make sure that
         the n_jobs parameters in classifier is 0.
     x: ndarray
         Training samples
@@ -33,7 +33,7 @@ def cross_validate(classifier,
     cv: string, :class:`divmachines.validate`, optional
         Determines the cross-validation splitting strategy.
         Default strategy is KFold with 3 splits.
-        Consider to use Hold-Out cross-validation for model-based classifiers.
+        Consider to use Hold-Out cross-validation for model-based classifier.
         KFold will lead the classifier to fail during prediction phase
         because of the different parameter dimensions.
     metrics: str, list, set, tuple
@@ -218,7 +218,7 @@ def _score(classifier, x, y, scorers):
     Performs the scores on the classifier
     Parameters
     ----------
-    classifier: :class:`divmachines.Classifier`
+    classifier: :class:`divmachines.classifiers.Classifier`
         An instance of a classifier class
     x: ndarray
         samples to predict

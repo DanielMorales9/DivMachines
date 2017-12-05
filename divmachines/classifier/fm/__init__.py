@@ -1,14 +1,13 @@
 import numpy as np
 import torch
-from divmachines.helper import _prepare_for_prediction
 from torch import optim
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from .dataset import DenseDataset, SparseDataset
-from .models import FactorizationMachine
-from .. import Classifier
-from ..logging import Logger
-from ..torch_utils import set_seed, gpu, cpu
+from divmachines.model import FactorizationMachine
+from divmachines.classifier import Classifier
+from divmachines.logging import Logger
+from divmachines.torch_utils import set_seed, gpu, cpu
 
 
 class FM(Classifier):
@@ -19,7 +18,7 @@ class FM(Classifier):
     ----------
     n_factors: int, optional
         Number of factors to use in user and item latent factors
-    model: :class: div.machines.models, optional
+    model: :class: div.machines.model, optional
         A matrix Factorization model
     sparse: boolean, optional
         Use sparse dataset

@@ -3,10 +3,10 @@ import numpy as np
 import torch
 from torch import optim
 from torch.autograd import Variable
-from divmachines import Classifier
+from divmachines.classifier import Classifier
 from divmachines.helper import _prepare_for_prediction
 from divmachines.logging import Logger
-from divmachines.mf.models import MatrixFactorizationModel
+from divmachines.classifier.mf import MatrixFactorizationModel
 from divmachines.torch_utils import set_seed, gpu, cpu
 from torch.utils.data import DataLoader
 from .dataset import DenseDataset
@@ -25,7 +25,7 @@ class MF(Classifier):
     ----------
     n_factors: int, optional
         Number of factors to use in user and item latent factors
-    model: :class: div.machines.models, optional
+    model: :class: div.machines.model, optional
         A matrix Factorization model
     sparse: boolean, optional
         Use sparse gradients for embedding layers.
