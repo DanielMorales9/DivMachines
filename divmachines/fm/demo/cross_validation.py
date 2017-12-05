@@ -18,7 +18,7 @@ header = header.split()
 items = pd.read_csv(GENRE_PATH, sep="|", header=None, encoding='iso-8859-2')
 items.columns = header
 proj = ['user', 'item']
-#proj.extend(header[5:])
+proj.extend(header[5:])
 proj.append('rating')
 train = pd.merge(data, items, on='item', how='inner').sample(frac=0.005)[proj].values
 
