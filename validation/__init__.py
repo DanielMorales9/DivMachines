@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 from abc import ABCMeta, abstractmethod
 from joblib import Parallel, delayed
-from .helper import check_random_state
-from .metrics import create_scorers
+from divmachines.helper import check_random_state
+from divmachines.metrics import create_scorers
 
 
 def cross_validate(classifier,
@@ -16,7 +16,9 @@ def cross_validate(classifier,
                    fit_params=None,
                    verbose=0,
                    n_jobs=1,
-                   pre_dispatch='2*n_jobs'):
+                   pre_dispatch='2*n_jobs',
+                   return_train_score=False,
+                   return_times=False):
     """
     Cross validation function
     Parameters
@@ -58,6 +60,31 @@ def cross_validate(classifier,
               as in '2*n_jobs'
     verbose: integer, optional
         The verbosity level.
+    return_train_score: bool, optional
+        Whether to return train scores or not.
+        Default is False.
+    return_times: bool, optional
+        Whether to return times scores or not.
+        Default is False.
+    Returns
+    -------
+    scores : dict of float arrays of shape=(n_splits,)
+        Array of scores of the estimator for each run of the cross validation.
+        A dict of arrays containing the score/time arrays for each scorer is
+        returned. The possible keys for this ``dict`` are:
+            ``test_score``
+                The score array for test scores on each cv split.
+            ``train_score``
+                The score array for train scores on each cv split.
+                This is available only if ``return_train_score`` parameter
+                is ``True``.
+            ``fit_time``
+                The time for fitting the estimator on the train
+                set for each cv split.
+            ``score_time``
+                The time for scoring the estimator on the test set for each
+                cv split. (Note time for scoring on the train set is not
+                included even if ``return_train_score`` is set to ``True``
 
     """
 
@@ -78,9 +105,10 @@ def cross_validate(classifier,
                                 train_idx,
                                 test_idx,
                                 verbose,
-                                return_train_score=True,
-                                return_times=True)
+                                return_train_score=return_train_score,
+                                return_times=return_times)
         for train_idx, test_idx in cv.split(x, y))
+
     return scores
 
 
@@ -234,6 +262,10 @@ class CrossValidator(metaclass=ABCMeta):
     def __init__(self):
         pass
 
+    @abstractmethod
+    def _iter_indices_mask(self, x, y, indices):
+        raise NotImplementedError
+
     def split(self, x, y):
         """
         Data partitioning function,
@@ -257,10 +289,6 @@ class CrossValidator(metaclass=ABCMeta):
             test_index = indices[test_index]
             yield train_index, test_index
 
-    @abstractmethod
-    def _iter_indices_mask(self, x, y, indices):
-        raise NotImplementedError
-
 
 class KFold(CrossValidator):
     """
@@ -281,7 +309,6 @@ class KFold(CrossValidator):
         If RandomState instance, random_state is the random number generator;
         If None, the random number generator is the RandomState instance used
         by `np.random`. Used when ``shuffle`` == True.
-
     """
     def __init__(self, folds=3, shuffle=True, random_state=None):
         super(KFold, self).__init__()
@@ -347,12 +374,13 @@ class LeaveOneOut(CrossValidator):
 
 class NaiveHoldOut(CrossValidator):
     """
-    Hold-Out cross-validator
+    Naive Hold-Out cross-validator
     Provides train/test indices to split data in train/test sets.
     The partitioning is performed by randomly withholding some ratings
-    for all or some of the users.
-    The Naive version of the Hold-Out cross validation removes from the test set
-    all the user that are not present in the
+    for some of the users.
+    The naive hold-out cross validation removes from the test set all
+    the user that are not present in the train set.
+    The classifier could not handle the cold start problem.
     Parameters
     ----------
     ratio: float, optional
@@ -370,9 +398,6 @@ class NaiveHoldOut(CrossValidator):
     item_idx: int, optional
         Indicates the item index in the transaction data
         Default is 1.
-    shuffle: boolean, optional
-        Whether to shuffle the data before splitting into batches.
-        By default it shuffle the data
     random_state : int, RandomState instance or None, optional, default=None
         If int, random_state is the seed used by the random number generator;
         If RandomState instance, random_state is the random number generator;
@@ -380,19 +405,18 @@ class NaiveHoldOut(CrossValidator):
         by `np.random`. Used when ``shuffle`` == True.
 
     """
+
     def __init__(self,
                  ratio=0.8,
                  times=10,
                  user_idx=0,
                  item_idx=1,
-                 shuffle=True,
                  random_state=None):
         super(NaiveHoldOut, self).__init__()
         self._times = times
         self._ratio = ratio
         self._user_idx = user_idx
         self._item_idx = item_idx
-        self._shuffle = shuffle
         self._random_state = random_state
 
     def split(self, x, y):
@@ -401,8 +425,7 @@ class NaiveHoldOut(CrossValidator):
         indices = np.arange(len(x))
 
         for i in range(self._times):
-            if self._shuffle:
-                check_random_state(self._random_state).shuffle(indices)
+            check_random_state(self._random_state).shuffle(indices)
 
             train_size = int(n_samples * self._ratio)
             # split data according to the shuffled index and the holdout size
@@ -421,8 +444,70 @@ class NaiveHoldOut(CrossValidator):
         pass
 
 
+class UserHoldOut(CrossValidator):
+    """
+    User Hold-Out cross-validator
+    Provides train/test indices to split data in train/test sets.
+    The partitioning is performed by randomly withholding some ratings
+    for all or some of the users.
+    The User Hold-Out cross validation removes from the test set
+    all the user that are not present in the
+    Parameters
+    ----------
+    ratio: float, optional
+        Ratio between the train set .
+        For instance, 0.7 means that the train set is 70% of the
+        original dataset, while the test set is 30% of it.
+        Default is 80% for the train set and 20% for the test set.
+    times: int, optional
+        Number of times to run Hold-out cross validation.
+        Higher values of it result in less variance in the result score.
+        Default is 10.
+    user_idx: int, optional
+        Indicates the user index in the transaction data.
+        Default is 0.
+    item_idx: int, optional
+        Indicates the item index in the transaction data
+        Default is 1.
+    random_state : int, RandomState instance or None, optional, default=None
+        If int, random_state is the seed used by the random number generator;
+        If RandomState instance, random_state is the random number generator;
+        If None, the random number generator is the RandomState instance used
+        by `np.random`. Used when ``shuffle`` == True.
+
+    """
+
+    def __init__(self,
+                 ratio=0.8,
+                 times=10,
+                 user_idx=0,
+                 item_idx=1,
+                 random_state=None):
+        super(UserHoldOut, self).__init__()
+        self._times = times
+        self._ratio = ratio
+        self._user_idx = user_idx
+        self._item_idx = item_idx
+        self._random_state = random_state
+
+    def _iter_indices_mask(self, x, y, indices):
+        data = pd.DataFrame(x)[[self._user_idx, self._item_idx]]
+
+        mask = np.zeros(data.shape[0], dtype=np.bool)
+        for i in range(self._times):
+            copy_mask = np.copy(mask)
+            grouped = data.groupby(0)
+            for user, g in grouped:
+                idx_shuffled = g.index.values.reshape(-1)
+                n_observed = int(self._ratio * len(idx_shuffled))
+                check_random_state(self._random_state).shuffle(idx_shuffled)
+                copy_mask[idx_shuffled[0:n_observed]] = True
+            yield copy_mask
+
+
 CROSS_VALIDATOR = dict(
     kFold=KFold,
     leaveOneOut=LeaveOneOut,
-    naiveHoldOut=NaiveHoldOut
+    naiveHoldOut=NaiveHoldOut,
+    userHoldOut=UserHoldOut
 )

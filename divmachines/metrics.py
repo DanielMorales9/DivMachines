@@ -1,10 +1,6 @@
 import numpy as np
 
 
-def _get_scores(metrics):
-    return SCORERS[metrics]
-
-
 def create_scorers(metrics):
     """
     Function that create list of scorers
@@ -18,8 +14,8 @@ def create_scorers(metrics):
         or a dict with names as keys and callables as values.
     Returns
     -------
-        scoring : list of callable
-            A list of scorer function
+    scoring : list of callable
+        A list of scorer function
     """
     if callable(metrics):
         return metrics
@@ -85,6 +81,10 @@ def root_mean_square_error(y_pred, y_true):
         Loss value
     """
     return np.sqrt(np.mean(np.power(y_pred - y_true, 2)))
+
+
+def _get_scores(metrics):
+    return SCORERS[metrics]
 
 
 SCORERS = dict(

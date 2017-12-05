@@ -1,8 +1,6 @@
-from divmachines.validate import cross_validate
-from divmachines.validate import NaiveHoldOut
-from divmachines.mf import MF
+from validation import cross_validate
 from divmachines.fm import FM
-from divmachines.utility import make_indexable
+from divmachines.mf import MF
 import pandas as pd
 
 DATASET_PATH = '/home/daniel/Desktop/ml-100k/u.data'
@@ -30,8 +28,8 @@ y = train[:, -1]
 print(cross_validate(model,
                      x,
                      y,
-                     cv='naiveHoldOut',
-                     fit_params={'dic':{'users':0, 'items':1}},
+                     cv='userHoldOut',
+                     fit_params={'dic': {'users': 0, 'items': 1}},
                      metrics='mean_square_error',
                      verbose=10,
                      n_jobs=1))
