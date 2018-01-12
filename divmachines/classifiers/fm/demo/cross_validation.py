@@ -1,8 +1,8 @@
-from divmachines.cross_validation import cross_validate
+from divmachines.model_selection import cross_validate
 from divmachines.classifiers.fm import FM
 import pandas as pd
 
-DATASET_PATH = '/home/daniel/Desktop/ml-100k/u.data'
+DATASET_PATH = '/../u.data'
 GENRE_PATH = '/home/daniel/Desktop/ml-100k/u.item'
 data = pd.read_csv(DATASET_PATH, sep="\t", header=None)
 data.columns = ['user', 'item', 'rating', 'time']

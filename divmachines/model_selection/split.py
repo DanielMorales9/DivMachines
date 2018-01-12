@@ -1,8 +1,6 @@
 from abc import ABCMeta, abstractmethod
-
 import numpy as np
 import pandas as pd
-
 from divmachines.utility.helper import check_random_state
 
 
@@ -271,7 +269,6 @@ class UserHoldOut(CrossValidator):
             train_items = train_split[self._item_idx].unique()
             test_idx = test_split.index[~test_split[self._item_idx].isin(train_items)]
             copy_mask[test_idx] = False
-            print(1 - (sum(copy_mask) / len(copy_mask)))
             yield copy_mask
 
 
@@ -283,7 +280,7 @@ CROSS_VALIDATOR = dict(
 )
 
 
-def _create_cross_validator(cv):
+def create_cross_validator(cv):
     """
     Return an instance of a cross validator.
 

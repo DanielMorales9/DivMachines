@@ -4,9 +4,7 @@ from divmachines.classifiers.fm import FM
 from divmachines.logging import TrainingLogger as TLogger
 
 cols = ['user', 'item', 'rating', 'timestamp']
-train = pd.read_csv('~/Stuff/fm_tensorflow-master/data/ua.base', delimiter='\t', names=cols)
-test = pd.read_csv('~/Stuff/fm_tensorflow-master/data/ua.test', delimiter='\t', names=cols)
-
+train = pd.read_csv('../../../../data/ua.base', delimiter='\t', names=cols)
 logger = TLogger()
 
 model = FM(n_iter=100,

@@ -2,8 +2,8 @@ import copy
 import time
 import numpy as np
 from joblib import Parallel, delayed
-from divmachines.metrics import create_scorers
-from .split import _get_cv, _create_cross_validator
+from ..metrics import create_scorers
+from .split import _get_cv, create_cross_validator
 
 
 def cross_validate(classifier,
@@ -92,7 +92,7 @@ def cross_validate(classifier,
                         pre_dispatch=pre_dispatch,
                         verbose=verbose)
 
-    cv = _create_cross_validator(cv)
+    cv = create_cross_validator(cv)
 
     scores = parallel(
         delayed(_fit_and_score)(clone(classifier),
@@ -102,6 +102,7 @@ def cross_validate(classifier,
                                 fit_params,
                                 train_idx,
                                 test_idx,
+                                None,
                                 verbose,
                                 return_train_score=return_train_score,
                                 return_times=return_times)
@@ -148,9 +149,11 @@ def _fit_and_score(classifier,
                    fit_params,
                    train_idx,
                    test_idx,
+                   parameters,
                    verbose=0,
                    return_train_score=False,
-                   return_times=False):
+                   return_times=False,
+                   return_parameters=False):
     """
     Fit classifiers and compute scores for a given dataset split.
     Parameters
@@ -166,6 +169,8 @@ def _fit_and_score(classifier,
         metrics for computing the score
     fit_params : dict, optional
         Parameters to pass to the fit method of the estimator.
+    parameters : dict or None
+        Parameters to be set on the estimator.
     train_idx : array-like, shape (n_train_samples,)
         Indices of training samples.
     test_idx : array-like, shape (n_test_samples,)
@@ -176,6 +181,8 @@ def _fit_and_score(classifier,
         Compute and return score on training set.
     return_times : boolean, optional, default: False
         Whether to return the fit/score times.
+    return_parameters : boolean, optional, default: False
+        Whether to return the model parameters.
     Returns
     -------
     train_scores : dict of scorer name -> float, optional
@@ -187,6 +194,8 @@ def _fit_and_score(classifier,
         Time spent for fitting in seconds.
     score_time : float
         Time spent for scoring in seconds.
+    parameters : dict or None, optional
+        The parameters that have been evaluated.
     """
 
     fit_params = fit_params or {}
@@ -195,7 +204,8 @@ def _fit_and_score(classifier,
 
     x_train, y_train = x[train_idx, :], y[train_idx]
     x_test, y_test = x[test_idx, :], y[test_idx]
-
+    if parameters is not None:
+        classifier = classifier.set_params(**parameters)
     classifier.fit(x_train, y_train, **fit_params)
 
     fit_time = time.time() - start_time
@@ -204,12 +214,16 @@ def _fit_and_score(classifier,
 
     test_scores = _score(classifier, x_test, y_test, scorers)
     score_time = time.time() - start_time - fit_time
+
     if return_train_score:
         train_scores = _score(classifier, x_train, y_train, scorers)
     ret = [train_scores, test_scores] if return_train_score else [test_scores]
 
     if return_times:
         ret.extend([fit_time, score_time])
+
+    if return_parameters and parameters is not None:
+        ret.append(parameters)
     return ret
 
 
@@ -228,7 +242,7 @@ def _score(classifier, x, y, scorers):
         list of callables, each element is a score function
     Returns
     -------
-    scores: arralike
+    scores: arraylike
         list of scores
     """
     predictions = classifier.predict(x)

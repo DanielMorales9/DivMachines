@@ -40,7 +40,7 @@ class DenseDataset(Dataset):
     def __call__(self, x, y=None, dic=None):
         self._dic = dic or self._dic
         self._initialize(x,
-                         y=None,
+                         y=y,
                          dic=self._dic,
                          ix=self._ix)
         return self

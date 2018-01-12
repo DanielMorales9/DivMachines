@@ -3,7 +3,12 @@ import numbers
 
 
 def _prepare_for_prediction(x, feats):
+    """
 
+    :param x:
+    :param feats:
+    :return:
+    """
     if type(x) is np.ndarray:
         if len(x.shape) == 2:
             if x.shape[1] == 1:

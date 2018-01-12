@@ -39,3 +39,16 @@ class Classifier(ABC):
     @abstractmethod
     def predict(self, x, **kwargs):
         pass
+
+    def set_params(self, **params):
+        """
+        Returns
+        -------
+        self
+        """
+        if not params:
+            return self
+        for key, value in params.items():
+            setattr(self, key, value)
+        return self
+
