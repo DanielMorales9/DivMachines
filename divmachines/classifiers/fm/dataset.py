@@ -1,7 +1,7 @@
 import numpy as np
 from torch.utils.data import Dataset
 from scipy.sparse import coo_matrix
-from divmachines.utility.data import vectorize_interactions, list2dic
+from divmachines.utility.indexing import vectorize_interactions, list2dic
 
 
 class DenseDataset(Dataset):

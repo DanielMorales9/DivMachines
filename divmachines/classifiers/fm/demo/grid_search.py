@@ -1,7 +1,7 @@
 from divmachines.model_selection.search import GridSearchCV
 from divmachines.classifiers.fm import FM
 import pandas as pd
-GENRE_PATH = '../../../../data/u.item'
+ITEM_PATH = '../../../../data/u.item'
 
 cols = ['user', 'item', 'rating', 'timestamp']
 data = pd.read_csv('../../../../data/ua.base', delimiter='\t', names=cols)
@@ -12,7 +12,7 @@ header = "item | movie_title | release_date | video_release_date | " \
          "Musical | Mystery | Romance | Sci-Fi | Thriller | War | Western "
 header = header.replace(" |", "")
 header = header.split()
-items = pd.read_csv(GENRE_PATH, sep="|", header=None, encoding='iso-8859-2')
+items = pd.read_csv(ITEM_PATH, sep="|", header=None, encoding='iso-8859-2')
 items.columns = header
 proj = ['user', 'item']
 proj.extend(header[5:])

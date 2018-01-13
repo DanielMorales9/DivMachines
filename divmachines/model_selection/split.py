@@ -152,10 +152,10 @@ class NaiveHoldOut(CrossValidator):
         Higher values of it result in less variance in the result score.
         Default is 10.
     user_idx: int, optional
-        Indicates the user index in the transaction data.
+        Indicates the user column index in the transaction data.
         Default is 0.
     item_idx: int, optional
-        Indicates the item index in the transaction data
+        Indicates the item column index in the transaction data
         Default is 1.
     random_state : int, RandomState instance or None, optional, default=None
         If int, random_state is the seed used by the random number generator;
@@ -189,14 +189,18 @@ class NaiveHoldOut(CrossValidator):
             train_size = int(n_samples * self._ratio)
             # split data according to the shuffled index and the holdout size
             train_idx = indices[:train_size]
-            train_split = data.ix[indices[:train_size]]
-            test_split = data.ix[indices[train_size:]]
+            test_idx = indices[train_size:]
 
-            # remove new user and new items from the test split
-            train_users = train_split[self._user_idx].unique()
-            train_items = train_split[self._item_idx].unique()
-            test_idx = test_split.index[(test_split[self._user_idx].isin(train_users)) &
-                                        (test_split[self._item_idx].isin(train_items))]
+            # This block o f code checks whether the user and the item
+            # in the test set belong to the train_set otherwise
+            # they are dropped
+
+            # train_split = data.ix[indices[:train_size]]
+            # test_split = data.ix[indices[train_size:]]
+            # train_users = train_split[self._user_idx].unique()
+            # train_items = train_split[self._item_idx].unique()
+            # test_idx = test_split.index[(test_split[self._user_idx].isin(train_users)) &
+            #                             (test_split[self._item_idx].isin(train_items))]
             yield train_idx, test_idx
 
     def _iter_indices_mask(self, x, y, indices):
@@ -210,7 +214,7 @@ class UserHoldOut(CrossValidator):
     The partitioning is performed by randomly withholding some ratings
     for all or some of the users.
     The User Hold-Out cross validation removes from the test set
-    all the user that are not present in the
+    all the user that are not present in the training set.
     Parameters
     ----------
     ratio: float, optional
@@ -223,10 +227,10 @@ class UserHoldOut(CrossValidator):
         Higher values of it result in less variance in the result score.
         Default is 10.
     user_idx: int, optional
-        Indicates the user index in the transaction data.
+        Indicates the user column index in the transaction data.
         Default is 0.
     item_idx: int, optional
-        Indicates the item index in the transaction data
+        Indicates the item column index in the transaction data
         Default is 1.
     random_state : int, RandomState instance or None, optional, default=None
         If int, random_state is the seed used by the random number generator;
@@ -261,23 +265,19 @@ class UserHoldOut(CrossValidator):
                 check_random_state(self._random_state).shuffle(idx_shuffled)
                 copy_mask[idx_shuffled[0:n_observed]] = True
 
-            # cleaning
-            train_split = data.ix[indices[np.logical_not(copy_mask)]]
-            test_split = data.ix[indices[copy_mask]]
+            # This block o f code checks whether the user and the item
+            # in the test set belong to the train_set otherwise
+            # they are dropped
 
-            # remove new user and new items from the test split
-            train_items = train_split[self._item_idx].unique()
-            test_idx = test_split.index[~test_split[self._item_idx].isin(train_items)]
-            copy_mask[test_idx] = False
+            # # cleaning
+            # train_split = data.ix[indices[np.logical_not(copy_mask)]]
+            # test_split = data.ix[indices[copy_mask]]
+            #
+            # # remove new user and new items from the test split
+            # train_items = train_split[self._item_idx].unique()
+            # test_idx = test_split.index[~test_split[self._item_idx].isin(train_items)]
+            # copy_mask[test_idx] = False
             yield copy_mask
-
-
-CROSS_VALIDATOR = dict(
-    kFold=KFold,
-    leaveOneOut=LeaveOneOut,
-    naiveHoldOut=NaiveHoldOut,
-    userHoldOut=UserHoldOut
-)
 
 
 def create_cross_validator(cv):
@@ -299,3 +299,11 @@ def create_cross_validator(cv):
         raise ValueError("Input Cross Validator must be an "
                          "instance child of CrossValidator class")
     return cv
+
+
+CROSS_VALIDATOR = dict(
+    kFold=KFold,
+    leaveOneOut=LeaveOneOut,
+    naiveHoldOut=NaiveHoldOut,
+    userHoldOut=UserHoldOut
+)

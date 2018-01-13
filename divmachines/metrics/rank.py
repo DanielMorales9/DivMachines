@@ -69,3 +69,14 @@ def precision_at_k(r, k):
         raise ValueError('Relevance score length < k')
     return np.mean(r)
 
+# TODO implement ALPHA-NDCG
+def alpha_dcg_at_k(alpha, k, relevance, topics):
+    acc = 0.0
+    for i in np.arange(1, k):
+        acc += gain_vector(alpha, i, relevance, topics) / np.log2(1+i)
+    return acc
+
+
+def gain_vector(alpha, k, relevance, topics):
+    for i in topics:
+        pass

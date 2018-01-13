@@ -21,11 +21,11 @@ class Classifier(ABC):
     """
 
     @abstractmethod
-    def _initialize(self, x, **kwargs):
+    def _initialize(self, *args, **kwargs):
         pass
 
     @abstractmethod
-    def _init_dataset(self, x, **kwargs):
+    def _init_dataset(self, *args, **kwargs):
         pass
 
     @abstractmethod

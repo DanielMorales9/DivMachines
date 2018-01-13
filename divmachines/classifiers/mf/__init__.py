@@ -90,9 +90,18 @@ class MF(Classifier):
         set_seed(self._random_state.randint(-10 ** 8, 10 ** 8),
                  cuda=self._use_cuda)
 
-    def _initialize(self, x, y=None, dic=None):
+    def _initialize(self,
+                    x,
+                    y=None,
+                    dic=None,
+                    n_users=None,
+                    n_items=None):
 
-        self._init_dataset(x, y=y, dic=dic)
+        self._init_dataset(x,
+                           y=y,
+                           dic=dic,
+                           n_users=n_users,
+                           n_items=n_items)
 
         self._init_model()
 
@@ -100,13 +109,26 @@ class MF(Classifier):
 
         self._initialized = True
 
-    def _init_dataset(self, x, y=None, dic=None):
+    def _init_dataset(self,
+                      x,
+                      y=None,
+                      dic=None,
+                      n_users=None,
+                      n_items=None):
         if type(x).__module__ == np.__name__:
             if y is None or type(x).__module__ == np.__name__:
                 if self._dataset is not None:
-                    self._dataset = self._dataset(x, y=y, dic=dic)
+                    self._dataset = self._dataset(x,
+                                                  y=y,
+                                                  dic=dic,
+                                                  n_users=n_users,
+                                                  n_items=n_items)
                 else:
-                    self._dataset = DenseDataset(x, y=y, dic=dic)
+                    self._dataset = DenseDataset(x,
+                                                 y=y,
+                                                 dic=dic,
+                                                 n_users=n_users,
+                                                 n_items=n_items)
         else:
             raise TypeError("Training set must be of type dataset or of type ndarray")
         self._n_users = self._dataset.n_users()
@@ -139,7 +161,7 @@ class MF(Classifier):
                                                        self._sparse),
                               self._use_cuda)
 
-    def fit(self, x, y, dic=None):
+    def fit(self, x, y, dic=None, n_users=None, n_items=None):
         """
         Fit the model.
         When called repeatedly, model fitting will resume from
@@ -154,10 +176,20 @@ class MF(Classifier):
             Target values for samples
         dic: dict, optional
             dic indicates the columns to make indexable.
+        n_users: int, optional
+            Total number of users. The model will have `n_users` rows.
+            Default is None, `n_users` will be inferred from `x`.
+        n_items: int, optional
+            Total number of items. The model will have `n_items` columns.
+            Default is None, `n_items` will be inferred from `x`.
         """
 
         if not self._initialized:
-            self._initialize(x, y=y, dic=dic)
+            self._initialize(x,
+                             y=y,
+                             dic=dic,
+                             n_users=n_users,
+                             n_items=n_items)
 
         loader = DataLoader(self._dataset,
                             shuffle=True,

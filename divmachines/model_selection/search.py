@@ -118,7 +118,7 @@ class BaseSearchCV(metaclass=ABCMeta):
         self.verbose = verbose
         self.pre_dispatch = pre_dispatch
         self.return_train_score = return_train_score
-        self._scores=None
+        self._scores = None
 
     def fit(self, x, y=None, fit_params=None):
         """Run fit with all sets of parameters.
@@ -136,7 +136,7 @@ class BaseSearchCV(metaclass=ABCMeta):
 
         cv = create_cross_validator(self.cv)
 
-        candidate_params = list(self._get_param_iterator())
+        candidate_params = list(self._get_param_iterator() or [])
 
         base_classifier = clone(self.classifier)
 
@@ -151,7 +151,7 @@ class BaseSearchCV(metaclass=ABCMeta):
                                   train_idx,
                                   test_idx,
                                   parameters,
-                                  verbose=0,
+                                  verbose=self.verbose,
                                   return_train_score=self.return_train_score,
                                   return_times=True,
                                   return_parameters=True)
@@ -192,7 +192,8 @@ class BaseSearchCV(metaclass=ABCMeta):
 
 
 class GridSearchCV(BaseSearchCV):
-    """Exhaustive search over specified parameter values for an estimator.
+    """
+    Exhaustive search over specified parameter values for an estimator.
     Important members are fit, predict.
     GridSearchCV implements a "fit" and a "score" method.
     It also implements "predict", "predict_proba", "decision_function",
@@ -259,7 +260,7 @@ class GridSearchCV(BaseSearchCV):
                  param_grid,
                  metrics=None,
                  n_jobs=1,
-                 cv=None,
+                 cv='kFold',
                  verbose=0,
                  pre_dispatch='2*n_jobs',
                  return_train_score=True):

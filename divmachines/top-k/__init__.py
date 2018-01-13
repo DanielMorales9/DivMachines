@@ -73,8 +73,8 @@ class LatentFactorPortfolio(Classifier):
         self._initialized = False
 
     def _initialize(self, x, y=None, dic=None):
-        self._init_dataset(x, y=y, dic=dic)
         self._init_model()
+        self._init_dataset(x, y, dic=dic)
 
     def _init_model(self):
         self._classifier = MF(n_factors=self._n_factors,
@@ -91,8 +91,8 @@ class LatentFactorPortfolio(Classifier):
                               n_jobs=self._n_jobs)
 
     def _init_dataset(self, x, y=None, dic=None):
-        self._item_catalog = np.unique(x[:, 1])
-        df = pd.DataFrame(x, columns=['user', 'item'])
+        item_col = dic.get('items', None) or 1
+        self._item_catalogue = x[:, item_col].unique()
 
     def fit(self, x, y, dic=None):
         """
@@ -127,7 +127,7 @@ class LatentFactorPortfolio(Classifier):
             users to predict the ranking
         top: int, optional
             Length of the ranking
-        b: int, optional
+        b: float, optional
             System-level Diversity.
             `b` controls the trade-off for all users between
             accuracy and diversity.
@@ -136,4 +136,7 @@ class LatentFactorPortfolio(Classifier):
         top-k: ndarray
             Ranking list for all submitted users
         """
+
+        item_catalogue
+
         pass
