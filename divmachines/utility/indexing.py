@@ -16,11 +16,31 @@ class ColumnDefaultFactory:
                 return self._dic[k][key]
 
 
+class FeaturesFactory:
+
+    def __init__(self, dic, *args):
+        self._dic = {}
+        args = [0] + list(args)
+        for i in range(len(args)):
+            if i > 0:
+                args[i] += args[i - 1]
+
+        i = 0
+        for k, _ in dic.items():
+            self._dic[k] = defaultdict(lambda c=count(args[i]): next(c))
+            i += 1
+        self._dic['feats'] = defaultdict(lambda c=count(args[i]): next(c))
+
+    def __call__(self, key):
+        for k in self._dic:
+            if key.startswith(k):
+                return self._dic[k][key]
+
+
 class IndexDictionary(defaultdict):
 
-    def __init__(self, default_factory, **kwargs):
-        super().__init__(default_factory, **kwargs)
-        self.factory = default_factory
+    def __init__(self, default_factory):
+        self.default_factory = default_factory
 
     def __missing__(self, key):
         self[key] = self.default_factory(key)
@@ -56,25 +76,17 @@ def make_indexable(dic, x, ix=None):
     return new_x, ix
 
 
-def vectorize_dic(dic, ix=None, p=None):
+def vectorize_dic(dic, ix=None, n_users=None, n_items=None):
     """
     Creates a scipy csr matrix from a list of lists
     (each inner list is a set of values corresponding to a feature)
-
-    Parameters:
-    -----------
-    dic: dict
-        Dictionary of feature lists.
-        Keys are the name of features
-    ix: dict, optional
-        Index generator (default None)
-    p: int, optional
-        Dimension of feature space
-        (number of columns in the sparse matrix) (default None)
     """
 
     if ix is None:
-        ix = defaultdict(lambda c=count(0): next(c))
+        if n_users and n_items:
+            ix = IndexDictionary(FeaturesFactory(dic, n_users, n_items))
+        else:
+            ix = defaultdict(lambda c=count(0): next(c))
 
     n = len(list(dic.values())[0])  # num samples
     g = len(dic.keys())  # num groups
@@ -85,15 +97,15 @@ def vectorize_dic(dic, ix=None, p=None):
     i = 0
     for k, lis in dic.items():
         # append index el with k in order to prevent mapping different columns with same id to same index
-        col_ix[i::g] = [ix[str(el) + str(k)] for el in lis]
+        col_ix[i::g] = [ix[str(k) + str(el)] for el in lis]
         i += 1
 
     row_ix = np.repeat(np.arange(0, n), g)
     data = np.ones(nz)
-
-    if p is None:
+    if n_users and n_items:
+        p = n_users + n_items
+    else:
         p = len(ix)
-
     ixx = np.where(col_ix < p)
 
     return data[ixx], row_ix[ixx], col_ix[ixx], ix
@@ -108,14 +120,21 @@ def non_zero(interactions, cols):
     return nz
 
 
-def vectorize_interactions(interactions, dic=None, ix=None, n_features=None):
+def vectorize_interactions(interactions,
+                           dic=None,
+                           ix=None,
+                           n_users=None,
+                           n_items=None):
     if dic is not None:
         vec_dic = dic.copy()
         keys = []
+        # changes the dic into a dic of lists
         for k in dic:
             keys.append(dic[k])
             vec_dic[k] = interactions[:, dic[k]]
-        d, r, c, ix = vectorize_dic(vec_dic, ix=ix, p=n_features)
+
+        d, r, c, ix = vectorize_dic(vec_dic, ix=ix, n_users=n_users, n_items=n_items)
+
         real_valued_cols = list(set(range(interactions.shape[1])) - set(keys))
         cat_nz = len(d)
     else:
@@ -137,10 +156,15 @@ def vectorize_interactions(interactions, dic=None, ix=None, n_features=None):
         for col in real_valued_cols:
             if interactions[r, col] != 0:
                 data[i] = interactions[r, col]
-                cols[i] = ix[str(col)]
+                cols[i] = ix['feats' + str(col)]
                 rows[i] = r
                 i += 1
-    return data, rows, cols, ix
+
+    if n_users is None or n_items is None:
+        n_features = len(np.unique(cols))
+    else:
+        n_features = n_users + n_items + len(real_valued_cols)
+    return data, rows, cols, ix, n_features
 
 
 def list2dic(data, rows, cols):

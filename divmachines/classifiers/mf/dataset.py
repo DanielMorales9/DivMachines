@@ -51,6 +51,7 @@ class DenseDataset(Dataset):
 
         users = len(np.unique(self._x[:, 0]))
         items = len(np.unique(self._x[:, 1]))
+
         if n_users is None and n_items is None:
             n_users = users
             n_items = items

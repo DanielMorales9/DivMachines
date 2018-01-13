@@ -137,6 +137,4 @@ class LatentFactorPortfolio(Classifier):
             Ranking list for all submitted users
         """
 
-        item_catalogue
-
         pass

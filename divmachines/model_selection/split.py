@@ -5,9 +5,10 @@ from divmachines.utility.helper import check_random_state
 
 
 def _get_cv(cv):
-    cv = CROSS_VALIDATOR[cv]
-    if cv is None:
-        raise ValueError("Cross Validator must be provided")
+    try:
+        cv = CROSS_VALIDATOR[cv]
+    except KeyError:
+        raise ValueError("Consistent Cross Validator must be provided")
     return cv
 
 
@@ -251,7 +252,7 @@ class UserHoldOut(CrossValidator):
         self._ratio = ratio
         self._user_idx = user_idx
         self._item_idx = item_idx
-        self._random_state = random_state
+        self._random_state = check_random_state(random_state)
 
     def _iter_indices_mask(self, x, y, indices):
         data = pd.DataFrame(x)[[self._user_idx, self._item_idx]]
@@ -262,8 +263,12 @@ class UserHoldOut(CrossValidator):
             for user, g in grouped:
                 idx_shuffled = g.index.values.reshape(-1)
                 n_observed = int((1 - self._ratio) * len(idx_shuffled))
-                check_random_state(self._random_state).shuffle(idx_shuffled)
-                copy_mask[idx_shuffled[0:n_observed]] = True
+                self._random_state.shuffle(idx_shuffled)
+                if n_observed == 0:
+                    if self._random_state.randn() < 0.5:
+                        copy_mask[idx_shuffled[0]] = True
+                else:
+                    copy_mask[idx_shuffled[0:n_observed]] = True
 
             # This block o f code checks whether the user and the item
             # in the test set belong to the train_set otherwise

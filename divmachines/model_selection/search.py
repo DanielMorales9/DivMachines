@@ -185,6 +185,7 @@ class BaseSearchCV(metaclass=ABCMeta):
                     else:
                         el[k] = v
                 pretty_scores.append(el)
+            return pretty_scores
         return self._scores
 
     def _get_param_iterator(self):
