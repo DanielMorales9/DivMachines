@@ -15,7 +15,7 @@ train = pd.read_csv('../../../../data/ua.base', delimiter='\t', names=cols)
 
 logger = TLogger()
 
-model = MF(n_iter=100, n_jobs=4, learning_rate=0.60653066, logger=logger)
+model = MF(n_iter=10, n_jobs=2, learning_rate=0.60653066, logger=logger)
 
 interactions = train[['user', 'item', 'rating']].values
 
@@ -30,9 +30,7 @@ y = interactions[:, -1]
 
 model.fit(x,
           y,
-          dic={'users': 0, 'items': 1},
-          n_users=n_users,
-          n_items=n_items)
+          dic={'users': 0, 'items': 1})
 
 print(model.predict(x))
 

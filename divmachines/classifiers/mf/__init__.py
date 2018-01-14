@@ -23,10 +23,10 @@ class MF(Classifier):
 
     Parameters
     ----------
-    n_factors: int, optional
-        Number of factors to use in user and item latent factors
     model: :class: div.machines.models, optional
         A matrix Factorization model
+    n_factors: int, optional
+        Number of factors to use in user and item latent factors
     sparse: boolean, optional
         Use sparse gradients for embedding layers.
     loss: function, optional
@@ -55,8 +55,8 @@ class MF(Classifier):
     """
 
     def __init__(self,
-                 n_factors=10,
                  model=None,
+                 n_factors=10,
                  sparse=True,
                  n_iter=10,
                  loss=None,
@@ -90,6 +90,30 @@ class MF(Classifier):
         set_seed(self._random_state.randint(-10 ** 8, 10 ** 8),
                  cuda=self._use_cuda)
 
+    @property
+    def n_users(self):
+        return self._dataset.n_users
+
+    @n_users.getter
+    def n_users(self):
+        return self._dataset.n_users
+
+    @property
+    def n_items(self):
+        return self._dataset.n_items
+
+    @n_items.getter
+    def n_items(self):
+        return self._dataset.n_items
+
+    @property
+    def index(self):
+        return self._dataset.index
+
+    @index.getter
+    def index(self):
+        return self._dataset.index
+
     def _initialize(self,
                     x,
                     y=None,
@@ -118,11 +142,7 @@ class MF(Classifier):
         if type(x).__module__ == np.__name__:
             if y is None or type(x).__module__ == np.__name__:
                 if self._dataset is not None:
-                    self._dataset = self._dataset(x,
-                                                  y=y,
-                                                  dic=dic,
-                                                  n_users=n_users,
-                                                  n_items=n_items)
+                    self._dataset = self._dataset(x, y=y)
                 else:
                     self._dataset = DenseDataset(x,
                                                  y=y,
@@ -131,8 +151,6 @@ class MF(Classifier):
                                                  n_items=n_items)
         else:
             raise TypeError("Training set must be of type dataset or of type ndarray")
-        self._n_users = self._dataset.n_users()
-        self._n_items = self._dataset.n_items()
 
     def _init_optim_fun(self):
         if self._optimizer_func is None:
@@ -155,8 +173,8 @@ class MF(Classifier):
                                  "torch.nn.Module class")
 
         else:
-            self._model = gpu(MatrixFactorizationModel(self._n_users,
-                                                       self._n_items,
+            self._model = gpu(MatrixFactorizationModel(self.n_users,
+                                                       self.n_items,
                                                        self.n_factors,
                                                        self._sparse),
                               self._use_cuda)

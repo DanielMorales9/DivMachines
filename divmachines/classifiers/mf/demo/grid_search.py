@@ -20,7 +20,7 @@ print("Number of items: %s" % n_items)
 
 gSearch = GridSearchCV(model,
                        param_grid={"iter": [1], "learning_rate": [0.1, 0.3]},
-                       cv='naiveHoldOut',
+                       cv='userHoldOut',
                        metrics='mean_square_error',
                        verbose=10,
                        n_jobs=4,

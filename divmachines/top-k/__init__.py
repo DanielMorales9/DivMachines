@@ -72,27 +72,25 @@ class LatentFactorPortfolio(Classifier):
 
         self._initialized = False
 
-    def _initialize(self, x, y=None, dic=None):
+    def _initialize(self):
         self._init_model()
-        self._init_dataset(x, y, dic=dic)
 
     def _init_model(self):
-        self._classifier = MF(n_factors=self._n_factors,
-                              sparse=self._sparse,
-                              n_iter=self._n_iter,
-                              loss=self._loss,
-                              l2=self._l2,
-                              learning_rate=self._learning_rate,
-                              optimizer_func=self._optimizer_func,
-                              batch_size=self._batch_size,
-                              random_state=self._random_state,
-                              use_cuda=self._use_cuda,
-                              logger=self._logger,
-                              n_jobs=self._n_jobs)
+        self._model = MF(n_factors=self._n_factors,
+                         sparse=self._sparse,
+                         n_iter=self._n_iter,
+                         loss=self._loss,
+                         l2=self._l2,
+                         learning_rate=self._learning_rate,
+                         optimizer_func=self._optimizer_func,
+                         batch_size=self._batch_size,
+                         random_state=self._random_state,
+                         use_cuda=self._use_cuda,
+                         logger=self._logger,
+                         n_jobs=self._n_jobs)
 
-    def _init_dataset(self, x, y=None, dic=None):
-        item_col = dic.get('items', None) or 1
-        self._item_catalogue = x[:, item_col].unique()
+    def _init_dataset(self, dic=None):
+        self._item_catalog = np.arange(self._model.n_items())
 
     def fit(self, x, y, dic=None):
         """
@@ -111,11 +109,11 @@ class LatentFactorPortfolio(Classifier):
             dic indicates the columns to vectorize
             if training samples are in raw format.
         """
-
         if self._initialized:
-            self._initialize(x, y=y, dic=dic)
+            self._initialize()
 
-        self._classifier.fit(x, y, dic=dic)
+        self._model.fit(x, y, dic=dic)
+        self._init_dataset(x, dic=dic)
 
     def predict(self, x, top=10, b=0.5):
         """
@@ -129,12 +127,14 @@ class LatentFactorPortfolio(Classifier):
             Length of the ranking
         b: float, optional
             System-level Diversity.
-            `b` controls the trade-off for all users between
+            It controls the trade-off for all users between
             accuracy and diversity.
         Returns
         -------
         top-k: ndarray
             Ranking list for all submitted users
         """
+
+
 
         pass

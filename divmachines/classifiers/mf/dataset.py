@@ -29,59 +29,65 @@ class DenseDataset(Dataset):
                  n_users=None,
                  n_items=None):
         super(Dataset, self).__init__()
-        self._initialize(x, y, dic, n_users=n_users, n_items=n_items)
+        self._ix = None
+        self._n_users = n_users
+        self._n_items = n_items
+        self._initialize(x, y, dic)
 
     def _initialize(self,
                     x,
                     y,
-                    dic,
-                    ix=None,
-                    n_users=None,
-                    n_items=None):
+                    dic):
 
         self._dic = dic
 
         if dic is not None:
-            self._x, self._ix = make_indexable(dic, x, ix)
+            self._x, self._ix = make_indexable(dic, x, self._ix)
         else:
             self._x = x
-            self._ix = None
 
         self._len = self._x.shape[0]
 
         users = len(np.unique(self._x[:, 0]))
         items = len(np.unique(self._x[:, 1]))
 
-        if n_users is None and n_items is None:
-            n_users = users
-            n_items = items
-        if n_users < users or n_items < items:
+        if self._n_users is None and self._n_items is None:
+            self._n_users = users
+            self._n_items = items
+        if self._n_users < users or self._n_items < items:
             raise ValueError("Number of users or items provided is "
                              "lower than the one detected")
-        self._n_users = n_users if n_users > users else users
-        self._n_items = n_items if n_items > items else items
-
+        self._n_users = self._n_users if self._n_users > users else users
+        self._n_items = self._n_items if self._n_items > items else items
         self._y = y
 
-    def __call__(self,
-                 x,
-                 y=None,
-                 dic=None,
-                 n_users=None,
-                 n_items=None):
-        self._dic = dic or self._dic
-        self._initialize(x, y,
-                         self._dic,
-                         ix=self._ix,
-                         n_users=self._n_users,
-                         n_items=self._n_items)
-        return self
+    @property
+    def n_users(self):
+        return self._n_users
 
+    @n_users.getter
+    def n_users(self):
+        return self._n_users
+
+    @property
     def n_items(self):
         return self._n_items
 
-    def n_users(self):
-        return self._n_users
+    @n_items.getter
+    def n_items(self):
+        return self._n_items
+
+    @property
+    def index(self):
+        return self._ix
+
+    @index.getter
+    def index(self):
+        return self._ix
+
+    def __call__(self, x, y=None):
+        self._initialize(x, y, dic=self._dic)
+        return self
 
     def __len__(self):
         return self._len

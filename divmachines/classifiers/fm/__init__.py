@@ -80,9 +80,43 @@ class FM(Classifier):
         self._dataset = None
         self._sparse = sparse
         self._initialized = False
+        self._n_items = None
+        self._n_users = None
 
         set_seed(self._random_state.randint(-10 ** 8, 10 ** 8),
                  cuda=self._use_cuda)
+
+    @property
+    def n_users(self):
+        return self._n_users
+
+    @n_users.getter
+    def n_users(self):
+        return self._n_users
+
+    @property
+    def n_items(self):
+        return self._n_items
+
+    @n_items.getter
+    def n_items(self):
+        return self._n_items
+
+    @property
+    def n_features(self):
+        return self._dataset.n_features
+
+    @n_features.getter
+    def n_features(self):
+        return self._dataset.n_features
+
+    @property
+    def index(self):
+        return self._dataset.index
+
+    @index.getter
+    def index(self):
+        return self._dataset.index
 
     def _initialize(self,
                     x,
@@ -90,13 +124,11 @@ class FM(Classifier):
                     dic=None,
                     n_users=None,
                     n_items=None):
-
         self._init_dataset(x,
                            y=y,
                            dic=dic,
                            n_users=n_users,
                            n_items=n_items)
-
         self._init_model()
 
         self._init_optim_fun()
@@ -112,11 +144,7 @@ class FM(Classifier):
         if type(x).__module__ == np.__name__:
             if y is None or type(x).__module__ == np.__name__:
                 if self._dataset is not None:
-                    self._dataset = self._dataset(x,
-                                                  y=y,
-                                                  dic=dic,
-                                                  n_users=n_users,
-                                                  n_items=n_items)
+                    self._dataset = self._dataset(x, y=y)
                 elif self._sparse:
                     self._dataset = SparseDataset(x,
                                                   y=y,
@@ -131,8 +159,8 @@ class FM(Classifier):
                                                  n_items=n_items)
         else:
             raise TypeError("Training set must be of type dataset or of type ndarray")
-
-        self._n_features = self._dataset.n_features()
+        self._n_users = n_users
+        self._n_items = n_items
 
     def _init_optim_fun(self):
         if self._optimizer_func is None:
@@ -155,16 +183,11 @@ class FM(Classifier):
                 raise ValueError("Model must be an instance of FactorizationMachine")
 
         else:
-            self._model = gpu(FactorizationMachine(self._n_features,
+            self._model = gpu(FactorizationMachine(self.n_features,
                                                    self.n_factors),
                               self._use_cuda)
 
-    def fit(self,
-            x,
-            y,
-            dic=None,
-            n_users=None,
-            n_items=None):
+    def fit(self, x, y, dic=None, n_users=None, n_items=None):
         """
         Fit the models.
         When called repeatedly, models fitting will resume from
@@ -242,7 +265,6 @@ class FM(Classifier):
         predictions: np.array
             Predicted scores for each sample in x
         """
-
         self._model.train(False)
         if len(x.shape) == 1:
             x = np.array([x])

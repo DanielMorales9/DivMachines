@@ -69,27 +69,30 @@ class DenseDataset(Dataset):
                                  "users and items.")
 
             self._x = coo.toarray().astype(np.float32)
-
         self._y = y.astype(np.float32) if y is not None else None
 
-    def __call__(self,
-                 x,
-                 y=None,
-                 dic=None,
-                 ix=None,
-                 n_users=None,
-                 n_items=None):
-        self._dic = dic or self._dic
+    @property
+    def n_features(self):
+        return self._n_features
+
+    @n_features.getter
+    def n_features(self):
+        return self._n_features
+
+    @property
+    def index(self):
+        return self._ix
+
+    @index.getter
+    def index(self):
+        return self._ix
+
+    def __call__(self, x, y=None):
         self._initialize(x,
                          y=y,
                          dic=self._dic,
-                         ix=self._ix,
-                         n_users=n_users,
-                         n_items=n_items)
+                         ix=self._ix)
         return self
-
-    def n_features(self):
-        return self._n_features
 
     def __len__(self):
         return self._len
@@ -113,6 +116,12 @@ class SparseDataset(Dataset):
         Features dictionary, for each entry (k, v), k corresponds to a
         categorical feature to vectorize and v the corresponding index
         in the interactions array.
+    n_users: int, optional
+        Total number of users in the training samples: `x`.
+        Default is None, `n_users` will be inferred from `x`.
+    n_items: int, optional
+        Total number of items in the training samples: `x`.
+        Default is None, `n_items` will be inferred from `x`.
     """
     def __init__(self,
                  x,
@@ -156,23 +165,24 @@ class SparseDataset(Dataset):
             self._sparse_x = list2dic(d, rows, cols)
         self._zero = np.zeros(self._n_features, dtype=np.float32)
 
+    @property
     def n_features(self):
         return self._n_features
 
-    def __call__(self,
-                 x,
-                 y=None,
-                 dic=None,
-                 ix=None,
-                 n_users=None,
-                 n_items=None):
-        self._dic = dic or self._dic
-        self._initialize(x,
-                         y=y,
-                         dic=self._dic,
-                         ix=self._ix,
-                         n_users=n_users,
-                         n_items=n_items)
+    @n_features.getter
+    def n_features(self):
+        return self._n_features
+
+    @property
+    def index(self):
+        return self._ix
+
+    @index.getter
+    def index(self):
+        return self._ix
+
+    def __call__(self, x, y=None):
+        self._initialize(x, y=y, dic=self._dic, ix=self._ix)
         return self
 
     def __len__(self):

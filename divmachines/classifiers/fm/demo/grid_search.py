@@ -34,7 +34,7 @@ y = interactions[:, -1]
 
 gSearch = GridSearchCV(model,
                        param_grid={"iter": [1], "learning_rate": [0.1, 0.3]},
-                       cv='userHoldOut',
+                       cv='leaveOneOut',
                        metrics='mean_square_error',
                        verbose=10,
                        n_jobs=2,

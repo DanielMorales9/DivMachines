@@ -26,11 +26,9 @@ x = interactions[:, :-1]
 y = interactions[:, -1]
 model.fit(x,
           y,
-          {'users': 0, 'items': 1},
-          n_users=n_users,
-          n_items=n_items)
+          {'users': 0, 'items': 1})
 
 plt.plot(logger.epochs, logger.losses)
 plt.show()
 
-print(model.predict(x[:10, :]))
+print(model.predict(x[:10, :], ))
