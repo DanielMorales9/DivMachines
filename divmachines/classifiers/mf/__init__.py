@@ -114,6 +114,22 @@ class MF(Classifier):
     def index(self):
         return self._dataset.index
 
+    @property
+    def x(self):
+        return self._model.x
+
+    @x.getter
+    def x(self):
+        return self._model.x
+
+    @property
+    def y(self):
+        return self._model.y
+
+    @x.getter
+    def y(self):
+        return self._model.y
+
     def _initialize(self,
                     x,
                     y=None,

@@ -34,10 +34,7 @@ class DenseDataset(Dataset):
         self._n_items = n_items
         self._initialize(x, y, dic)
 
-    def _initialize(self,
-                    x,
-                    y,
-                    dic):
+    def _initialize(self, x, y, dic):
 
         self._dic = dic
 

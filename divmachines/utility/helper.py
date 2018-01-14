@@ -3,12 +3,7 @@ import numbers
 
 
 def _prepare_for_prediction(x, feats):
-    """
 
-    :param x:
-    :param feats:
-    :return:
-    """
     if type(x) is np.ndarray:
         if len(x.shape) == 2:
             if x.shape[1] == 1:
@@ -23,6 +18,39 @@ def _prepare_for_prediction(x, feats):
         raise ValueError("Variable type not allowed")
 
 
+def cartesian(*arrays, out=None):
+    """
+    Generate a cartesian product of input arrays.
+
+    Parameters
+    ----------
+    arrays : list of array-like
+        1-D arrays to form the cartesian product of.
+    out : ndarray
+        Array to place the cartesian product in.
+
+    Returns
+    -------
+    out : ndarray
+        2-D array of shape (M, len(arrays)) containing cartesian products
+        formed of input arrays.
+    """
+    arrays = [np.asarray(x) for x in arrays]
+    dtype = arrays[0].dtype
+
+    n = np.prod([x.size for x in arrays])
+    if out is None:
+        out = np.zeros([n, len(arrays)], dtype=dtype)
+
+    m = int(n / arrays[0].size)
+    out[:, 0] = np.repeat(arrays[0], m)
+    if arrays[1:]:
+        cartesian(arrays[1:], out=out[0:m, 1:])
+        for j in np.arange(1, arrays[0].size):
+            out[j*m:(j+1)*m, 1:] = out[0:m, 1:]
+    return out
+
+
 def check_random_state(seed):
     if seed is None or seed is np.random:
         return np.random.mtrand._rand
@@ -32,3 +60,29 @@ def check_random_state(seed):
         return seed
     raise ValueError('%r cannot be used to seed a numpy.random.RandomState'
                      ' instance' % seed)
+
+
+def shape_prediction(_item_catalog, x):
+    if type(x) == int or type(x) == np.int_:
+        test = cartesian([x], _item_catalog)
+        n_items = len(_item_catalog)
+        n_users = 1
+        update_dataset = False
+    elif len(x.shape) == 1:
+        test = cartesian(x, _item_catalog)
+        n_items = len(_item_catalog)
+        n_users = len(x)
+        update_dataset = False
+    elif x.shape[1] == 1:
+        test = cartesian(x.reshape(-1), _item_catalog)
+        n_items = len(_item_catalog)
+        n_users = len(x)
+        update_dataset = False
+    elif x.shape[1] == 2:
+        test = x
+        n_users = len(np.unique(x[:, 0]))
+        n_items = len(np.unique(x[:, 1]))
+        update_dataset = True
+    else:
+        raise ValueError("Shape of x is not valid")
+    return n_items, n_users, test, update_dataset
