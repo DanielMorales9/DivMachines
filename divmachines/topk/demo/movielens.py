@@ -6,14 +6,13 @@ from divmachines.logging import TrainingLogger as TLogger
 from divmachines.utility.helper import cartesian
 
 cols = ['user', 'item', 'rating', 'timestamp']
-train = pd.read_csv('../../../data/ua.base', delimiter='\t', names=cols).sample(10000)
+train = pd.read_csv('../../../data/ua.base', delimiter='\t', names=cols)
 
 logger = TLogger()
 
-model = LFP(n_iter=1000,
-            n_jobs=4,
-            n_factors=10,
-            batch_size=1000,
+model = LFP(n_iter=10,
+            n_jobs=2,
+            n_factors=2,
             learning_rate=1,
             logger=logger)
 
@@ -33,7 +32,10 @@ model.fit(x, y, n_users=n_users, n_items=n_items)
 
 plt.plot(logger.epochs, logger.losses)
 plt.show()
+users = np.unique(x[:, 0])
+values = cartesian(users, np.unique(x[:, 1]))
 
-values = cartesian(np.unique(x[:, 0]), np.unique(x[:, 1]))
-
-print(model.predict(values, top=5))
+table = np.zeros((users.shape[0], 6), dtype=np.int)
+table[:, 0] = users
+table[:, 1:] = model.predict(values, top=5)
+print(table)

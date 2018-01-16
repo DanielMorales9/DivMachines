@@ -5,7 +5,7 @@ from divmachines.classifiers.mf import MF
 from divmachines.logging import TrainingLogger as TLogger
 
 cols = ['user', 'item', 'rating', 'timestamp']
-train = pd.read_csv('../../../../data/ua.base', delimiter='\t', names=cols)
+train = pd.read_csv('../../../../data/ua.base', delimiter='\t', names=cols).sample(1000)
 
 # map_user = train.groupby('user').count().reset_index()[['user']].reset_index()
 # map_user.columns = ['u_idx', 'user']
@@ -15,7 +15,7 @@ train = pd.read_csv('../../../../data/ua.base', delimiter='\t', names=cols)
 
 logger = TLogger()
 
-model = MF(n_iter=10, n_jobs=2, learning_rate=0.60653066, logger=logger)
+model = MF(n_iter=10, n_jobs=2, batch_size=100, learning_rate=0.60653066, logger=logger)
 
 interactions = train[['user', 'item', 'rating']].values
 
@@ -32,7 +32,7 @@ model.fit(x,
           y,
           dic={'users': 0, 'items': 1})
 
-print(model.predict(x))
+print(model.predict(x).shape)
 
 plt.plot(logger.epochs, logger.losses)
 plt.show()

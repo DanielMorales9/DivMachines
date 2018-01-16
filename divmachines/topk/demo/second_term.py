@@ -3,16 +3,6 @@ import torch
 from torch.autograd.variable import Variable
 from divmachines.models.layers import TestEmbedding
 
-def _compute_f(x, y, k, rank, users):
-    # Initialize Index Vars
-    u_idx = Variable(torch.from_numpy(users))
-    users_batch = x(u_idx).squeeze()
-    i_idx = Variable(torch.from_numpy(rank))
-    items_batch = y(i_idx[:, k:]).squeeze().transpose(0, 1)
-    dot = (users_batch * items_batch)
-    return dot.sum(2).data.numpy()
-
-
 users = 3
 items = 5
 factors = 2
@@ -52,10 +42,15 @@ var.weight = torch.nn.Parameter(var_t)
 idx = Variable(torch.from_numpy(np.array([0, 1, 2])))
 
 var(idx)
-
+wk = 1/(2**k)
 i_idx = Variable(torch.from_numpy(rank))
-items_batch = y(i_idx[:, k:]).squeeze().transpose(0, 1)
-print(items_batch)
-print(var(idx))
-print(items_batch * var(idx))
+items_batch = y(i_idx[:, k:]).transpose(0, 1)
+print(torch.pow(items_batch, 2))
+term1 = torch.pow(items_batch, 2) * var(idx)
 
+
+term1 = torch.mul(term1, 2*wk)
+
+t1 =term1.data.numpy()
+
+print(t1.shape == (4, 3, 2))

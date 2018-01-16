@@ -274,15 +274,18 @@ class MF(Classifier):
         x = _prepare_for_prediction(x, 2)
 
         self._init_dataset(x)
+        if self.batch_size is None:
+            self.batch_size = len(self._dataset)
 
         loader = DataLoader(self._dataset,
-                            batch_size=len(self._dataset),
+                            batch_size=self.batch_size,
                             num_workers=self._n_jobs)
 
-        out = None
-        for batch_data in loader:
+        out = np.zeros(len(x))
+        for i, batch_data in enumerate(loader):
             user_var = Variable(gpu(batch_data[:, 0], self._use_cuda))
             item_var = Variable(gpu(batch_data[:, 1], self._use_cuda))
-            out = self._model(user_var, item_var)
+            out[(i*self.batch_size):((i+1)*self.batch_size)] = self._model(user_var, item_var)\
+                .cpu().data.numpy()
 
-        return cpu(out.data).numpy().flatten()
+        return out.flatten()

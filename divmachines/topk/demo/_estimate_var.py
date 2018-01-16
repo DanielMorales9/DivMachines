@@ -25,11 +25,10 @@ for i in range(3):
     user_idx = Variable(torch.from_numpy(np.array([i])))
     item_idx = Variable(torch.from_numpy(np.array([0, 1, 2, 3])))
     diff = x(user_idx) - y(item_idx)
-
+    print(diff)
     prod = torch.pow(diff, 2).sum(0)
     print(torch.pow(diff, 2))
     var[i, :] = torch.mul(prod, N[i]).data.numpy()
-
 var_t = torch.from_numpy(var)
 embedding = torch.nn.Embedding(var_t.size(0), var_t.size(1))
 embedding.weight = torch.nn.Parameter(var_t)

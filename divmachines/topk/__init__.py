@@ -135,8 +135,7 @@ class LatentFactorPortfolio(Classifier):
             if k.startswith(ITEMS):
                 try:
                     self._rev_item_index[v] = int(k[len(ITEMS):])
-                    if train:
-                        self._item_index[int(k[len(ITEMS):])] = v
+                    self._item_index[int(k[len(ITEMS):])] = v
                 except ValueError:
                     raise ValueError("You may want to provide an integer "
                                      "index for the items")
@@ -150,7 +149,6 @@ class LatentFactorPortfolio(Classifier):
                 raise ValueError("Not possible")
         self._item_catalog = np.array(list(self._rev_item_index.values()))
         if train:
-            x = index_dataset(x, self._user_index, self._item_index)
             self._estimate_variance(x)
 
     def fit(self, x, y, n_users=None, n_items=None):
@@ -189,9 +187,10 @@ class LatentFactorPortfolio(Classifier):
         Parameters
         ----------
         x: ndarray or int
-            array of users, user item interactions matrix (for each user
-            you must provide the whole item_catalog) or a single user
-            to which predict the item ranking.
+            array of users, user item interactions matrix
+            (you must provide the same items for all user
+            listed) or instead a single user to which
+            predict the item ranking.
         top: int, optional
             Length of the ranking
         b: float, optional
@@ -218,68 +217,97 @@ class LatentFactorPortfolio(Classifier):
         if update_dataset:
             self._init_dataset(x, train=False)
 
-        users = index(np.unique(test[:, 0]), self._user_index)
+        users = index(np.array([x[i, 0] for i in sorted(
+            np.unique(x[:, 0], return_index=True)[1])]), self._user_index)
+        items = index(np.array([x[i, 1] for i in sorted(
+            np.unique(x[:, 1], return_index=True)[1])]), self._item_index)
 
-        re_ranking = self._sequential_re_ranking(rank, users, top, b)
+        re_ranking = self._sequential_re_ranking(rank, users, items, top, b)
 
         return re_ranking
 
-    def _sequential_re_ranking(self, rank, users, top, b):
+    def _sequential_re_ranking(self, rank, users, items, top, b):
         rank = np.argsort(-rank, 1)
 
-        rows = np.arange(self.n_users)
+        for i, arr in enumerate(rank):
+            for j, r in enumerate(arr):
+                rank[i, j] = items[r]
+
         x = self._model.x
         y = self._model.y
+        var = self.torch_variance()
 
         for k in range(1, top):
-            values = self._compute_delta_f(x, y, k, b, rank, users)
+            values = self._compute_delta_f(x, y, k, b, var, rank, users)
 
-            arg_max_per_user = np.argsort(-values, 1)[:, 0]
-            _substitute(arg_max_per_user, k, rank, rows)
+            arg_max_per_user = np.argsort(values, 1)[:, -1]
+            _substitute(arg_max_per_user, k, rank)
 
         return index(rank[:, :top], self._rev_item_index)
 
-    def _compute_delta_f(self, x, y, k, b, rank, users):
+    def _compute_delta_f(self, x, y, k, b, var, rank, users):
         # Initialize Variables
         # and other coefficients
         u_idx = Variable(gpu(torch.from_numpy(users), self._use_cuda))
         i_idx = Variable(gpu(torch.from_numpy(rank), self._use_cuda))
-        var = self.torch_variance()
 
         wk = 1/(2**k)
         wm = Variable(gpu(torch.from_numpy(
             np.array([1 / (2 ** m) for m in range(k)],
                      dtype=np.float32)), self._use_cuda)) \
             .unsqueeze(1).expand(k, self._n_factors)
+
         i_ranked = (y(i_idx[:, :k]) * wm).transpose(0, 1).unsqueeze(0)
         i_unranked = y(i_idx[:, k:]).transpose(0, 1)
 
-        # This block of code computes the first term of the DeltaF.
-        users_batch = x(u_idx)
-        term0 = (users_batch * i_unranked)
+        term0 = self._first_term(i_unranked, u_idx, x)
 
+        term1 = self._second_term(b, i_unranked, u_idx, var, wk)
+
+        term2 = self._third_term(b,
+                                 k,
+                                 u_idx,
+                                 var,
+                                 i_ranked,
+                                 i_unranked,
+                                 len(users),
+                                 rank.shape[1])
+
+        delta_f = torch.mul(term0 - term1 - term2, wk)\
+            .sum(2).transpose(0, 1)
+
+        return delta_f.cpu().data.numpy()
+
+    def _third_term(self,
+                    b, k, u_idx, var,
+                    i_ranked, i_unranked,
+                    n_users, n_items):
+        # This block of code computes the third term of the DeltaF
+        e_ranked = i_ranked.expand(n_items - k,
+                                   k,
+                                   n_users,
+                                   self._n_factors) \
+            .transpose(0, 1)
+        e_unranked = i_unranked.unsqueeze(0).expand(k,
+                                                    n_items - k,
+                                                    n_users,
+                                                    self._n_factors)
+        coeff1 = torch.mul(var(u_idx), 2. * b)
+        term2 = (e_ranked * e_unranked).sum(0) * coeff1
+        return term2
+
+    def _second_term(self, b, i_unranked, u_idx, var, wk):
         # This block of code computes the second term of the DeltaF
         term1 = torch.pow(i_unranked, 2) * var(u_idx)
         coeff0 = b * wk
         term1 = torch.mul(term1, coeff0)
+        return term1
 
-        # This block of code computes the third term of the DeltaF
-        e_ranked = i_ranked.expand(self.n_items - k,
-                                   k,
-                                   self.n_users,
-                                   self._n_factors) \
-            .transpose(0, 1)
-        e_unranked = i_unranked.unsqueeze(0).expand(k,
-                                                    self.n_items - k,
-                                                    self.n_users,
-                                                    self._n_factors)
-        coeff1 = torch.mul(var(u_idx), 2.*b)
-        term2 = (e_ranked * e_unranked).sum(0) * coeff1
-
-        delta_f = torch.mul(term0 - term1 - term2, wk) \
-            .sum(2).transpose(0, 1)
-
-        return delta_f.cpu().data.numpy()
+    def _first_term(self, i_unranked, u_idx, x):
+        # This block of code computes the first term of the DeltaF.
+        users_batch = x(u_idx)
+        term0 = (users_batch * i_unranked)
+        return term0
 
     def torch_variance(self):
         var_v = torch.from_numpy(self._var)
@@ -288,7 +316,8 @@ class LatentFactorPortfolio(Classifier):
         var = gpu(var, self._use_cuda)
         return var
 
-    def _estimate_variance(self, train):
+    def _estimate_variance(self, x):
+        train = index_dataset(x, self._user_index, self._item_index)
         x = self._model.x
         y = self._model.y
 
@@ -324,8 +353,8 @@ def index(rank, idx):
     return np.array([re_idx(lis) for lis in rank])
 
 
-def _substitute(arg_max_per_user, k, rank, rows):
-    for r, c in zip(rows, arg_max_per_user):
+def _substitute(arg_max_per_user, k, rank):
+    for r, c in enumerate(arg_max_per_user):
         temp = rank[r, c + k]
         rank[r, c + k] = rank[r, k]
         rank[r, k] = temp
