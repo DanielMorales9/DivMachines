@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from divmachines.model_selection import cross_validate
-from divmachines.classifiers.fm import FM
+from divmachines.classifiers import FM
 
 DATASET_PATH = './../../../../data/ua.base'
 GENRE_PATH = './../../../../data/u.item'

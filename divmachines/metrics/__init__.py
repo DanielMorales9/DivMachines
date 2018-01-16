@@ -1,4 +1,9 @@
 import numpy as np
+from .rank import mean_average_precision, average_precision, precision_at_k
+
+__all__ = ['mean_average_precision',
+           'average_precision',
+           'precision_at_k']
 
 
 def create_scorers(metrics):

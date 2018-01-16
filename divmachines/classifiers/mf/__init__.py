@@ -7,7 +7,7 @@ from divmachines.classifiers import Classifier
 from divmachines.utility.helper import _prepare_for_prediction
 from divmachines.logging import Logger
 from divmachines.models import MatrixFactorizationModel
-from divmachines.utility.torch import set_seed, gpu, cpu
+from divmachines.utility.torch import set_seed, gpu
 from torch.utils.data import DataLoader
 from .dataset import DenseDataset
 

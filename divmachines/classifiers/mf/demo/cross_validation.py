@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from divmachines.classifiers.mf import MF
+from divmachines.classifiers import MF
 from divmachines.model_selection import cross_validate
 from divmachines.logging import TrainingLogger as TLogger
 

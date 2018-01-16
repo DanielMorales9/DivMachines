@@ -4,6 +4,9 @@ import numpy as np
 from joblib import Parallel, delayed
 from ..metrics import create_scorers
 from .split import _get_cv, create_cross_validator
+from .search import GridSearchCV
+
+__all__ = ['GridSearchCV', "cross_validate"]
 
 
 def cross_validate(classifier,

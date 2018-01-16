@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-from divmachines.classifiers.fm import FM
+from divmachines.classifiers import FM
 from divmachines.logging import TrainingLogger as TLogger
 
 cols = ['user', 'item', 'rating', 'timestamp']

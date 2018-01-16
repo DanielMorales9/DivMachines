@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
-from divmachines.classifiers.mf import MF
-from divmachines.model_selection.search import GridSearchCV
+from divmachines.classifiers import MF
+from divmachines.model_selection import GridSearchCV
 
 cols = ['user', 'item', 'rating', 'timestamp']
 train = pd.read_csv('../../../../data/ua.base', delimiter='\t', names=cols).head(100)

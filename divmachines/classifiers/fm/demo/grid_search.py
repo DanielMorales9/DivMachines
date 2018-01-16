@@ -1,5 +1,5 @@
-from divmachines.model_selection.search import GridSearchCV
-from divmachines.classifiers.fm import FM
+from divmachines.model_selection import GridSearchCV
+from divmachines.classifiers import FM
 import pandas as pd
 import numpy as np
 
