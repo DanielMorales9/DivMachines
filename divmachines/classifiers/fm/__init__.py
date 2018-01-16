@@ -7,7 +7,7 @@ from .dataset import DenseDataset, SparseDataset
 from divmachines.models import FactorizationMachine
 from divmachines.classifiers import Classifier
 from divmachines.logging import Logger
-from divmachines.utility.torch import set_seed, gpu, cpu
+from divmachines.utility.torch import set_seed, gpu
 
 
 class FM(Classifier):
@@ -274,7 +274,7 @@ class FM(Classifier):
             self.batch_size = len(self._dataset)
 
         loader = DataLoader(self._dataset,
-                            batch_size=len(x),
+                            batch_size=self.batch_size,
                             shuffle=False,
                             num_workers=self._n_jobs)
 
@@ -284,4 +284,4 @@ class FM(Classifier):
             out[(i*self.batch_size):((i+1)*self.batch_size)] = self._model(var)\
                 .cpu().data.numpy()
 
-        return cpu(out.data).numpy().flatten()
+        return out.flatten()

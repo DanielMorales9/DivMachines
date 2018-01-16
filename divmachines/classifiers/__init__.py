@@ -1,10 +1,6 @@
-from divmachines.classifiers.mf import MF
-from divmachines.classifiers.fm import FM
-
 from abc import ABC, abstractmethod
 from torch.nn import Module
 
-__all__ = ["FM", "MF", "Classifier", "PointwiseModel"]
 
 
 class PointwiseModel(Module, ABC):
@@ -56,3 +52,7 @@ class Classifier(ABC):
             setattr(self, key, value)
         return self
 
+
+from divmachines.classifiers.mf import MF
+from divmachines.classifiers.fm import FM
+__all__ = ["FM", "MF", "Classifier", "PointwiseModel"]

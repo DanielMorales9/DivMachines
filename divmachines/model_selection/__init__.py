@@ -4,9 +4,6 @@ import numpy as np
 from joblib import Parallel, delayed
 from ..metrics import create_scorers
 from .split import _get_cv, create_cross_validator
-from .search import GridSearchCV
-
-__all__ = ['GridSearchCV', "cross_validate"]
 
 
 def cross_validate(classifier,
@@ -98,17 +95,17 @@ def cross_validate(classifier,
     cv = create_cross_validator(cv)
 
     scores = parallel(
-        delayed(_fit_and_score)(clone(classifier),
-                                x,
-                                y,
-                                metrics,
-                                fit_params,
-                                train_idx,
-                                test_idx,
-                                None,
-                                verbose,
-                                return_train_score=return_train_score,
-                                return_times=return_times)
+        delayed(fit_and_score)(clone(classifier),
+                               x,
+                               y,
+                               metrics,
+                               fit_params,
+                               train_idx,
+                               test_idx,
+                               None,
+                               verbose,
+                               return_train_score=return_train_score,
+                               return_times=return_times)
         for train_idx, test_idx in cv.split(x, y))
 
     train_scores = []
@@ -145,18 +142,18 @@ def cross_validate(classifier,
     return ret
 
 
-def _fit_and_score(classifier,
-                   x,
-                   y,
-                   metrics,
-                   fit_params,
-                   train_idx,
-                   test_idx,
-                   parameters,
-                   verbose=0,
-                   return_train_score=False,
-                   return_times=False,
-                   return_parameters=False):
+def fit_and_score(classifier,
+                  x,
+                  y,
+                  metrics,
+                  fit_params,
+                  train_idx,
+                  test_idx,
+                  parameters,
+                  verbose=0,
+                  return_train_score=False,
+                  return_times=False,
+                  return_parameters=False):
     """
     Fit classifiers and compute scores for a given dataset split.
     Parameters
@@ -290,3 +287,6 @@ def _aggregate_score_dicts(scores):
     for key in scores[0]:
         out[key] = np.asarray([score[key] for score in scores])
     return out
+
+from .search import GridSearchCV
+__all__ = ['GridSearchCV', "cross_validate"]

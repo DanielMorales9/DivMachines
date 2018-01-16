@@ -26,14 +26,14 @@ print("Number of items: %s" % n_items)
 
 model = FM(n_iter=10,
            learning_rate=1e-1,
-           sparse=True)
+           sparse=True, batch_size=10)
 
 interactions = train.values
 x = interactions[:, :-1]
 y = interactions[:, -1]
 
 for k, v in cross_validate(model, x, y,
-                           cv='kFold',
+                           cv='leaveOneOut',
                            fit_params={'dic':
                                            {'users': 0, 'items': 1},
                                        'n_users': n_users,

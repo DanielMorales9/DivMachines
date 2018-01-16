@@ -24,9 +24,7 @@ model = FM(n_iter=100,
 interactions = train[['user', 'item', 'rating']].values
 x = interactions[:, :-1]
 y = interactions[:, -1]
-model.fit(x,
-          y,
-          {'users': 0, 'items': 1})
+model.fit(x, y, {'users': 0, 'items': 1})
 
 plt.plot(logger.epochs, logger.losses)
 plt.show()

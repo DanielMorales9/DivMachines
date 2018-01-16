@@ -5,7 +5,7 @@ from functools import partial, reduce
 import operator
 import numpy as np
 from .split import create_cross_validator
-from . import clone, _fit_and_score, _aggregate_score_dicts
+from divmachines.model_selection import clone, fit_and_score
 from joblib import Parallel, delayed
 
 
@@ -143,18 +143,18 @@ class BaseSearchCV(metaclass=ABCMeta):
         scores = Parallel(
             n_jobs=self.n_jobs, verbose=self.verbose,
             pre_dispatch=self.pre_dispatch
-        )(delayed(_fit_and_score)(clone(base_classifier),
-                                  x,
-                                  y,
-                                  self.metrics,
-                                  fit_params,
-                                  train_idx,
-                                  test_idx,
-                                  parameters,
-                                  verbose=self.verbose,
-                                  return_train_score=self.return_train_score,
-                                  return_times=True,
-                                  return_parameters=True)
+        )(delayed(fit_and_score)(clone(base_classifier),
+                                 x,
+                                 y,
+                                 self.metrics,
+                                 fit_params,
+                                 train_idx,
+                                 test_idx,
+                                 parameters,
+                                 verbose=self.verbose,
+                                 return_train_score=self.return_train_score,
+                                 return_times=True,
+                                 return_parameters=True)
           for parameters, (train_idx, test_idx) in product(candidate_params, cv.split(x, y)))
 
         if self.return_train_score:

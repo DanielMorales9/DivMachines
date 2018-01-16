@@ -93,8 +93,8 @@ class KFold(CrossValidator):
             start, stop = current, current + fold_size
             copy_mask = np.copy(mask)
             copy_mask[indices[start:stop]] = True
-            yield copy_mask
             current = stop
+            yield copy_mask
 
 
 class LeaveOneOut(CrossValidator):

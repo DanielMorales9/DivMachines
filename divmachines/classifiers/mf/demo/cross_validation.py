@@ -23,7 +23,7 @@ print("Number of items: %s" % n_items)
 for k, v in cross_validate(model,
                            x,
                            y,
-                           cv='userHoldOut',
+                           cv='kFold',
                            fit_params={'dic': {'users': 0, 'items': 1},
                                        'n_users': n_users,
                                        'n_items': n_items},

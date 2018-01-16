@@ -195,7 +195,7 @@ class FactorizationMachine(PointwiseModel):
         interaction = self.second_order(x)
         res = linear + interaction
 
-        return res
+        return res.squeeze(-1)
 
 
 class SecondOrderInteraction(Module):

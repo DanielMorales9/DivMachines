@@ -26,7 +26,7 @@ print("Number of items: %s" % n_items)
 
 model = FM(n_iter=10,
            learning_rate=1e-1,
-           sparse=True)
+           sparse=True, batch_size=10)
 
 interactions = train.values
 x = interactions[:, :-1]
