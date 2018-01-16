@@ -101,6 +101,10 @@ class LatentFactorPortfolio(Classifier):
     def n_items(self):
         return self._model.n_items
 
+    @property
+    def logger(self):
+        return self._logger
+
     def _initialize(self):
         self._init_model()
 
@@ -288,14 +292,12 @@ class LatentFactorPortfolio(Classifier):
         x = self._model.x
         y = self._model.y
 
-        # computing user profile length
-        _, upl = np.unique(train[:, 0], return_counts=True)
-
-        upl = np.array(upl, dtype=np.float)
-        self._var = np.zeros((self.n_users, self._n_factors), dtype=np.float32)
+        self._var = np.zeros((self.n_users, self._n_factors),
+                             dtype=np.float32)
 
         for i, (u, g) in enumerate(pd.DataFrame(train).groupby(0)):
-            user_profile = g.values[0]
+            user_profile = g.values[:, 1]
+            upl = user_profile.shape[0]
             user_idx = Variable(gpu(torch.from_numpy(np.array([u])),
                                     self._use_cuda))
             item_idx = Variable(gpu(torch.from_numpy(user_profile),
@@ -326,5 +328,4 @@ def _substitute(arg_max_per_user, k, rank, rows):
     for r, c in zip(rows, arg_max_per_user):
         temp = rank[r, c + k]
         rank[r, c + k] = rank[r, k]
-        # TODO ValueError setting an array element with a sequence.
         rank[r, k] = temp
