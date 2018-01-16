@@ -32,12 +32,12 @@ class MatrixFactorizationModel(PointwiseModel):
         self._n_factors = n_factors
         self._sparse = sparse
 
-        self.x = ScaledEmbedding(self._n_users,
-                                 self._n_factors,
-                                 sparse=self._sparse)
-        self.y = ScaledEmbedding(self._n_items,
-                                 self._n_factors,
-                                 sparse=self._sparse)
+        self._x = ScaledEmbedding(self._n_users,
+                                  self._n_factors,
+                                  sparse=self._sparse)
+        self._y = ScaledEmbedding(self._n_items,
+                                  self._n_factors,
+                                  sparse=self._sparse)
 
         self.user_biases = ZeroEmbedding(self._n_users, 1, sparse=self._sparse)
         self.item_biases = ZeroEmbedding(self._n_items, 1, sparse=self._sparse)
@@ -62,8 +62,8 @@ class MatrixFactorizationModel(PointwiseModel):
 
         biases_sum = user_bias + item_bias
 
-        users_batch = self.x(user_ids).squeeze()
-        items_batch = self.y(item_ids).squeeze()
+        users_batch = self._x(user_ids).squeeze()
+        items_batch = self._y(item_ids).squeeze()
 
         if len(users_batch.size()) > 2:
             dot = (users_batch * items_batch).sum(2)
@@ -73,6 +73,22 @@ class MatrixFactorizationModel(PointwiseModel):
             dot = (users_batch * items_batch).sum()
 
         return biases_sum + dot
+
+    @property
+    def x(self):
+        return self._x#.cpu().weight.data.numpy()
+
+    @x.getter
+    def x(self):
+        return self._x#.cpu().weight.data.numpy()
+
+    @property
+    def y(self):
+        return self._y#.cpu().weight.data.numpy()
+
+    @y.getter
+    def y(self):
+        return self._y#.cpu().weight.data.numpy()
 
 
 class SimpleMatrixFactorizationModel(PointwiseModel):
@@ -102,12 +118,12 @@ class SimpleMatrixFactorizationModel(PointwiseModel):
         self._n_factors = n_factors
         self._sparse = sparse
 
-        self.x = ScaledEmbedding(self._n_users,
-                                 self._n_factors,
-                                 sparse=self._sparse)
-        self.y = ScaledEmbedding(self._n_items,
-                                 self._n_factors,
-                                 sparse=self._sparse)
+        self._x = ScaledEmbedding(self._n_users,
+                                  self._n_factors,
+                                  sparse=self._sparse)
+        self._y = ScaledEmbedding(self._n_items,
+                                  self._n_factors,
+                                  sparse=self._sparse)
 
     def forward(self, user_ids, item_ids):
         """
@@ -124,8 +140,8 @@ class SimpleMatrixFactorizationModel(PointwiseModel):
             Tensor of predictions.
         """
 
-        users_batch = self.x(user_ids).squeeze()
-        items_batch = self.y(item_ids).squeeze()
+        users_batch = self._x(user_ids).squeeze()
+        items_batch = self._y(item_ids).squeeze()
 
         if len(users_batch.size()) > 2:
             dot = (users_batch * items_batch).sum(2)
@@ -135,6 +151,22 @@ class SimpleMatrixFactorizationModel(PointwiseModel):
             dot = (users_batch * items_batch).sum()
 
         return dot
+
+    @property
+    def x(self):
+        return self._x#.cpu().weight.data.numpy()
+
+    @x.getter
+    def x(self):
+        return self._x#.cpu().weight.data.numpy()
+
+    @property
+    def y(self):
+        return self._y#.cpu().weight.data.numpy()
+
+    @y.getter
+    def y(self):
+        return self._y#.cpu().weight.data.numpy()
 
 
 class FactorizationMachine(PointwiseModel):

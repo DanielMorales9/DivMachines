@@ -192,7 +192,7 @@ class NaiveHoldOut(CrossValidator):
             train_idx = indices[:train_size]
             test_idx = indices[train_size:]
 
-            # This block o f code checks whether the user and the item
+            # This block of code checks whether the user and the item
             # in the test set belong to the train_set otherwise
             # they are dropped
 
@@ -260,7 +260,7 @@ class UserHoldOut(CrossValidator):
         for i in range(self._times):
             copy_mask = np.copy(mask)
             grouped = data.groupby(0)
-            for user, g in grouped:
+            for _, g in grouped:
                 idx_shuffled = g.index.values.reshape(-1)
                 n_observed = int((1 - self._ratio) * len(idx_shuffled))
                 self._random_state.shuffle(idx_shuffled)

@@ -1,8 +1,11 @@
+import torch
 import numpy as np
-from itertools import count
+import pandas as pd
+from torch.autograd.variable import Variable
 from divmachines.classifiers import Classifier
 from divmachines.classifiers.mf import MF
 from divmachines.utility.helper import shape_prediction
+from divmachines.utility.torch import gpu
 
 
 ITEMS = 'items'
@@ -119,27 +122,34 @@ class LatentFactorPortfolio(Classifier):
             raise ValueError("Model must be an instance of "
                              "divmachines.classifiers.mf.MF class")
 
-    def _init_dataset(self, x):
-        self._item_index = {}
-        # self._user_index = {}
+    def _init_dataset(self, x, train=True):
+        self._rev_item_index = {}
+        self._user_index = {}
+        if train:
+            self._item_index = {}
         for k, v in self._model.index.items():
             if k.startswith(ITEMS):
                 try:
-                    self._item_index[v] = int(k[len(ITEMS):])
+                    self._rev_item_index[v] = int(k[len(ITEMS):])
+                    if train:
+                        self._item_index[int(k[len(ITEMS):])] = v
                 except ValueError:
                     raise ValueError("You may want to provide an integer "
                                      "index for the items")
-            # elif k.startswith(USERS):
-            #     try:
-            #         self._user_index[v] = int(k[len(USERS):])
-            #     except ValueError:
-            #         raise ValueError("You may want to provide an integer "
-            #                          "index for the users")
-            # else:
-            #     raise ValueError("Not possible")
-        self._item_catalog = np.array(list(self._item_index.values()))
+            elif k.startswith(USERS):
+                try:
+                    self._user_index[int(k[len(USERS):])] = v
+                except ValueError:
+                    raise ValueError("You may want to provide an integer "
+                                     "index for the users")
+            else:
+                raise ValueError("Not possible")
+        self._item_catalog = np.array(list(self._rev_item_index.values()))
+        if train:
+            x = index_dataset(x, self._user_index, self._item_index)
+            self._estimate_variance(x)
 
-    def fit(self, x, y, user_col=0, item_col=1, n_users=None, n_items=None):
+    def fit(self, x, y, n_users=None, n_items=None):
         """
         Fit the underlying classifier.
         When called repeatedly, models fitting will resume from
@@ -149,13 +159,10 @@ class LatentFactorPortfolio(Classifier):
         Parameters
         ----------
         x: ndarray
-            Training samples
+            Training samples. User column must be 0 while item column
+            must be 1
         y: ndarray
             Target values for samples
-        user_col: int, optional
-            user column in training samples
-        item_col: int, optional
-            item column in training samples
         n_users: int, optional
             Total number of users. The model will have `n_users` rows.
             Default is None, `n_users` will be inferred from `x`.
@@ -166,7 +173,7 @@ class LatentFactorPortfolio(Classifier):
         if not self._initialized:
             self._initialize()
 
-        dic = {USERS: user_col, ITEMS: item_col}
+        dic = {USERS: 0, ITEMS: 1}
 
         self._model.fit(x, y, dic=dic, n_users=n_users, n_items=n_items)
         self._init_dataset(x)
@@ -203,11 +210,11 @@ class LatentFactorPortfolio(Classifier):
                              "the item catalog as transaction matrix.")
 
         # Rev-indexes and other data structures are updated
-        # if new items and new users have been provided.
+        # if new items and new users are provided.
         if update_dataset:
-            self._init_dataset(x)
+            self._init_dataset(x, train=False)
 
-        users = np.unique(test[:, 0])
+        users = index(np.unique(test[:, 0]), self._user_index)
 
         re_ranking = self._sequential_re_ranking(rank, users, top, b)
 
@@ -215,29 +222,109 @@ class LatentFactorPortfolio(Classifier):
 
     def _sequential_re_ranking(self, rank, users, top, b):
         rank = np.argsort(-rank, 1)
-        print(self.rev_index(rank[:, :top]))
 
         rows = np.arange(self.n_users)
-        model = self._model.model
+        x = self._model.x
+        y = self._model.y
 
         for k in range(1, top):
-            values = np.zeros((self.n_users, self.n_items-k))
-            arg_max_per_user = np.argsort(values, 1)[:, 0]
-            substitute(arg_max_per_user, k, rank, rows)
+            values = self._compute_delta_f(x, y, k, b, rank, users)
 
-        return self.rev_index(rank[:, :top])
+            arg_max_per_user = np.argsort(-values, 1)[:, 0]
+            _substitute(arg_max_per_user, k, rank, rows)
 
-    def _compute_f(self, rank, users, k, b):
-        a = np.zeros((self.n_users, self.n_items-k))
-        return a
+        return index(rank[:, :top], self._rev_item_index)
 
-    def rev_index(self, rank):
-        re_idx = np.vectorize(lambda x: self._item_index[x])
-        return np.array([re_idx(lis) for lis in rank])
+    def _compute_delta_f(self, x, y, k, b, rank, users):
+        # Initialize Variables
+        # and other coefficients
+        u_idx = Variable(gpu(torch.from_numpy(users), self._use_cuda))
+        i_idx = Variable(gpu(torch.from_numpy(rank), self._use_cuda))
+        var = self.torch_variance()
+
+        wk = 1/(2**k)
+        wm = Variable(gpu(torch.from_numpy(
+            np.array([1 / (2 ** m) for m in range(k)],
+                     dtype=np.float32)), self._use_cuda)) \
+            .unsqueeze(1).expand(k, self._n_factors)
+        i_ranked = (y(i_idx[:, :k]) * wm).transpose(0, 1).unsqueeze(0)
+        i_unranked = y(i_idx[:, k:]).transpose(0, 1)
+
+        # This block of code computes the first term of the DeltaF.
+        users_batch = x(u_idx)
+        term0 = (users_batch * i_unranked)
+
+        # This block of code computes the second term of the DeltaF
+        term1 = torch.pow(i_unranked, 2) * var(u_idx)
+        coeff0 = b * wk
+        term1 = torch.mul(term1, coeff0)
+
+        # This block of code computes the third term of the DeltaF
+        e_ranked = i_ranked.expand(self.n_items - k,
+                                   k,
+                                   self.n_users,
+                                   self._n_factors) \
+            .transpose(0, 1)
+        e_unranked = i_unranked.unsqueeze(0).expand(k,
+                                                    self.n_items - k,
+                                                    self.n_users,
+                                                    self._n_factors)
+        coeff1 = torch.mul(var(u_idx), 2.*b)
+        term2 = (e_ranked * e_unranked).sum(0) * coeff1
+
+        delta_f = torch.mul(term0 - term1 - term2, wk) \
+            .sum(2).transpose(0, 1)
+
+        return delta_f.cpu().data.numpy()
+
+    def torch_variance(self):
+        var_v = torch.from_numpy(self._var)
+        var = torch.nn.Embedding(var_v.size(0), var_v.size(1))
+        var.weight = torch.nn.Parameter(var_v)
+        var = gpu(var, self._use_cuda)
+        return var
+
+    def _estimate_variance(self, train):
+        x = self._model.x
+        y = self._model.y
+
+        # computing user profile length
+        _, upl = np.unique(train[:, 0], return_counts=True)
+
+        upl = np.array(upl, dtype=np.float)
+        self._var = np.zeros((self.n_users, self._n_factors), dtype=np.float32)
+
+        for i, (u, g) in enumerate(pd.DataFrame(train).groupby(0)):
+            user_profile = g.values[0]
+            user_idx = Variable(gpu(torch.from_numpy(np.array([u])),
+                                    self._use_cuda))
+            item_idx = Variable(gpu(torch.from_numpy(user_profile),
+                                    self._use_cuda))
+            diff = x(user_idx) - y(item_idx)
+
+            prod = torch.pow(diff, 2).sum(0)
+
+            var = torch.mul(prod, upl[i])
+            self._var[i, :] = var.cpu().data.numpy()
 
 
-def substitute(arg_max_per_user, k, rank, rows):
+def index_dataset(x, idx0, idx1):
+    user_profile = x.copy()
+    users = index(user_profile[:, 0], idx0)
+    items = index(user_profile[:, 1], idx1)
+    user_profile[:, 0] = users
+    user_profile[:, 1] = items
+    return user_profile
+
+
+def index(rank, idx):
+    re_idx = np.vectorize(lambda x: idx[x])
+    return np.array([re_idx(lis) for lis in rank])
+
+
+def _substitute(arg_max_per_user, k, rank, rows):
     for r, c in zip(rows, arg_max_per_user):
         temp = rank[r, c + k]
         rank[r, c + k] = rank[r, k]
+        # TODO ValueError setting an array element with a sequence.
         rank[r, k] = temp
