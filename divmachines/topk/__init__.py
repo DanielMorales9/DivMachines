@@ -306,7 +306,7 @@ class LatentFactorPortfolio(Classifier):
 
             prod = torch.pow(diff, 2).sum(0)
 
-            var = torch.mul(prod, upl[i])
+            var = torch.mul(prod, upl)
             self._var[i, :] = var.cpu().data.numpy()
 
 
