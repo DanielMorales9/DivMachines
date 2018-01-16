@@ -278,6 +278,7 @@ class MF(Classifier):
             self.batch_size = len(self._dataset)
 
         loader = DataLoader(self._dataset,
+                            shuffle=False,
                             batch_size=self.batch_size,
                             num_workers=self._n_jobs)
 

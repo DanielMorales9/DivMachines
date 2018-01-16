@@ -12,7 +12,7 @@ ITEMS = 'items'
 USERS = 'users'
 
 
-class LatentFactorPortfolio(Classifier):
+class LFP_MF(Classifier):
     """
     Latent Factor Portfolio implementation based on the following work
 

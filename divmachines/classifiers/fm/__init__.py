@@ -270,14 +270,18 @@ class FM(Classifier):
             x = np.array([x])
 
         self._init_dataset(x)
+        if self.batch_size is None:
+            self.batch_size = len(self._dataset)
 
         loader = DataLoader(self._dataset,
                             batch_size=len(x),
                             shuffle=False,
                             num_workers=self._n_jobs)
-        out = None
-        for samples in loader:
-            var = Variable(gpu(samples, self._use_cuda))
-            out = self._model(var)
+
+        out = np.zeros(len(x))
+        for i, batch_data in enumerate(loader):
+            var = Variable(gpu(batch_data, self._use_cuda))
+            out[(i*self.batch_size):((i+1)*self.batch_size)] = self._model(var)\
+                .cpu().data.numpy()
 
         return cpu(out.data).numpy().flatten()
