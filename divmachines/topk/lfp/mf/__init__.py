@@ -4,7 +4,8 @@ import pandas as pd
 from torch.autograd.variable import Variable
 from divmachines.classifiers import Classifier
 from divmachines.classifiers.mf import MF
-from divmachines.utility.helper import shape_for_mf, _swap_k, index
+from divmachines.utility.helper import shape_for_mf, \
+    _swap_k, index, re_index
 from divmachines.utility.torch import gpu
 
 
@@ -231,9 +232,7 @@ class LFP_MF(Classifier):
     def _sequential_re_ranking(self, rank, users, items, top, b):
         rank = np.argsort(-rank, 1)
 
-        for i, arr in enumerate(rank):
-            for j, r in enumerate(arr):
-                rank[i, j] = items[r]
+        re_index(items, rank)
 
         x = self._model.x
         y = self._model.y
@@ -242,10 +241,15 @@ class LFP_MF(Classifier):
         for k in range(1, top):
             values = self._compute_delta_f(x, y, k, b, var, rank, users)
 
-            arg_max_per_user = np.argsort(values, 1)[:, -1]
+            arg_max_per_user = np.argsort(values, 1)[:, -1].copy()
             _swap_k(arg_max_per_user, k, rank)
 
         return index(rank[:, :top], self._rev_item_index)
+
+    def re_index(self, items, rank):
+        for i, arr in enumerate(rank):
+            for j, r in enumerate(arr):
+                rank[i, j] = items[r]
 
     def _compute_delta_f(self, x, y, k, b, var, rank, users):
         # Initialize Variables

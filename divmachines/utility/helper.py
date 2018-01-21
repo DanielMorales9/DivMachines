@@ -175,3 +175,9 @@ def _tensor_swap(index, tensor):
 def index(rank, idx):
     re_idx = np.vectorize(lambda x: idx[x])
     return np.array([re_idx(lis) for lis in rank])
+
+
+def re_index(items, rank):
+    for i, arr in enumerate(rank):
+        for j, r in enumerate(arr):
+            rank[i, j] = items[r]

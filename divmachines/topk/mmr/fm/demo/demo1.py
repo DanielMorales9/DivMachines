@@ -1,6 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from divmachines.topk.lfp import LFP_FM
+from divmachines.topk.mmr import MMR_FM
 from divmachines.logging import TrainingLogger as TLogger
 from divmachines.utility.helper import cartesian2D
 
@@ -21,7 +20,7 @@ print("Number of items: %s" % n_items)
 
 logger = TLogger()
 
-model = LFP_FM(n_iter=120,
+model = MMR_FM(n_iter=120,
                n_jobs=2,
                n_factors=4,
                learning_rate=.1,

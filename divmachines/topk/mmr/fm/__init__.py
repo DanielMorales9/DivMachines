@@ -1,22 +1,18 @@
 import torch
 import numpy as np
-from torch.autograd.variable import Variable
-from torch.nn import Embedding, Parameter
 from divmachines.classifiers import Classifier
 from divmachines.classifiers import FM
 from divmachines.utility.helper import index, \
-    _swap_k, _tensor_swap_k, _tensor_swap, re_index
+    _tensor_swap, re_index, _swap_k, _tensor_swap_k
 from divmachines.utility.torch import gpu
 
 ITEMS = 'items'
 USERS = 'users'
 
 
-class LFP_FM(Classifier):
+class MMR_FM(Classifier):
     """
-    Latent Factor Portfolio implementation based on Factorization Machine Model
-
-    My personal research founding.
+    MMR implementation based on Factorization Machine Model
 
     Parameters
     ----------
@@ -153,48 +149,6 @@ class LFP_FM(Classifier):
                     raise ValueError("You may want to provide an integer "
                                      "index for the users")
 
-        x = self.dataset.copy()
-        nz = list(filter(lambda k: k[1] < self.n_users,
-                    [(r, c) for r, c in zip(*np.nonzero(x))]))
-        self.zero_users(x)
-        d = {}
-        for r, c in nz:
-            d.setdefault(c, []).append(r)
-
-        # getting parameter from the model
-        v = self._model.v.cpu().data.numpy()
-
-        # (t, n)
-        x = gpu(torch.from_numpy(x), self._use_cuda)
-        X = gpu(Embedding(x.size(0), x.size(1)), self._use_cuda)
-        X.weight = Parameter(x)
-
-        # (n, f)
-        V = gpu(Variable(torch.from_numpy(v), self._use_cuda))
-
-        var = np.zeros((self.n_users, self._n_factors),
-                       dtype=np.float)
-        var = gpu(torch.from_numpy(var))
-
-        for k, val in d.items():
-            idx = Variable(gpu(torch.from_numpy(np.array(val)),
-                               self._use_cuda))
-            i = X(idx).size(0)
-
-            prod = (X(idx)
-                    .unsqueeze(2)
-                    .expand(i,
-                            self.n_features,
-                            self._n_factors) *
-                    V.unsqueeze(0)
-                    .expand(i,
-                            self.n_features,
-                            self._n_factors)).sum(1)
-            diff = V[k, :] - prod
-            a = torch.pow(diff, 2).sum(0)
-            var[k, :] = torch.div(a, len(val)).data
-        self._var = var.cpu().numpy()
-
     def fit(self, x, y, n_users=None, n_items=None):
         """
         Fit the underlying classifier.
@@ -251,7 +205,7 @@ class LFP_FM(Classifier):
 
         # prediction of the relevance of all the item catalog
         # for the users supplied
-        rank = self._model.predict(x).reshape(n_users, n_items)
+        predictions = self._model.predict(x).reshape(n_users, n_items)
 
         items = np.array([x[i, 1] for i in sorted(
             np.unique(x[:, 1], return_index=True)[1])])
@@ -260,18 +214,11 @@ class LFP_FM(Classifier):
 
         x = self.dataset.copy()
 
-        re_ranking = self._sequential_re_ranking(x,
-                                                 n_users,
-                                                 n_items,
-                                                 top,
-                                                 b,
-                                                 rank,
-                                                 items,
-                                                 users)
+        re_ranking = self._mmr(x, n_users, n_items, top, b, predictions, items)
         return re_ranking
 
-    def _sequential_re_ranking(self, x, n_users, n_items, top, b,
-                               predictions, items, users):
+    def _mmr(self, x, n_users, n_items, top, b,
+             predictions, items):
         rank = np.argsort(-predictions, 1)
         # zeroing users cols
         self.zero_users(x)
@@ -287,14 +234,12 @@ class LFP_FM(Classifier):
 
         v = self._model.v.data
 
-        u_idx = Variable(gpu(torch.from_numpy(users),
-                           self._use_cuda))
-        var = self.torch_variance()
-        variance = var(u_idx).data
+        n_items = pred.shape[1]
+        n_users = pred.shape[0]
 
         for k in range(1, top):
 
-            values = self._compute_delta_f(v, k, b, variance, pred, x)
+            values = self.mmr_objective(b, k, n_items, n_users, pred, v, x)
             # TODO it may not work with GPUs
             # TODO if GPU enabled, arg_max_per_user should go to gpu as well
             arg_max_per_user = np.argsort(values, 1)[:, -1].copy()
@@ -304,52 +249,35 @@ class LFP_FM(Classifier):
 
         return rank[:, :top]
 
+    def mmr_objective(self, b, k, n_items, n_users, pred, v, x):
+        corr = self._correlation(v, k, x, n_users, n_items)
+        max_corr_per_user = np.sort(corr, 1)[:, -1, :].copy()
+        max_corr = gpu(torch.from_numpy(max_corr_per_user), self._use_cuda)
+        values = torch.mul(pred[:, k:], b) - torch.mul(max_corr, 1 - b)
+        values = values.cpu().numpy()
+        return values
+
     def zero_users(self, x):
         x[:, :self.n_users] = np.zeros((x.shape[0], self.n_users),
                                        dtype=np.float)
 
-    def _compute_delta_f(self, v, k, b, var, pred, x):
-
-        term0 = pred[:, k:]
-        n_items = pred.shape[1]
-        n_users = pred.shape[0]
-
-        wk = 1 / (2 ** k)
+    def _correlation(self, v, k, x, n_users, n_items):
         # dim (u, i, n, f) -> (u, i, f)
         prod = (x.unsqueeze(-1).expand(n_users,
                                        n_items,
                                        self.n_features,
                                        self._n_factors) * v).sum(2)
 
-        t1 = torch.pow(prod, 2)
-
-        term1 = torch.mul((t1.transpose(0, 1) * var) \
-                    .transpose(0, 1).sum(2)[:, k:], wk)
-
-        wm = gpu(torch.from_numpy(
-            np.array([1 / (2 ** m) for m in range(k)],
-                     dtype=np.float32)), self._use_cuda) \
-            .unsqueeze(0).unsqueeze(2) \
-            .expand(n_users, k, self._n_factors)
-
         unranked = prod[:, k:, :]
-        ranked = prod[:, :k, :] * wm
-        t2 = unranked.unsqueeze(1).expand(n_users,
-                                          k,
-                                          n_items-k,
-                                          self._n_factors) * \
-             ranked.unsqueeze(2).expand(n_users,
-                                        k,
-                                        n_items-k,
-                                        self._n_factors)
-        term2 = torch.mul((t2.transpose(0, 2) * var)
-                          .sum(3).sum(1)
-                          .transpose(0, 1), 2)
-        delta = torch.mul(term0 - torch.mul(term1 + term2, b), wk)
-        return delta.cpu().numpy()
+        ranked = prod[:, :k, :]
+        e_corr = unranked.unsqueeze(1).expand(n_users,
+                                              k,
+                                              n_items-k,
+                                              self._n_factors) * \
+                 ranked.unsqueeze(2).expand(n_users,
+                                            k,
+                                            n_items-k,
+                                            self._n_factors)
+        corr = e_corr.sum(3)
 
-    def torch_variance(self):
-        var = gpu(torch.from_numpy(self._var).float(), self._use_cuda)
-        e = Embedding(var.size(0), var.size(1))
-        e.weight = Parameter(var)
-        return e
+        return corr.cpu().numpy()
