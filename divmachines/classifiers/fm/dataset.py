@@ -32,33 +32,33 @@ class DenseDataset(Dataset):
                  n_items=None):
         super(DenseDataset, self).__init__()
         self._n_features = None
-        self._initialize(x,
-                         y=y,
-                         dic=dic,
-                         n_users=n_users,
-                         n_items=n_items)
+        self._ix = None
+        self._n_users = n_users
+        self._n_items = n_items
+        self._initialize(x, y, dic)
 
-    def _initialize(self,
-                    x,
-                    y=None,
-                    dic=None,
-                    ix=None,
-                    n_users=None,
-                    n_items=None):
+    def _initialize(self, x, y, dic):
         self._len = len(x)
         self._dic = dic
 
         if dic is None:
             self._x = x.astype(np.float32)
             self._n_features = self._x.shape[1]
-            self._ix = None
         else:
+            users = len(np.unique(x[:, 0]))
+            items = len(np.unique(x[:, 1]))
+
+            self._n_users = self._n_users \
+                if self._n_users is None else users
+            self._n_items = self._n_items \
+                if self._n_items is None else items
+
             data, rows, cols, self._ix, n_feats \
                 = vectorize_interactions(x,
                                          dic=dic,
-                                         ix=ix,
-                                         n_users=n_users,
-                                         n_items=n_items)
+                                         ix=self._ix,
+                                         n_users=self._n_users,
+                                         n_items=self._n_items)
             self._n_features = self._n_features or n_feats
             try:
                 coo = coo_matrix((data, (rows, cols)),
@@ -80,6 +80,22 @@ class DenseDataset(Dataset):
         return self._n_features
 
     @property
+    def n_users(self):
+        return self._n_users
+
+    @n_users.getter
+    def n_users(self):
+        return self._n_users
+
+    @property
+    def n_items(self):
+        return self._n_items
+
+    @n_items.getter
+    def n_items(self):
+        return self._n_items
+
+    @property
     def index(self):
         return self._ix
 
@@ -87,11 +103,16 @@ class DenseDataset(Dataset):
     def index(self):
         return self._ix
 
+    @property
+    def x(self):
+        return self._x
+
+    @x.getter
+    def x(self):
+        return self._x
+
     def __call__(self, x, y=None):
-        self._initialize(x,
-                         y=y,
-                         dic=self._dic,
-                         ix=self._ix)
+        self._initialize(x, y=y, dic=self._dic)
         return self
 
     def __len__(self):
@@ -131,19 +152,12 @@ class SparseDataset(Dataset):
                  n_items=None):
         super(SparseDataset, self).__init__()
         self._n_features = None
-        self._initialize(x,
-                         y=y,
-                         dic=dic,
-                         n_users=n_users,
-                         n_items=n_items)
+        self._ix = None
+        self._n_users = n_users
+        self._n_items = n_items
+        self._initialize(x, y, dic)
 
-    def _initialize(self,
-                    x,
-                    y=None,
-                    dic=None,
-                    ix=None,
-                    n_users=None,
-                    n_items=None):
+    def _initialize(self, x, y, dic):
         self._len = len(x)
         self._dic = dic
         self._y = y.astype(np.float32) if y is not None else None
@@ -155,12 +169,20 @@ class SparseDataset(Dataset):
                     [[col, d] for col, d in enumerate(row) if d != 0.]
             self._ix = None
         else:
+            users = len(np.unique(x[:, 0]))
+            items = len(np.unique(x[:, 1]))
+
+            self._n_users = self._n_users \
+                if self._n_users is None else users
+            self._n_items = self._n_items \
+                if self._n_items is None else items
+
             d, rows, cols, self._ix, n_feats \
                 = vectorize_interactions(x,
-                                         dic=dic,
-                                         ix=ix,
-                                         n_users=n_users,
-                                         n_items=n_items)
+                                         dic=self._dic,
+                                         ix=self._ix,
+                                         n_users=self._n_users,
+                                         n_items=self._n_items)
             self._n_features = self._n_features or n_feats
             self._sparse_x = list2dic(d, rows, cols)
         self._zero = np.zeros(self._n_features, dtype=np.float32)
@@ -181,8 +203,40 @@ class SparseDataset(Dataset):
     def index(self):
         return self._ix
 
+    @property
+    def n_users(self):
+        return self._n_users
+
+    @n_users.getter
+    def n_users(self):
+        return self._n_users
+
+    @property
+    def n_items(self):
+        return self._n_items
+
+    @n_items.getter
+    def n_items(self):
+        return self._n_items
+
+    @property
+    def x(self):
+        x = np.zeros((self._n_features, len(self)))
+
+        for i in range(len(self)):
+            x[i, :] = self[i]
+        return x
+
+    @x.getter
+    def x(self):
+        x = np.zeros((self._n_features, len(self)))
+
+        for i in range(len(self)):
+            x[i, :] = self[i]
+        return x
+
     def __call__(self, x, y=None):
-        self._initialize(x, y=y, dic=self._dic, ix=self._ix)
+        self._initialize(x, y, self._dic)
         return self
 
     def __len__(self):

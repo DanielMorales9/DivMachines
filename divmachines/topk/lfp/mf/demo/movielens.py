@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from divmachines.topk import LatentFactorPortfolio as LFP
+from divmachines.topk.lfp import LFP_MF
 from divmachines.logging import TrainingLogger as TLogger
 from divmachines.utility.helper import cartesian
 
@@ -10,7 +10,7 @@ train = pd.read_csv('../../../data/ua.base', delimiter='\t', names=cols)
 
 logger = TLogger()
 
-model = LFP(n_iter=10,
+model = LFP_MF(n_iter=10,
             n_jobs=2,
             n_factors=2,
             learning_rate=1,

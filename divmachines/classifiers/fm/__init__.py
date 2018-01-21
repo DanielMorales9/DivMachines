@@ -88,19 +88,19 @@ class FM(Classifier):
 
     @property
     def n_users(self):
-        return self._n_users
+        return self._dataset.n_users
 
     @n_users.getter
     def n_users(self):
-        return self._n_users
+        return self._dataset.n_users
 
     @property
     def n_items(self):
-        return self._n_items
+        return self._dataset.n_items
 
     @n_items.getter
     def n_items(self):
-        return self._n_items
+        return self._dataset.n_items
 
     @property
     def n_features(self):
@@ -117,6 +117,30 @@ class FM(Classifier):
     @index.getter
     def index(self):
         return self._dataset.index
+
+    @property
+    def model(self):
+        return self._model
+
+    @model.getter
+    def model(self):
+        return self._model
+
+    @property
+    def dataset(self):
+        return self._dataset.x
+
+    @dataset.getter
+    def dataset(self):
+        return self._dataset.x
+
+    @property
+    def v(self):
+        return self._model.v
+
+    @v.getter
+    def v(self):
+        return self._model.v
 
     def _initialize(self,
                     x,
@@ -158,9 +182,8 @@ class FM(Classifier):
                                                  n_users=n_users,
                                                  n_items=n_items)
         else:
-            raise TypeError("Training set must be of type dataset or of type ndarray")
-        self._n_users = n_users
-        self._n_items = n_items
+            raise TypeError("Training set must be of type "
+                            "dataset or of type ndarray")
 
     def _init_optim_fun(self):
         if self._optimizer_func is None:

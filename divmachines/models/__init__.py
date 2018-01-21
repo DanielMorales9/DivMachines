@@ -1,9 +1,21 @@
 from __future__ import print_function
+from abc import ABC, abstractmethod
 from torch import FloatTensor
 import torch
 from torch.nn import Module, Parameter
-from divmachines.classifiers import PointwiseModel
 from divmachines.models.layers import ScaledEmbedding, ZeroEmbedding
+
+
+class PointwiseModel(Module, ABC):
+    """
+    Base Pointwise Model class
+    """
+    def __init__(self):
+        super(PointwiseModel, self).__init__()
+
+    @abstractmethod
+    def forward(self, *input0):
+        pass
 
 
 class MatrixFactorizationModel(PointwiseModel):
@@ -189,6 +201,14 @@ class FactorizationMachine(PointwiseModel):
         self.linear.data.uniform_(-0.01, 0.01)
         self.second_order = SecondOrderInteraction(self.n_features,
                                                    self.factors)
+
+    @property
+    def v(self):
+        return self.second_order.v
+
+    @v.getter
+    def v(self):
+        return self.second_order.v
 
     def forward(self, x):
         linear = (x * self.linear).sum(1).unsqueeze(-1)

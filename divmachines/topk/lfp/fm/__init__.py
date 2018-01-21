@@ -1,9 +1,12 @@
 import torch
 import numpy as np
-import pandas as pd
 from torch.autograd.variable import Variable
+from torch.nn import Embedding, Parameter
 from divmachines.classifiers import Classifier
 from divmachines.classifiers import FM
+from divmachines.utility.helper import index, \
+    _swap_k, _tensor_swap_k, _tensor_swap
+from divmachines.utility.torch import gpu
 
 ITEMS = 'items'
 USERS = 'users'
@@ -99,12 +102,32 @@ class LFP_FM(Classifier):
     def logger(self):
         return self._logger
 
+    @logger.getter
+    def logger(self):
+        return self._logger
+
+    @property
+    def n_features(self):
+        return self._model.n_features
+
+    @n_features.getter
+    def n_features(self):
+        return self._model.n_features
+
+    @property
+    def dataset(self):
+        return self._model.dataset
+
+    @dataset.getter
+    def dataset(self):
+        return self._model.dataset
+
     def _initialize(self):
         self._init_model()
 
     def _init_model(self):
         if self._model is None:
-            self._model = MF(n_factors=self._n_factors,
+            self._model = FM(n_factors=self._n_factors,
                              sparse=self._sparse,
                              n_iter=self._n_iter,
                              loss=self._loss,
@@ -116,34 +139,61 @@ class LFP_FM(Classifier):
                              use_cuda=self._use_cuda,
                              logger=self._logger,
                              n_jobs=self._n_jobs)
-        elif not isinstance(self._model, MF):
+        elif not isinstance(self._model, FM):
             raise ValueError("Model must be an instance of "
-                             "divmachines.classifiers.lfp.MF class")
+                             "divmachines.classifiers.FM class")
 
-    def _init_dataset(self, x, train=True):
-        self._rev_item_index = {}
+    def _init_dataset(self, x):
         self._user_index = {}
-        if train:
-            self._item_index = {}
         for k, v in self._model.index.items():
-            if k.startswith(ITEMS):
-                try:
-                    self._rev_item_index[v] = int(k[len(ITEMS):])
-                    self._item_index[int(k[len(ITEMS):])] = v
-                except ValueError:
-                    raise ValueError("You may want to provide an integer "
-                                     "index for the items")
-            elif k.startswith(USERS):
+            if k.startswith(USERS):
                 try:
                     self._user_index[int(k[len(USERS):])] = v
                 except ValueError:
                     raise ValueError("You may want to provide an integer "
                                      "index for the users")
-            else:
-                raise ValueError("Not possible")
-        self._item_catalog = np.array(list(self._rev_item_index.values()))
-        if train:
-            self._estimate_variance(x)
+
+        x = self.dataset.copy()
+        nz = list(filter(lambda k: k[1] < self.n_users,
+                    [(r, c) for r, c in zip(*np.nonzero(x))]))
+        self.zero_users(x)
+        d = {}
+        for r, c in nz:
+            d.setdefault(c, []).append(r)
+
+        # getting parameter from the model
+        v = self._model.v.cpu().data.numpy()
+
+        # (t, n)
+        x = gpu(torch.from_numpy(x), self._use_cuda)
+        X = gpu(Embedding(x.size(0), x.size(1)), self._use_cuda)
+        X.weight = Parameter(x)
+
+        # (n, f)
+        V = gpu(Variable(torch.from_numpy(v), self._use_cuda))
+
+        var = np.zeros((self.n_users, self._n_factors),
+                       dtype=np.float)
+        var = gpu(torch.from_numpy(var))
+
+        for k, val in d.items():
+            idx = Variable(gpu(torch.from_numpy(np.array(val)),
+                               self._use_cuda))
+            i = X(idx).size(0)
+
+            prod = (X(idx)
+                    .unsqueeze(2)
+                    .expand(i,
+                            self.n_features,
+                            self._n_factors) *
+                    V.unsqueeze(0)
+                    .expand(i,
+                            self.n_features,
+                            self._n_factors)).sum(1)
+            diff = V[k, :] - prod
+            a = torch.pow(diff, 2).sum(0)
+            var[k, :] = torch.div(a, len(val)).data
+        self._var = var.cpu().numpy()
 
     def fit(self, x, y, n_users=None, n_items=None):
         """
@@ -181,10 +231,9 @@ class LFP_FM(Classifier):
         Parameters
         ----------
         x: ndarray or int
-            array of users, user item interactions matrix
-            (you must provide the same items for all user
-            listed) or instead a single user to which
-            predict the item ranking.
+            An array of feature vectors.
+            The User-item-feature matrix must have the same items
+            in the same order for all user
         top: int, optional
             Length of the ranking
         b: float, optional
@@ -197,158 +246,115 @@ class LFP_FM(Classifier):
             `top` items for each user supplied
         """
 
-        n_items, n_users, test, update_dataset = \
-            shape_prediction(self._item_catalog, x)
+        n_users = np.unique(x[:, 0]).shape[0]
+        n_items = np.unique(x[:, 1]).shape[0]
 
-        try:
-            rank = self._model.predict(test).reshape(n_users, n_items)
-        except ValueError:
-            raise ValueError("You may want to provide for each user "
-                             "the item catalog as transaction matrix.")
+        # prediction of the relevance of all the item catalog
+        # for the users supplied
+        rank = self._model.predict(x).reshape(n_users, n_items)
 
-        # Rev-indexes and other data structures are updated
-        # if new items and new users are provided.
-        if update_dataset:
-            self._init_dataset(x, train=False)
-
+        items = np.array([x[i, 1] for i in sorted(
+            np.unique(x[:, 1], return_index=True)[1])])
         users = index(np.array([x[i, 0] for i in sorted(
             np.unique(x[:, 0], return_index=True)[1])]), self._user_index)
-        items = index(np.array([x[i, 1] for i in sorted(
-            np.unique(x[:, 1], return_index=True)[1])]), self._item_index)
 
-        re_ranking = self._sequential_re_ranking(rank, users, items, top, b)
+        x = self.dataset.copy()
 
+        re_ranking = self._sequential_re_ranking(x,
+                                                 n_users,
+                                                 n_items,
+                                                 top,
+                                                 b,
+                                                 rank,
+                                                 items,
+                                                 users)
         return re_ranking
 
-    def _sequential_re_ranking(self, rank, users, items, top, b):
-        rank = np.argsort(-rank, 1)
+    def _sequential_re_ranking(self, x, n_users, n_items, top, b,
+                               predictions, items, users):
+        rank = np.argsort(-predictions, 1)
+        # zeroing users cols
+        self.zero_users(x)
 
+        x = x.reshape(n_users, n_items, self.n_features)
+        x = gpu(_tensor_swap(rank, torch.from_numpy(x)),
+                self._use_cuda)
+        predictions = np.sort(predictions)[:, ::-1].copy()
+        pred = gpu(torch.from_numpy(predictions),
+                   self._use_cuda).float()
+
+        self.re_index(items, rank)
+
+        v = self._model.v.data
+
+        u_idx = Variable(gpu(torch.from_numpy(users),
+                           self._use_cuda))
+        var = self.torch_variance()
+        variance = var(u_idx).data
+
+        for k in range(1, top):
+
+            values = self._compute_delta_f(v, k, b, variance, pred, x)
+            # TODO it may not work with GPUs
+            # TODO if GPU enabled, arg_max_per_user should go to gpu as well
+            arg_max_per_user = np.argsort(values, 1)[:, -1]
+            _swap_k(arg_max_per_user, k, rank)
+            _tensor_swap_k(arg_max_per_user, k, pred, multi=False)
+            _tensor_swap_k(arg_max_per_user, k, x, multi=True)
+
+        return rank[:, :top]
+
+    def re_index(self, items, rank):
         for i, arr in enumerate(rank):
             for j, r in enumerate(arr):
                 rank[i, j] = items[r]
 
-        x = self._model.x
-        y = self._model.y
-        var = self.torch_variance()
+    def zero_users(self, x):
+        x[:, :self.n_users] = np.zeros((x.shape[0], self.n_users),
+                                       dtype=np.float)
 
-        for k in range(1, top):
-            values = self._compute_delta_f(x, y, k, b, var, rank, users)
+    def _compute_delta_f(self, v, k, b, var, pred, x):
 
-            arg_max_per_user = np.argsort(values, 1)[:, -1]
-            _substitute(arg_max_per_user, k, rank)
+        term0 = pred[:, k:]
+        n_items = pred.shape[1]
+        n_users = pred.shape[0]
 
-        return index(rank[:, :top], self._rev_item_index)
+        wk = 1 / (2 ** k)
+        # dim (u, i, n, f) -> (u, i, f)
+        prod = (x.unsqueeze(-1).expand(n_users,
+                                       n_items,
+                                       self.n_features,
+                                       self._n_factors) * v).sum(2)
 
-    def _compute_delta_f(self, x, y, k, b, var, rank, users):
-        # Initialize Variables
-        # and other coefficients
-        u_idx = Variable(gpu(torch.from_numpy(users), self._use_cuda))
-        i_idx = Variable(gpu(torch.from_numpy(rank), self._use_cuda))
+        t1 = torch.pow(prod, 2)
 
-        wk = 1/(2**k)
-        wm = Variable(gpu(torch.from_numpy(
+        term1 = torch.mul((t1.transpose(0, 1) * var) \
+                    .transpose(0, 1).sum(2)[:, k:], wk)
+
+        wm = gpu(torch.from_numpy(
             np.array([1 / (2 ** m) for m in range(k)],
-                     dtype=np.float32)), self._use_cuda)) \
-            .unsqueeze(1).expand(k, self._n_factors)
+                     dtype=np.float32)), self._use_cuda) \
+            .unsqueeze(0).unsqueeze(2) \
+            .expand(n_users, k, self._n_factors)
 
-        i_ranked = (y(i_idx[:, :k]) * wm).transpose(0, 1).unsqueeze(0)
-        i_unranked = y(i_idx[:, k:]).transpose(0, 1)
-
-        term0 = self._first_term(i_unranked, u_idx, x)
-
-        term1 = self._second_term(b, i_unranked, u_idx, var, wk)
-
-        term2 = self._third_term(b,
-                                 k,
-                                 u_idx,
-                                 var,
-                                 i_ranked,
-                                 i_unranked,
-                                 len(users),
-                                 rank.shape[1])
-
-        delta_f = torch.mul(term0 - term1 - term2, wk)\
-            .sum(2).transpose(0, 1)
-
-        return delta_f.cpu().data.numpy()
-
-    def _third_term(self,
-                    b, k, u_idx, var,
-                    i_ranked, i_unranked,
-                    n_users, n_items):
-        # This block of code computes the third term of the DeltaF
-        e_ranked = i_ranked.expand(n_items - k,
-                                   k,
-                                   n_users,
-                                   self._n_factors) \
-            .transpose(0, 1)
-        e_unranked = i_unranked.unsqueeze(0).expand(k,
-                                                    n_items - k,
-                                                    n_users,
-                                                    self._n_factors)
-        coeff1 = torch.mul(var(u_idx), 2. * b)
-        term2 = (e_ranked * e_unranked).sum(0) * coeff1
-        return term2
-
-    def _second_term(self, b, i_unranked, u_idx, var, wk):
-        # This block of code computes the second term of the DeltaF
-        term1 = torch.pow(i_unranked, 2) * var(u_idx)
-        coeff0 = b * wk
-        term1 = torch.mul(term1, coeff0)
-        return term1
-
-    def _first_term(self, i_unranked, u_idx, x):
-        # This block of code computes the first term of the DeltaF.
-        users_batch = x(u_idx)
-        term0 = (users_batch * i_unranked)
-        return term0
+        unranked = prod[:, k:, :]
+        ranked = prod[:, :k, :] * wm
+        t2 = unranked.unsqueeze(1).expand(n_users,
+                                          k,
+                                          n_items-k,
+                                          self._n_factors) * \
+             ranked.unsqueeze(2).expand(n_users,
+                                        k,
+                                        n_items-k,
+                                        self._n_factors)
+        term2 = torch.mul((t2.transpose(0, 2) * var)
+                          .sum(3).sum(1)
+                          .transpose(0, 1), 2)
+        delta = torch.mul(term0 - torch.mul(term1 + term2, b), wk)
+        return delta.cpu().numpy()
 
     def torch_variance(self):
-        var_v = torch.from_numpy(self._var)
-        var = torch.nn.Embedding(var_v.size(0), var_v.size(1))
-        var.weight = torch.nn.Parameter(var_v)
-        var = gpu(var, self._use_cuda)
-        return var
-
-    def _estimate_variance(self, x):
-        train = index_dataset(x, self._user_index, self._item_index)
-        x = self._model.x
-        y = self._model.y
-
-        self._var = np.zeros((self.n_users, self._n_factors),
-                             dtype=np.float32)
-
-        for i, (u, g) in enumerate(pd.DataFrame(train).groupby(0)):
-            user_profile = g.values[:, 1]
-            upl = user_profile.shape[0]
-            user_idx = Variable(gpu(torch.from_numpy(np.array([u])),
-                                    self._use_cuda))
-            item_idx = Variable(gpu(torch.from_numpy(user_profile),
-                                    self._use_cuda))
-            diff = x(user_idx) - y(item_idx)
-
-            prod = torch.pow(diff, 2).sum(0)
-
-            var = torch.mul(prod, upl)
-            self._var[i, :] = var.cpu().data.numpy()
-
-
-def index_dataset(x, idx0, idx1):
-    user_profile = x.copy()
-    users = index(user_profile[:, 0], idx0)
-    items = index(user_profile[:, 1], idx1)
-    user_profile[:, 0] = users
-    user_profile[:, 1] = items
-    return user_profile
-
-
-def index(rank, idx):
-    re_idx = np.vectorize(lambda x: idx[x])
-    return np.array([re_idx(lis) for lis in rank])
-
-
-def _substitute(arg_max_per_user, k, rank):
-    for r, c in enumerate(arg_max_per_user):
-        temp = rank[r, c + k]
-        rank[r, c + k] = rank[r, k]
-        rank[r, k] = temp
+        var = gpu(torch.from_numpy(self._var).float(), self._use_cuda)
+        e = Embedding(var.size(0), var.size(1))
+        e.weight = Parameter(var)
+        return e

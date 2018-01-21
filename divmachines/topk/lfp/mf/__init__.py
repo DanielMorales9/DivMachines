@@ -4,7 +4,7 @@ import pandas as pd
 from torch.autograd.variable import Variable
 from divmachines.classifiers import Classifier
 from divmachines.classifiers.mf import MF
-from divmachines.utility.helper import shape_prediction
+from divmachines.utility.helper import shape_for_mf, _swap_k, index
 from divmachines.utility.torch import gpu
 
 
@@ -129,8 +129,7 @@ class LFP_MF(Classifier):
     def _init_dataset(self, x, train=True):
         self._rev_item_index = {}
         self._user_index = {}
-        if train:
-            self._item_index = {}
+        self._item_index = {}
         for k, v in self._model.index.items():
             if k.startswith(ITEMS):
                 try:
@@ -175,6 +174,9 @@ class LFP_MF(Classifier):
         if not self._initialized:
             self._initialize()
 
+        if x.shape[1] != 2:
+            raise ValueError("x must have two columns: users and items cols")
+
         dic = {USERS: 0, ITEMS: 1}
 
         self._model.fit(x, y, dic=dic, n_users=n_users, n_items=n_items)
@@ -199,12 +201,12 @@ class LFP_MF(Classifier):
             accuracy and diversity.
         Returns
         -------
-        topk: ndarray
+        top-k: ndarray
             `top` items for each user supplied
         """
 
         n_items, n_users, test, update_dataset = \
-            shape_prediction(self._item_catalog, x)
+            shape_for_mf(self._item_catalog, x)
 
         try:
             rank = self._model.predict(test).reshape(n_users, n_items)
@@ -241,7 +243,7 @@ class LFP_MF(Classifier):
             values = self._compute_delta_f(x, y, k, b, var, rank, users)
 
             arg_max_per_user = np.argsort(values, 1)[:, -1]
-            _substitute(arg_max_per_user, k, rank)
+            _swap_k(arg_max_per_user, k, rank)
 
         return index(rank[:, :top], self._rev_item_index)
 
@@ -292,6 +294,7 @@ class LFP_MF(Classifier):
                                                     n_items - k,
                                                     n_users,
                                                     self._n_factors)
+
         coeff1 = torch.mul(var(u_idx), 2. * b)
         term2 = (e_ranked * e_unranked).sum(0) * coeff1
         return term2
@@ -335,7 +338,7 @@ class LFP_MF(Classifier):
 
             prod = torch.pow(diff, 2).sum(0)
 
-            var = torch.mul(prod, upl)
+            var = torch.div(prod, upl)
             self._var[i, :] = var.cpu().data.numpy()
 
 
@@ -348,13 +351,3 @@ def index_dataset(x, idx0, idx1):
     return user_profile
 
 
-def index(rank, idx):
-    re_idx = np.vectorize(lambda x: idx[x])
-    return np.array([re_idx(lis) for lis in rank])
-
-
-def _substitute(arg_max_per_user, k, rank):
-    for r, c in enumerate(arg_max_per_user):
-        temp = rank[r, c + k]
-        rank[r, c + k] = rank[r, k]
-        rank[r, k] = temp

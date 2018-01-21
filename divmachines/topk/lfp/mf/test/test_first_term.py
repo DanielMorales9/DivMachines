@@ -20,6 +20,8 @@ y_weights = np.array([[0, 1],
 x = TestEmbedding(users, factors, embedding_weights=x_weights)
 y = TestEmbedding(items, factors, embedding_weights=y_weights)
 
+print(y.weight)
+
 
 users = np.array([0, 1, 2])
 rank = np.array([[0, 1, 2, 3, 4],
@@ -28,6 +30,7 @@ rank = np.array([[0, 1, 2, 3, 4],
 
 u_idx = Variable(torch.from_numpy(users))
 i_idx = Variable(torch.from_numpy(rank))
+print(y(i_idx[:, 2:]))
 
 i_unranked = y(i_idx[:, k:]).transpose(0, 1)
 

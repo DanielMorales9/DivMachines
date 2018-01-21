@@ -6,7 +6,7 @@ from torch.autograd import Variable
 from divmachines.classifiers import Classifier
 from divmachines.utility.helper import _prepare_for_prediction
 from divmachines.logging import Logger
-from divmachines.models import MatrixFactorizationModel
+from divmachines.models import SimpleMatrixFactorizationModel
 from divmachines.utility.torch import set_seed, gpu
 from torch.utils.data import DataLoader
 from .dataset import DenseDataset
@@ -189,10 +189,10 @@ class MF(Classifier):
                                  "torch.nn.Module class")
 
         else:
-            self._model = gpu(MatrixFactorizationModel(self.n_users,
-                                                       self.n_items,
-                                                       self.n_factors,
-                                                       self._sparse),
+            self._model = gpu(SimpleMatrixFactorizationModel(self.n_users,
+                                                             self.n_items,
+                                                             self.n_factors,
+                                                             self._sparse),
                               self._use_cuda)
 
     def fit(self, x, y, dic=None, n_users=None, n_items=None):
@@ -286,7 +286,7 @@ class MF(Classifier):
         for i, batch_data in enumerate(loader):
             user_var = Variable(gpu(batch_data[:, 0], self._use_cuda))
             item_var = Variable(gpu(batch_data[:, 1], self._use_cuda))
-            out[(i*self.batch_size):((i+1)*self.batch_size)] = self._model(user_var, item_var)\
+            out[(i*self.batch_size):((i+1)*self.batch_size)] = self._model(user_var, item_var) \
                 .cpu().data.numpy()
 
         return out.flatten()
