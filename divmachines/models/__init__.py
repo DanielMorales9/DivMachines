@@ -197,6 +197,8 @@ class FactorizationMachine(PointwiseModel):
         super(FactorizationMachine, self).__init__()
 
         self.n_features, self.factors = n_features, n_factors
+        self.global_bias = Parameter(FloatTensor(1))
+        self.global_bias.data.uniform_(-0.01, 0.01)
         self.linear = Parameter(FloatTensor(self.n_features))
         self.linear.data.uniform_(-0.01, 0.01)
         self.second_order = SecondOrderInteraction(self.n_features,
@@ -213,7 +215,7 @@ class FactorizationMachine(PointwiseModel):
     def forward(self, x):
         linear = (x * self.linear).sum(1).unsqueeze(-1)
         interaction = self.second_order(x)
-        res = linear + interaction
+        res = self.global_bias + linear + interaction
 
         return res.squeeze(-1)
 

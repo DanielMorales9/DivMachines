@@ -39,7 +39,7 @@ model.fit(x, y, n_users=n_users, n_items=n_items)
 
 plt.plot(logger.epochs, logger.losses)
 plt.show()
-users = np.array(np.unique(x[:, 0]))[::-1].copy()
+users = np.array(np.unique(x[:, 0]))
 values = cartesian(users, np.unique(x[:, 1]))
 top = 3
 table = np.zeros((users.shape[0], top+1), dtype=np.int)
