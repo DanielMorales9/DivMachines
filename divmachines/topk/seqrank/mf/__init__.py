@@ -5,7 +5,7 @@ from torch.autograd.variable import Variable
 from divmachines.classifiers import Classifier
 from divmachines.classifiers.mf import MF
 from divmachines.utility.helper import shape_for_mf, \
-    _swap_k, _tensor_swap_k, index, re_index
+    _swap_k, index, re_index
 from divmachines.utility.torch import gpu
 
 
@@ -13,9 +13,10 @@ ITEMS = 'items'
 USERS = 'users'
 
 
-class MMR_MF(Classifier):
+class SeqRank_MF(Classifier):
     """
-    Maximal Marginal Relevance with Matrix Factorization Correlation measure
+    Seq Rank for Matrix Factorization Model
+    with MF-Correlation
 
     Parameters
     ----------
@@ -203,7 +204,7 @@ class MMR_MF(Classifier):
             shape_for_mf(self._item_catalog, x)
 
         try:
-            pred = self._model.predict(test).reshape(n_users, n_items)
+            rank = self._model.predict(test).reshape(n_users, n_items)
         except ValueError:
             raise ValueError("You may want to provide for each user "
                              "the item catalog as transaction matrix.")
@@ -218,54 +219,71 @@ class MMR_MF(Classifier):
         items = index(np.array([x[i, 1] for i in sorted(
             np.unique(x[:, 1], return_index=True)[1])]), self._item_index)
 
-        re_ranking = self._mmr(pred, users, items, top, b)
+        re_ranking = self._sequential_re_ranking(rank, users, items, top, b)
 
         return re_ranking
 
-    def _mmr(self, predictions, users, items, top, b):
-        rank = np.argsort(-predictions, 1)
-        predictions = np.sort(predictions)[:, ::-1].copy()
-        pred = gpu(torch.from_numpy(predictions),
-                   self._use_cuda).float()
+    def _sequential_re_ranking(self, rank, users, items, top, b):
+        rank = np.argsort(-rank, 1)
+
         re_index(items, rank)
 
+        x = self._model.x
         y = self._model.y
 
         for k in range(1, top):
-            values = self._mmr_objective(b, k, pred, rank, y)
-            # TODO it may not work with GPUs
-            # TODO if GPU enabled, arg_max_per_user should go to gpu as well
+            values = self._compute_delta_f(x, y, k, b, rank, users)
+
             arg_max_per_user = np.argsort(values, 1)[:, -1].copy()
             _swap_k(arg_max_per_user, k, rank)
-            _tensor_swap_k(arg_max_per_user, k, pred, multi=False)
 
         return index(rank[:, :top], self._rev_item_index)
 
-    def _mmr_objective(self, b, k, pred, rank, y):
-        corr = self._correlation(y, k, rank)
-        max_corr_per_user = np.sort(corr, 1)[:, -1, :].copy()
-        max_corr = gpu(torch.from_numpy(max_corr_per_user), self._use_cuda)
-        values = torch.mul(pred[:, k:], b) - torch.mul(max_corr, 1 - b)
-        values = values.cpu().numpy()
-        return values
-
-    def _correlation(self, y, k, rank):
+    def _compute_delta_f(self, x, y, k, b, rank, users):
+        # Initialize Variables
+        # and other coefficients
+        u_idx = Variable(gpu(torch.from_numpy(users), self._use_cuda))
         i_idx = Variable(gpu(torch.from_numpy(rank), self._use_cuda))
-
-        i_ranked = (y(i_idx[:, :k])).unsqueeze(2)
-        i_unranked = y(i_idx[:, k:]).unsqueeze(1)
 
         n_users = rank.shape[0]
         n_items = rank.shape[1]
 
+        wk = 1/(2**k)
+        wm = Variable(gpu(torch.from_numpy(
+            np.array([1 / (2 ** m) for m in range(k)],
+                     dtype=np.float32)), self._use_cuda)) \
+            .unsqueeze(1).expand(k, self._n_factors)
+
+        i_ranked = (y(i_idx[:, :k]) * wm).unsqueeze(2)
+        i_unranked = y(i_idx[:, k:]).transpose(0, 1)
+
+        users_batch = x(u_idx)
+        term0 = (users_batch * i_unranked).sum(2).transpose(0, 1)
+
+        # This block of code computes the third term of the DeltaF
         e_ranked = i_ranked.expand(n_users,
                                    k,
                                    n_items - k,
                                    self._n_factors)
-        e_unranked = i_unranked.expand(n_users,
-                                       k,
-                                       n_items - k,
-                                       self._n_factors)
-        corr = (e_ranked * e_unranked).sum(3)
+        e_unranked = i_unranked \
+            .transpose(0, 1) \
+            .unsqueeze(1).expand(n_users,
+                                 k,
+                                 n_items - k,
+                                 self._n_factors)
 
-        return corr.cpu().data.numpy()
+        term2 = torch.mul((e_ranked * e_unranked).sum(3).sum(1), 2*b)
+
+        delta_f = torch.mul(term0 - term2, wk)
+        return delta_f.cpu().data.numpy()
+
+
+def index_dataset(x, idx0, idx1):
+    user_profile = x.copy()
+    users = index(user_profile[:, 0], idx0)
+    items = index(user_profile[:, 1], idx1)
+    user_profile[:, 0] = users
+    user_profile[:, 1] = items
+    return user_profile
+
+

@@ -1,5 +1,5 @@
 import numpy as np
-from divmachines.topk.mmr import MMR_FM
+from divmachines.topk.seqrank import SeqRank_FM
 from divmachines.logging import TrainingLogger as TLogger
 from divmachines.utility.helper import cartesian2D
 
@@ -20,11 +20,11 @@ print("Number of items: %s" % n_items)
 
 logger = TLogger()
 
-model = MMR_FM(n_iter=120,
-               n_jobs=2,
-               n_factors=4,
-               learning_rate=.1,
-               logger=logger)
+model = SeqRank_FM(n_iter=120,
+                   n_jobs=2,
+                   n_factors=4,
+                   learning_rate=.1,
+                   logger=logger)
 
 x = interactions[:, :-1]
 y = interactions[:, -1]
@@ -37,5 +37,5 @@ values = cartesian2D(users, items)
 top = 3
 table = np.zeros((users.shape[0], top+1), dtype=np.int)
 table[:, 0] = users[:, 0]
-table[:, 1:] = model.predict(values, top=top, b=0.8)
+table[:, 1:] = model.predict(values, top=top, b=-1)
 print(table)

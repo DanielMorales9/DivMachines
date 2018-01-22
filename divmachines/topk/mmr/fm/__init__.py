@@ -239,7 +239,7 @@ class MMR_FM(Classifier):
 
         for k in range(1, top):
 
-            values = self.mmr_objective(b, k, n_items, n_users, pred, v, x)
+            values = self._mmr_objective(b, k, n_items, n_users, pred, v, x)
             # TODO it may not work with GPUs
             # TODO if GPU enabled, arg_max_per_user should go to gpu as well
             arg_max_per_user = np.argsort(values, 1)[:, -1].copy()
@@ -249,7 +249,7 @@ class MMR_FM(Classifier):
 
         return rank[:, :top]
 
-    def mmr_objective(self, b, k, n_items, n_users, pred, v, x):
+    def _mmr_objective(self, b, k, n_items, n_users, pred, v, x):
         corr = self._correlation(v, k, x, n_users, n_items)
         max_corr_per_user = np.sort(corr, 1)[:, -1, :].copy()
         max_corr = gpu(torch.from_numpy(max_corr_per_user), self._use_cuda)

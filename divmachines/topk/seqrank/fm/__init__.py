@@ -1,21 +1,20 @@
 import torch
 import numpy as np
-import pandas as pd
 from torch.autograd.variable import Variable
+from torch.nn import Embedding, Parameter
 from divmachines.classifiers import Classifier
-from divmachines.classifiers.mf import MF
-from divmachines.utility.helper import shape_for_mf, \
-    _swap_k, _tensor_swap_k, index, re_index
+from divmachines.classifiers import FM
+from divmachines.utility.helper import index, \
+    _swap_k, _tensor_swap_k, _tensor_swap, re_index
 from divmachines.utility.torch import gpu
-
 
 ITEMS = 'items'
 USERS = 'users'
 
 
-class MMR_MF(Classifier):
+class SeqRank_FM(Classifier):
     """
-    Maximal Marginal Relevance with Matrix Factorization Correlation measure
+    Seq Rank with Factorization Machines model
 
     Parameters
     ----------
@@ -101,12 +100,32 @@ class MMR_MF(Classifier):
     def logger(self):
         return self._logger
 
+    @logger.getter
+    def logger(self):
+        return self._logger
+
+    @property
+    def n_features(self):
+        return self._model.n_features
+
+    @n_features.getter
+    def n_features(self):
+        return self._model.n_features
+
+    @property
+    def dataset(self):
+        return self._model.dataset
+
+    @dataset.getter
+    def dataset(self):
+        return self._model.dataset
+
     def _initialize(self):
         self._init_model()
 
     def _init_model(self):
         if self._model is None:
-            self._model = MF(n_factors=self._n_factors,
+            self._model = FM(n_factors=self._n_factors,
                              sparse=self._sparse,
                              n_iter=self._n_iter,
                              loss=self._loss,
@@ -118,31 +137,19 @@ class MMR_MF(Classifier):
                              use_cuda=self._use_cuda,
                              logger=self._logger,
                              n_jobs=self._n_jobs)
-        elif not isinstance(self._model, MF):
+        elif not isinstance(self._model, FM):
             raise ValueError("Model must be an instance of "
-                             "divmachines.classifiers.lfp.MF class")
+                             "divmachines.classifiers.FM class")
 
     def _init_dataset(self, x):
-        self._rev_item_index = {}
         self._user_index = {}
-        self._item_index = {}
         for k, v in self._model.index.items():
-            if k.startswith(ITEMS):
-                try:
-                    self._rev_item_index[v] = int(k[len(ITEMS):])
-                    self._item_index[int(k[len(ITEMS):])] = v
-                except ValueError:
-                    raise ValueError("You may want to provide an integer "
-                                     "index for the items")
-            elif k.startswith(USERS):
+            if k.startswith(USERS):
                 try:
                     self._user_index[int(k[len(USERS):])] = v
                 except ValueError:
                     raise ValueError("You may want to provide an integer "
                                      "index for the users")
-            else:
-                raise ValueError("Not possible")
-        self._item_catalog = np.array(list(self._rev_item_index.values()))
 
     def fit(self, x, y, n_users=None, n_items=None):
         """
@@ -168,9 +175,6 @@ class MMR_MF(Classifier):
         if not self._initialized:
             self._initialize()
 
-        if x.shape[1] != 2:
-            raise ValueError("x must have two columns: users and items cols")
-
         dic = {USERS: 0, ITEMS: 1}
 
         self._model.fit(x, y, dic=dic, n_users=n_users, n_items=n_items)
@@ -183,10 +187,9 @@ class MMR_MF(Classifier):
         Parameters
         ----------
         x: ndarray or int
-            array of users, user item interactions matrix
-            (you must provide the same items for all user
-            listed) or instead a single user to which
-            predict the item ranking.
+            An array of feature vectors.
+            The User-item-feature matrix must have the same items
+            in the same order for all user
         top: int, optional
             Length of the ranking
         b: float, optional
@@ -195,77 +198,97 @@ class MMR_MF(Classifier):
             accuracy and diversity.
         Returns
         -------
-        top-k: ndarray
+        topk: ndarray
             `top` items for each user supplied
         """
 
-        n_items, n_users, test, update_dataset = \
-            shape_for_mf(self._item_catalog, x)
+        n_users = np.unique(x[:, 0]).shape[0]
+        n_items = np.unique(x[:, 1]).shape[0]
 
-        try:
-            pred = self._model.predict(test).reshape(n_users, n_items)
-        except ValueError:
-            raise ValueError("You may want to provide for each user "
-                             "the item catalog as transaction matrix.")
+        # prediction of the relevance of all the item catalog
+        # for the users supplied
+        rank = self._model.predict(x).reshape(n_users, n_items)
 
-        # Rev-indexes and other data structures are updated
-        # if new items and new users are provided.
-        if update_dataset:
-            self._init_dataset(x)
-
+        items = np.array([x[i, 1] for i in sorted(
+            np.unique(x[:, 1], return_index=True)[1])])
         users = index(np.array([x[i, 0] for i in sorted(
             np.unique(x[:, 0], return_index=True)[1])]), self._user_index)
-        items = index(np.array([x[i, 1] for i in sorted(
-            np.unique(x[:, 1], return_index=True)[1])]), self._item_index)
 
-        re_ranking = self._mmr(pred, users, items, top, b)
+        x = self.dataset.copy()
 
+        re_ranking = self._sequential_re_ranking(x,
+                                                 n_users,
+                                                 n_items,
+                                                 top,
+                                                 b,
+                                                 rank,
+                                                 items)
         return re_ranking
 
-    def _mmr(self, predictions, users, items, top, b):
+    def _sequential_re_ranking(self, x, n_users, n_items, top, b,
+                               predictions, items):
         rank = np.argsort(-predictions, 1)
+        # zeroing users cols
+        self.zero_users(x)
+
+        x = x.reshape(n_users, n_items, self.n_features)
+        x = gpu(_tensor_swap(rank, torch.from_numpy(x)),
+                self._use_cuda)
         predictions = np.sort(predictions)[:, ::-1].copy()
         pred = gpu(torch.from_numpy(predictions),
                    self._use_cuda).float()
+
         re_index(items, rank)
 
-        y = self._model.y
+        v = self._model.v.data
 
         for k in range(1, top):
-            values = self._mmr_objective(b, k, pred, rank, y)
+
+            values = self._compute_delta_f(v, k, b, pred, x)
             # TODO it may not work with GPUs
             # TODO if GPU enabled, arg_max_per_user should go to gpu as well
             arg_max_per_user = np.argsort(values, 1)[:, -1].copy()
             _swap_k(arg_max_per_user, k, rank)
             _tensor_swap_k(arg_max_per_user, k, pred, multi=False)
+            _tensor_swap_k(arg_max_per_user, k, x, multi=True)
 
-        return index(rank[:, :top], self._rev_item_index)
+        return rank[:, :top]
 
-    def _mmr_objective(self, b, k, pred, rank, y):
-        corr = self._correlation(y, k, rank)
-        max_corr_per_user = np.sort(corr, 1)[:, -1, :].copy()
-        max_corr = gpu(torch.from_numpy(max_corr_per_user), self._use_cuda)
-        values = torch.mul(pred[:, k:], b) - torch.mul(max_corr, 1 - b)
-        values = values.cpu().numpy()
-        return values
+    def zero_users(self, x):
+        x[:, :self.n_users] = np.zeros((x.shape[0], self.n_users),
+                                       dtype=np.float)
 
-    def _correlation(self, y, k, rank):
-        i_idx = Variable(gpu(torch.from_numpy(rank), self._use_cuda))
+    def _compute_delta_f(self, v, k, b, pred, x):
 
-        i_ranked = (y(i_idx[:, :k])).unsqueeze(2)
-        i_unranked = y(i_idx[:, k:]).unsqueeze(1)
+        term0 = pred[:, k:]
+        n_items = pred.shape[1]
+        n_users = pred.shape[0]
 
-        n_users = rank.shape[0]
-        n_items = rank.shape[1]
+        wk = 1 / (2 ** k)
+        # dim (u, i, n, f) -> (u, i, f)
+        prod = (x.unsqueeze(-1).expand(n_users,
+                                       n_items,
+                                       self.n_features,
+                                       self._n_factors) * v).sum(2)
 
-        e_ranked = i_ranked.expand(n_users,
-                                   k,
-                                   n_items - k,
-                                   self._n_factors)
-        e_unranked = i_unranked.expand(n_users,
-                                       k,
-                                       n_items - k,
-                                       self._n_factors)
-        corr = (e_ranked * e_unranked).sum(3)
+        wm = gpu(torch.from_numpy(
+            np.array([1 / (2 ** m) for m in range(k)],
+                     dtype=np.float32)), self._use_cuda) \
+            .unsqueeze(0).unsqueeze(2) \
+            .expand(n_users, k, self._n_factors)
 
-        return corr.cpu().data.numpy()
+        unranked = prod[:, k:, :]
+        ranked = prod[:, :k, :] * wm
+        t2 = unranked.unsqueeze(1).expand(n_users,
+                                          k,
+                                          n_items-k,
+                                          self._n_factors) * \
+             ranked.unsqueeze(2).expand(n_users,
+                                        k,
+                                        n_items-k,
+                                        self._n_factors)
+        term2 = t2.sum(3).sum(1)
+        term2 = torch.mul(term2, 2)
+        delta = torch.mul(term0 - torch.mul(term2, 2*b), wk)
+        return delta.cpu().numpy()
+

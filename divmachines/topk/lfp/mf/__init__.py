@@ -246,11 +246,6 @@ class LFP_MF(Classifier):
 
         return index(rank[:, :top], self._rev_item_index)
 
-    def re_index(self, items, rank):
-        for i, arr in enumerate(rank):
-            for j, r in enumerate(arr):
-                rank[i, j] = items[r]
-
     def _compute_delta_f(self, x, y, k, b, var, rank, users):
         # Initialize Variables
         # and other coefficients
