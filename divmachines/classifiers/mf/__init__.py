@@ -236,7 +236,8 @@ class MF(Classifier):
                  (batch_data, batch_rating)) in enumerate(loader):
                 user_var = Variable(gpu(batch_data[:, 0], self._use_cuda))
                 item_var = Variable(gpu(batch_data[:, 1], self._use_cuda))
-                rating_var = Variable(gpu(batch_rating), self._use_cuda).float()
+                rating_var = Variable(gpu(batch_rating, self._use_cuda).float(),
+                                      requires_grad=False)
 
                 # forward step
                 predictions = self._model(user_var, item_var)
@@ -247,7 +248,7 @@ class MF(Classifier):
                 # Compute Loss
                 loss = self._loss_func(predictions, rating_var)
 
-                self._logger.log(loss, epoch=epoch, batch=mini_batch_num)
+                self._logger.log(loss, epoch=epoch, batch=mini_batch_num, cpu=self._use_cuda)
 
                 # backward step
                 loss.backward()

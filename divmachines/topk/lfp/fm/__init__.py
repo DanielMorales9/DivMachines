@@ -12,7 +12,7 @@ ITEMS = 'items'
 USERS = 'users'
 
 
-class LFP_FM(Classifier):
+class FM_LFP(Classifier):
     """
     Latent Factor Portfolio implementation based on Factorization Machine Model
 
@@ -76,7 +76,7 @@ class LFP_FM(Classifier):
         self._optimizer_func = optimizer_func
         self._batch_size = batch_size
         self._random_state = random_state
-        self._use_cuda = use_cuda
+        self.use_cuda = use_cuda
         self._logger = logger
         self._n_jobs = n_jobs
 
@@ -136,7 +136,7 @@ class LFP_FM(Classifier):
                              optimizer_func=self._optimizer_func,
                              batch_size=self._batch_size,
                              random_state=self._random_state,
-                             use_cuda=self._use_cuda,
+                             use_cuda=self.use_cuda,
                              logger=self._logger,
                              n_jobs=self._n_jobs)
         elif not isinstance(self._model, FM):
@@ -155,7 +155,7 @@ class LFP_FM(Classifier):
 
         x = self.dataset.copy()
         nz = list(filter(lambda k: k[1] < self.n_users,
-                    [(r, c) for r, c in zip(*np.nonzero(x))]))
+                         [(r, c) for r, c in zip(*np.nonzero(x))]))
         self.zero_users(x)
         d = {}
         for r, c in nz:
@@ -165,20 +165,20 @@ class LFP_FM(Classifier):
         v = self._model.v.cpu().data.numpy()
 
         # (t, n)
-        x = gpu(torch.from_numpy(x), self._use_cuda)
-        X = gpu(Embedding(x.size(0), x.size(1)), self._use_cuda)
+        x = gpu(torch.from_numpy(x), self.use_cuda)
+        X = gpu(Embedding(x.size(0), x.size(1)), self.use_cuda)
         X.weight = Parameter(x)
 
         # (n, f)
-        V = gpu(Variable(torch.from_numpy(v), self._use_cuda))
+        V = Variable(gpu(torch.from_numpy(v), self.use_cuda))
 
         var = np.zeros((self.n_users, self._n_factors),
                        dtype=np.float)
-        var = gpu(torch.from_numpy(var))
+        var = gpu(torch.from_numpy(var), self.use_cuda)
 
         for k, val in d.items():
             idx = Variable(gpu(torch.from_numpy(np.array(val)),
-                               self._use_cuda))
+                               self.use_cuda))
             i = X(idx).size(0)
 
             prod = (X(idx)
@@ -278,17 +278,17 @@ class LFP_FM(Classifier):
 
         x = x.reshape(n_users, n_items, self.n_features)
         x = gpu(_tensor_swap(rank, torch.from_numpy(x)),
-                self._use_cuda)
+                self.use_cuda)
         predictions = np.sort(predictions)[:, ::-1].copy()
         pred = gpu(torch.from_numpy(predictions),
-                   self._use_cuda).float()
+                   self.use_cuda).float()
 
         re_index(items, rank)
 
         v = self._model.v.data
 
         u_idx = Variable(gpu(torch.from_numpy(users),
-                           self._use_cuda))
+                             self.use_cuda))
         var = self.torch_variance()
         variance = var(u_idx).data
 
@@ -313,43 +313,65 @@ class LFP_FM(Classifier):
         term0 = pred[:, k:]
         n_items = pred.shape[1]
         n_users = pred.shape[0]
-
+        delta = torch.from_numpy(np.zeros((n_users, n_items-k),
+                                          dtype=np.float32))
         wk = 1 / (2 ** k)
-        # dim (u, i, n, f) -> (u, i, f)
-        prod = (x.unsqueeze(-1).expand(n_users,
-                                       n_items,
-                                       self.n_features,
-                                       self._n_factors) * v).sum(2)
+        for u in range(n_users):
+            prod = (x[u, :, :].squeeze()
+                    .unsqueeze(-1).expand(n_items,
+                                          self.n_features,
+                                          self._n_factors) * v).sum(1)
+            t1 = torch.pow(prod, 2)
+            term1 = torch.mul((t1 * var[u, :]).sum(1)[k:], wk)
+            wm = gpu(torch.from_numpy(
+                np.array([1 / (2 ** m) for m in range(k)],
+                         dtype=np.float32)), self.use_cuda) \
+                .unsqueeze(-1) \
+                .expand(k, self._n_factors)
+            unranked = prod[k:, :]
+            ranked = (prod[:k, :] * wm)
 
-        t1 = torch.pow(prod, 2)
+            t2 = unranked.unsqueeze(0).expand(k, n_items - k, self._n_factors) * \
+                 ranked.unsqueeze(1).expand(k, n_items - k, self._n_factors)
+            term2 = torch.mul((t2 * var[u, :]).sum(2).sum(0), 2)
+            delta[u, :] = torch.mul(term0[u, :] - torch.mul(term1 + term2, b), wk)
 
-        term1 = torch.mul((t1.transpose(0, 1) * var) \
-                    .transpose(0, 1).sum(2)[:, k:], wk)
-
-        wm = gpu(torch.from_numpy(
-            np.array([1 / (2 ** m) for m in range(k)],
-                     dtype=np.float32)), self._use_cuda) \
-            .unsqueeze(0).unsqueeze(2) \
-            .expand(n_users, k, self._n_factors)
-
-        unranked = prod[:, k:, :]
-        ranked = prod[:, :k, :] * wm
-        t2 = unranked.unsqueeze(1).expand(n_users,
-                                          k,
-                                          n_items-k,
-                                          self._n_factors) * \
-             ranked.unsqueeze(2).expand(n_users,
-                                        k,
-                                        n_items-k,
-                                        self._n_factors)
-        term2 = torch.mul((t2.transpose(0, 2) * var)
-                          .sum(3).sum(1)
-                          .transpose(0, 1), 2)
-        delta = torch.mul(term0 - torch.mul(term1 + term2, b), wk)
         return delta.cpu().numpy()
+        # # dim (u, i, n, f) -> (u, i, f)
+        # prod = (x.unsqueeze(-1).expand(n_users,
+        #                                n_items,
+        #                                self.n_features,
+        #                                self._n_factors) * v).sum(2)
+        #
+        # t1 = torch.pow(prod, 2)
+        #
+        # term1 = torch.mul((t1.transpose(0, 1) * var) \
+        #             .transpose(0, 1).sum(2)[:, k:], wk)
+        #
+        # wm = gpu(torch.from_numpy(
+        #     np.array([1 / (2 ** m) for m in range(k)],
+        #              dtype=np.float32)), self.use_cuda) \
+        #     .unsqueeze(0).unsqueeze(2) \
+        #     .expand(n_users, k, self._n_factors)
+        #
+        # unranked = prod[:, k:, :]
+        # ranked = prod[:, :k, :] * wm
+        # t2 = unranked.unsqueeze(1).expand(n_users,
+        #                                   k,
+        #                                   n_items-k,
+        #                                   self._n_factors) * \
+        #      ranked.unsqueeze(2).expand(n_users,
+        #                                 k,
+        #                                 n_items-k,
+        #                                 self._n_factors)
+        # term2 = torch.mul((t2.transpose(0, 2) * var)
+        #                   .sum(3).sum(1)
+        #                   .transpose(0, 1), 2)
+        #
+        # delta = torch.mul(term0 - torch.mul(term1 + term2, b), wk)
 
     def torch_variance(self):
-        var = gpu(torch.from_numpy(self._var).float(), self._use_cuda)
+        var = gpu(torch.from_numpy(self._var).float(), self.use_cuda)
         e = Embedding(var.size(0), var.size(1))
         e.weight = Parameter(var)
         return e

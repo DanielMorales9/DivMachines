@@ -8,6 +8,13 @@ def gpu(tensor, gpu=False):
         return tensor
 
 
+def cpu(tensor, cpu=False):
+    if cpu:
+        return tensor.cpu()
+    else:
+        return tensor
+
+
 def assert_no_grad(variable):
     if variable.requires_grad:
         raise ValueError(

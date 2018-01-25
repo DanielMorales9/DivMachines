@@ -38,6 +38,7 @@ class Classifier(ABC):
             setattr(self, key, value)
         return self
 
+
 from divmachines.classifiers.mf import MF
 from divmachines.classifiers.fm import FM
 __all__ = ["FM", "MF", "Classifier"]

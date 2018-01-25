@@ -5,11 +5,11 @@ from divmachines.model_selection import cross_validate
 from divmachines.logging import TrainingLogger as TLogger
 
 cols = ['user', 'item', 'rating', 'timestamp']
-train = pd.read_csv('../../../../data/ua.base', delimiter='\t', names=cols).head(100)
+train = pd.read_csv('../../../../data/ua.base', delimiter='\t', names=cols).sample(100)
 logger = TLogger()
 
 model = MF(n_iter=10,
-           learning_rate=1e-1)
+           learning_rate=1e-1, use_cuda=True)
 n_users = np.unique(train[["user"]].values).shape[0]
 n_items = np.unique(train[["item"]].values).shape[0]
 
@@ -23,7 +23,7 @@ print("Number of items: %s" % n_items)
 for k, v in cross_validate(model,
                            x,
                            y,
-                           cv='kFold',
+                           cv='userHoldOut',
                            fit_params={'dic': {'users': 0, 'items': 1},
                                        'n_users': n_users,
                                        'n_items': n_items},

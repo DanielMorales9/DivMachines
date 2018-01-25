@@ -1,4 +1,4 @@
-from .mf import LFP_MF
-from .fm import LFP_FM
+from .mf import MF_LFP
+from .fm import FM_LFP
 
-__all__ = ['LFP_MF', 'LFP_FM']
+__all__ = ['MF_LFP', 'FM_LFP']

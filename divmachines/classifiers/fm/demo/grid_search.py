@@ -16,7 +16,7 @@ items = pd.read_csv(GENRE_PATH, sep="|", names=header, encoding='iso-8859-2')
 proj = ['user', 'item']
 proj.extend(header[5:])
 proj.append('rating')
-train = pd.merge(data, items, on='item', how='inner').head(100)[proj]
+train = pd.merge(data, items, on='item', how='inner')[proj].sample(1000)
 
 n_users = np.unique(train[["user"]].values).shape[0]
 n_items = np.unique(train[["item"]].values).shape[0]
@@ -25,19 +25,18 @@ print("Number of users: %s" % n_users)
 print("Number of items: %s" % n_items)
 
 model = FM(n_iter=10,
-           learning_rate=1e-1,
-           sparse=True, batch_size=10)
+           use_cuda=True)
 
 interactions = train.values
 x = interactions[:, :-1]
 y = interactions[:, -1]
 
 gSearch = GridSearchCV(model,
-                       param_grid={"iter": [1], "learning_rate": [0.1, 0.3]},
-                       cv='leaveOneOut',
+                       param_grid={"iter": [1], "learning_rate": [0.1]},
+                       cv='kFold',
                        metrics='mean_square_error',
                        verbose=10,
-                       n_jobs=2,
+                       n_jobs=8,
                        return_train_score=True)
 
 gSearch.fit(x, y, fit_params={'dic':

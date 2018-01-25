@@ -7,7 +7,7 @@ from .dataset import DenseDataset, SparseDataset
 from divmachines.models import FactorizationMachine
 from divmachines.classifiers import Classifier
 from divmachines.logging import Logger
-from divmachines.utility.torch import set_seed, gpu
+from divmachines.utility.torch import set_seed, gpu, cpu
 
 
 class FM(Classifier):
@@ -71,7 +71,7 @@ class FM(Classifier):
         self._model = model
         self._sparse = sparse
         self._random_state = random_state or np.random.RandomState()
-        self._use_cuda = use_cuda
+        self.use_cuda = use_cuda
         self._optimizer_func = optimizer_func
         self._loss_func = loss or torch.nn.MSELoss()
         self._logger = logger or Logger()
@@ -84,7 +84,7 @@ class FM(Classifier):
         self._n_users = None
 
         set_seed(self._random_state.randint(-10 ** 8, 10 ** 8),
-                 cuda=self._use_cuda)
+                 cuda=self.use_cuda)
 
     @property
     def n_users(self):
@@ -201,14 +201,13 @@ class FM(Classifier):
 
         if self._model is not None:
             if isinstance(self._model, FactorizationMachine):
-                self._model = gpu(self._model, self._use_cuda)
+                self._model = gpu(self._model, self.use_cuda)
             else:
                 raise ValueError("Model must be an instance of FactorizationMachine")
 
         else:
             self._model = gpu(FactorizationMachine(self.n_features,
-                                                   self.n_factors),
-                              self._use_cuda)
+                                               self.n_factors), self.use_cuda)
 
     def fit(self, x, y, dic=None, n_users=None, n_items=None):
         """
@@ -252,8 +251,8 @@ class FM(Classifier):
 
         for epoch in range(self.n_iter):
             for mini_batch_num, (batch_tensor, batch_ratings) in enumerate(loader):
-                batch_tensor = gpu(batch_tensor, self._use_cuda)
-                batch_ratings = gpu(batch_ratings, self._use_cuda)
+                batch_tensor = gpu(batch_tensor, self.use_cuda)
+                batch_ratings = gpu(batch_ratings, self.use_cuda)
 
                 observations_var = Variable(batch_tensor)
                 rating_var = Variable(batch_ratings)
@@ -268,7 +267,8 @@ class FM(Classifier):
                 loss = self._loss_func(predictions, rating_var)
 
                 # logging
-                self._logger.log(loss, epoch, batch=mini_batch_num)
+                self._logger.log(loss, epoch, batch=mini_batch_num,
+                                 cpu=self.use_cuda)
 
                 # backward step
                 loss.backward()
@@ -303,8 +303,8 @@ class FM(Classifier):
 
         out = np.zeros(len(x))
         for i, batch_data in enumerate(loader):
-            var = Variable(gpu(batch_data, self._use_cuda))
-            out[(i*self.batch_size):((i+1)*self.batch_size)] = self._model(var)\
+            var = Variable(gpu(batch_data, self.use_cuda))
+            out[(i*self.batch_size):((i+1)*self.batch_size)] = self._model(var) \
                 .cpu().data.numpy()
 
         return out.flatten()

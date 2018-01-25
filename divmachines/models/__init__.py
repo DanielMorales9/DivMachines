@@ -6,19 +6,7 @@ from torch.nn import Module, Parameter
 from divmachines.models.layers import ScaledEmbedding, ZeroEmbedding
 
 
-class PointwiseModel(Module, ABC):
-    """
-    Base Pointwise Model class
-    """
-    def __init__(self):
-        super(PointwiseModel, self).__init__()
-
-    @abstractmethod
-    def forward(self, *input0):
-        pass
-
-
-class MatrixFactorizationModel(PointwiseModel):
+class MatrixFactorizationModel(Module):
     """
     Matrix Factorization Model with Bias Parameters
     Parameters
@@ -103,7 +91,7 @@ class MatrixFactorizationModel(PointwiseModel):
         return self._y#.cpu().weight.data.numpy()
 
 
-class SimpleMatrixFactorizationModel(PointwiseModel):
+class SimpleMatrixFactorizationModel(Module):
     """
     Matrix Factorization Model without Bias Parameters
     Parameters
@@ -181,7 +169,7 @@ class SimpleMatrixFactorizationModel(PointwiseModel):
         return self._y#.cpu().weight.data.numpy()
 
 
-class FactorizationMachine(PointwiseModel):
+class FactorizationMachine(Module):
     """
     Pointwise Factorization Machine Model
 

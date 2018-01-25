@@ -78,7 +78,7 @@ class TrainingLogger(Logger):
             self._batches = [c for _, _, c in self._logs]
         return self._batches
 
-    def log(self, loss, epoch, batch=None):
+    def log(self, loss, epoch, batch=None, cpu=False):
         """
         Logging function
         :param loss: float
@@ -87,9 +87,13 @@ class TrainingLogger(Logger):
             Iteration
         :param batch: int, optional
             Batch in the Iteration
+        :param cpu: bool, optional
+            Send to cpu
         """
-
-        loss = loss.data.numpy()[0]
+        if cpu:
+            loss = loss.data.cpu().numpy()[0]
+        else:
+            loss = loss.data.numpy()[0]
         if self._batch:
             if batch is None:
                 raise ValueError("Batch logging enabled without "

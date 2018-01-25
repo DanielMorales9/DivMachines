@@ -16,7 +16,7 @@ items = pd.read_csv(GENRE_PATH, sep="|", names=header, encoding='iso-8859-2')
 proj = ['user', 'item']
 proj.extend(header[5:])
 proj.append('rating')
-train = pd.merge(data, items, on='item', how='inner').head(100)[proj]
+train = pd.merge(data, items, on='item', how='inner')[proj]
 
 n_users = np.unique(train[["user"]].values).shape[0]
 n_items = np.unique(train[["item"]].values).shape[0]
@@ -26,7 +26,7 @@ print("Number of items: %s" % n_items)
 
 model = FM(n_iter=10,
            learning_rate=1e-1,
-           sparse=True, batch_size=10)
+           use_cuda=True, batch_size=1000)
 
 interactions = train.values
 x = interactions[:, :-1]
@@ -40,7 +40,7 @@ for k, v in cross_validate(model, x, y,
                                        'n_items': n_items},
                            metrics='mean_square_error',
                            verbose=10,
-                           n_jobs=2,
+                           n_jobs=8,
                            return_times=True,
                            return_train_score=True).items():
     print("%s\t %s" % (k, v))

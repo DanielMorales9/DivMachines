@@ -15,7 +15,12 @@ train = pd.read_csv('../../../../data/ua.base', delimiter='\t', names=cols).samp
 
 logger = TLogger()
 
-model = MF(n_iter=10, n_jobs=2, batch_size=100, learning_rate=0.60653066, logger=logger)
+model = MF(n_iter=10,
+           n_jobs=8,
+           batch_size=100,
+           learning_rate=0.60653066,
+           use_cuda=True,
+           logger=logger)
 
 interactions = train[['user', 'item', 'rating']].values
 
@@ -32,7 +37,7 @@ model.fit(x,
           y,
           dic={'users': 0, 'items': 1})
 
-print(model.predict(x).shape)
+print(model.predict(x))
 
 plt.plot(logger.epochs, logger.losses)
 plt.show()

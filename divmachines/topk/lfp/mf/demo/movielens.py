@@ -1,20 +1,19 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from divmachines.topk.lfp import LFP_MF
+from divmachines.topk.lfp import MF_LFP
 from divmachines.logging import TrainingLogger as TLogger
 from divmachines.utility.helper import cartesian
 
 cols = ['user', 'item', 'rating', 'timestamp']
-train = pd.read_csv('../../../data/ua.base', delimiter='\t', names=cols)
-
+train = pd.read_csv('../../../../../data/ua.base', delimiter='\t', names=cols)
 logger = TLogger()
 
-model = LFP_MF(n_iter=10,
-            n_jobs=2,
-            n_factors=2,
-            learning_rate=1,
-            logger=logger)
+model = MF_LFP(n_iter=10,
+               n_jobs=8,
+               n_factors=10,
+               learning_rate=1,
+               logger=logger)
 
 
 interactions = train[['user', 'item', 'rating']].values

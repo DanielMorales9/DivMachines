@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from divmachines.topk.lfp import LFP_MF
+from divmachines.topk.lfp import MF_LFP
 from divmachines.logging import TrainingLogger as TLogger
 from divmachines.utility.helper import cartesian
 
@@ -22,10 +22,11 @@ train[:, -1] = interactions[:, -1]
 
 logger = TLogger()
 
-model = LFP_MF(n_iter=100,
+model = MF_LFP(n_iter=100,
                n_jobs=2,
                n_factors=4,
                learning_rate=.3,
+               use_cuda=True,
                logger=logger)
 
 
