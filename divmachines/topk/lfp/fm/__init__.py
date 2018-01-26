@@ -313,8 +313,8 @@ class FM_LFP(Classifier):
         term0 = pred[:, k:]
         n_items = pred.shape[1]
         n_users = pred.shape[0]
-        delta = torch.from_numpy(np.zeros((n_users, n_items-k),
-                                          dtype=np.float32))
+        delta = np.zeros((n_users, n_items-k),
+                         dtype=np.float32)
         wk = 1 / (2 ** k)
         for u in range(n_users):
             prod = (x[u, :, :].squeeze()
@@ -331,12 +331,14 @@ class FM_LFP(Classifier):
             unranked = prod[k:, :]
             ranked = (prod[:k, :] * wm)
 
-            t2 = unranked.unsqueeze(0).expand(k, n_items - k, self._n_factors) * \
-                 ranked.unsqueeze(1).expand(k, n_items - k, self._n_factors)
+            t2 = unranked.unsqueeze(0) \
+                     .expand(k, n_items - k, self._n_factors) * \
+                 ranked.unsqueeze(1) \
+                     .expand(k, n_items - k, self._n_factors)
             term2 = torch.mul((t2 * var[u, :]).sum(2).sum(0), 2)
-            delta[u, :] = torch.mul(term0[u, :] - torch.mul(term1 + term2, b), wk)
+            delta[u, :] = torch.mul(term0[u, :] - torch.mul(term1 + term2, b), wk).cpu().numpy()
 
-        return delta.cpu().numpy()
+        return delta
         # # dim (u, i, n, f) -> (u, i, f)
         # prod = (x.unsqueeze(-1).expand(n_users,
         #                                n_items,

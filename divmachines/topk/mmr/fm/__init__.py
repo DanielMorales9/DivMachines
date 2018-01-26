@@ -260,22 +260,42 @@ class FM_MMR(Classifier):
                                        dtype=np.float)
 
     def _correlation(self, v, k, x, n_users, n_items):
-        # dim (u, i, n, f) -> (u, i, f)
-        prod = (x.unsqueeze(-1).expand(n_users,
-                                       n_items,
-                                       self.n_features,
-                                       self._n_factors) * v).sum(2)
 
-        unranked = prod[:, k:, :]
-        ranked = prod[:, :k, :]
-        e_corr = unranked.unsqueeze(1).expand(n_users,
-                                              k,
-                                              n_items-k,
-                                              self._n_factors) * \
-                 ranked.unsqueeze(2).expand(n_users,
-                                            k,
-                                            n_items-k,
-                                            self._n_factors)
-        corr = e_corr.sum(3)
+        corr = np.zeros((n_users, k, n_items-k),
+                        dtype=np.float32)
 
-        return corr.cpu().numpy()
+        for u in range(n_users):
+            prod = (x[u, :, :].squeeze()
+                    .unsqueeze(-1).expand(n_items,
+                                          self.n_features,
+                                          self._n_factors) * v).sum(1)
+
+            unranked = prod[k:, :]
+            ranked = prod[:k, :]
+
+            e_corr = (unranked.unsqueeze(0)\
+                     .expand(k, n_items - k, self._n_factors) * \
+                 ranked.unsqueeze(1)\
+                     .expand(k, n_items - k, self._n_factors)).sum(2)
+            corr[u, :, :] = e_corr.cpu().numpy()
+
+        return corr
+
+        # prod = (x.unsqueeze(-1).expand(n_users,
+        #                                n_items,
+        #                                self.n_features,
+        #                                self._n_factors) * v).sum(2)
+        #
+        # unranked = prod[u, k:, :]
+        # ranked = prod[u, :k, :]
+        # e_corr = unranked.unsqueeze(1).expand(n_users,
+        #                                       k,
+        #                                       n_items-k,
+        #                                       self._n_factors) * \
+        #          ranked.unsqueeze(2).expand(n_users,
+        #                                     k,
+        #                                     n_items-k,
+        #                                     self._n_factors)
+        # corr = e_corr.sum(3)
+        #
+        # return corr.cpu().numpy()

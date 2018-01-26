@@ -42,7 +42,7 @@ y = interactions[:, -1]
 model.fit(x, y, n_users=n_users, n_items=n_items)
 plt.plot(logger.epochs, logger.losses)
 plt.show()
-users = np.unique(x[:1000, 0]).reshape(-1, 1)
+users = np.unique(x[:100, 0]).reshape(-1, 1)
 items = np.unique(x[:, 1:], axis=0)
 values = cartesian2D(users, items)
 top = 3
