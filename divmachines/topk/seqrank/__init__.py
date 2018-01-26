@@ -1,4 +1,4 @@
-from .fm import SeqRank_FM
+from .fm import FM_SeqRank
 from .mf import MF_SeqRank
 
-__all__ = ["SeqRank_FM", "MF_SeqRank"]
+__all__ = ["FM_SeqRank", "MF_SeqRank"]

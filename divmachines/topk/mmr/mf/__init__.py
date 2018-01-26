@@ -233,8 +233,6 @@ class MF_MMR(Classifier):
 
         for k in range(1, top):
             values = self._mmr_objective(b, k, pred, rank, y)
-            # TODO it may not work with GPUs
-            # TODO if GPU enabled, arg_max_per_user should go to gpu as well
             arg_max_per_user = np.argsort(values, 1)[:, -1].copy()
             _swap_k(arg_max_per_user, k, rank)
             _tensor_swap_k(arg_max_per_user, k, pred, multi=False)

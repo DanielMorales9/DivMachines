@@ -12,7 +12,7 @@ ITEMS = 'items'
 USERS = 'users'
 
 
-class SeqRank_FM(Classifier):
+class FM_SeqRank(Classifier):
     """
     Seq Rank with Factorization Machines model
 
@@ -263,32 +263,55 @@ class SeqRank_FM(Classifier):
         term0 = pred[:, k:]
         n_items = pred.shape[1]
         n_users = pred.shape[0]
+        delta = np.zeros((n_users, n_items - k),
+                         dtype=np.float32)
 
         wk = 1 / (2 ** k)
+        for u in range(n_users):
+            prod = (x[u, :, :].squeeze()
+                    .unsqueeze(-1).expand(n_items,
+                                          self.n_features,
+                                          self._n_factors) * v)\
+                .sum(1)
+            wm = gpu(torch.from_numpy(
+                np.array([1 / (2 ** m) for m in range(k)],
+                         dtype=np.float32)), self._use_cuda) \
+                .unsqueeze(-1) \
+                .expand(k, self._n_factors)
+            unranked = prod[k:, :]
+            ranked = (prod[:k, :] * wm)
+            t2 = unranked.unsqueeze(0) \
+                     .expand(k, n_items - k, self._n_factors) * \
+                 ranked.unsqueeze(1) \
+                     .expand(k, n_items - k, self._n_factors)
+            term2 = t2.sum(2).sum(0)
+            term2 = torch.mul(term2, 2)
+            delta[u, :] = torch.mul(term0 - torch.mul(term2, 2*b), wk).cpu().numpy()
+        return delta
         # dim (u, i, n, f) -> (u, i, f)
-        prod = (x.unsqueeze(-1).expand(n_users,
-                                       n_items,
-                                       self.n_features,
-                                       self._n_factors) * v).sum(2)
-
-        wm = gpu(torch.from_numpy(
-            np.array([1 / (2 ** m) for m in range(k)],
-                     dtype=np.float32)), self._use_cuda) \
-            .unsqueeze(0).unsqueeze(2) \
-            .expand(n_users, k, self._n_factors)
-
-        unranked = prod[:, k:, :]
-        ranked = prod[:, :k, :] * wm
-        t2 = unranked.unsqueeze(1).expand(n_users,
-                                          k,
-                                          n_items-k,
-                                          self._n_factors) * \
-             ranked.unsqueeze(2).expand(n_users,
-                                        k,
-                                        n_items-k,
-                                        self._n_factors)
-        term2 = t2.sum(3).sum(1)
-        term2 = torch.mul(term2, 2)
-        delta = torch.mul(term0 - torch.mul(term2, 2*b), wk)
-        return delta.cpu().numpy()
+        # prod = (x.unsqueeze(-1).expand(n_users,
+        #                                n_items,
+        #                                self.n_features,
+        #                                self._n_factors) * v).sum(2)
+        #
+        # wm = gpu(torch.from_numpy(
+        #     np.array([1 / (2 ** m) for m in range(k)],
+        #              dtype=np.float32)), self._use_cuda) \
+        #     .unsqueeze(0).unsqueeze(2) \
+        #     .expand(n_users, k, self._n_factors)
+        #
+        # unranked = prod[:, k:, :]
+        # ranked = prod[:, :k, :] * wm
+        # t2 = unranked.unsqueeze(1).expand(n_users,
+        #                                   k,
+        #                                   n_items-k,
+        #                                   self._n_factors) * \
+        #      ranked.unsqueeze(2).expand(n_users,
+        #                                 k,
+        #                                 n_items-k,
+        #                                 self._n_factors)
+        # term2 = t2.sum(3).sum(1)
+        # term2 = torch.mul(term2, 2)
+        # delta = torch.mul(term0 - torch.mul(term2, 2*b), wk)
+        # return delta.cpu().numpy()
 

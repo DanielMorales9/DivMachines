@@ -1,5 +1,5 @@
 import numpy as np
-from divmachines.topk.seqrank import SeqRank_FM
+from divmachines.topk.seqrank import FM_SeqRank
 from divmachines.logging import TrainingLogger as TLogger
 from divmachines.utility.helper import cartesian2D
 
@@ -20,7 +20,7 @@ print("Number of items: %s" % n_items)
 
 logger = TLogger()
 
-model = SeqRank_FM(n_iter=120,
+model = FM_SeqRank(n_iter=120,
                    n_jobs=2,
                    n_factors=4,
                    learning_rate=.1,

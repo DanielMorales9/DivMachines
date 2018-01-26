@@ -1,4 +1,4 @@
-from divmachines.topk.mmr import FM_MMR
+from divmachines.topk.seqrank import FM_SeqRank
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -28,12 +28,12 @@ print("Number of items: %s" % n_items)
 
 logger = TLogger()
 
-model = FM_MMR(n_iter=10,
-               n_jobs=8,
-               n_factors=100,
-               learning_rate=.1,
-               use_cuda=True,
-               logger=logger)
+model = FM_SeqRank(n_iter=10,
+                   n_jobs=8,
+                   n_factors=100,
+                   learning_rate=.1,
+                   use_cuda=True,
+                   logger=logger)
 
 interactions = train.values
 x = interactions[:, :-1]
@@ -42,7 +42,7 @@ y = interactions[:, -1]
 model.fit(x, y, n_users=n_users, n_items=n_items)
 plt.plot(logger.epochs, logger.losses)
 plt.show()
-users = np.unique(x[:1000, 0]).reshape(-1, 1)
+users = np.unique(x[:100, 0]).reshape(-1, 1)
 items = np.unique(x[:, 1:], axis=0)
 values = cartesian2D(users, items)
 top = 3

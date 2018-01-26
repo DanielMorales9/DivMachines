@@ -76,7 +76,7 @@ class FM_LFP(Classifier):
         self._optimizer_func = optimizer_func
         self._batch_size = batch_size
         self._random_state = random_state
-        self.use_cuda = use_cuda
+        self._use_cuda = use_cuda
         self._logger = logger
         self._n_jobs = n_jobs
 
@@ -136,7 +136,7 @@ class FM_LFP(Classifier):
                              optimizer_func=self._optimizer_func,
                              batch_size=self._batch_size,
                              random_state=self._random_state,
-                             use_cuda=self.use_cuda,
+                             use_cuda=self._use_cuda,
                              logger=self._logger,
                              n_jobs=self._n_jobs)
         elif not isinstance(self._model, FM):
@@ -165,20 +165,20 @@ class FM_LFP(Classifier):
         v = self._model.v.cpu().data.numpy()
 
         # (t, n)
-        x = gpu(torch.from_numpy(x), self.use_cuda)
-        X = gpu(Embedding(x.size(0), x.size(1)), self.use_cuda)
+        x = gpu(torch.from_numpy(x), self._use_cuda)
+        X = gpu(Embedding(x.size(0), x.size(1)), self._use_cuda)
         X.weight = Parameter(x)
 
         # (n, f)
-        V = Variable(gpu(torch.from_numpy(v), self.use_cuda))
+        V = Variable(gpu(torch.from_numpy(v), self._use_cuda))
 
         var = np.zeros((self.n_users, self._n_factors),
                        dtype=np.float)
-        var = gpu(torch.from_numpy(var), self.use_cuda)
+        var = gpu(torch.from_numpy(var), self._use_cuda)
 
         for k, val in d.items():
             idx = Variable(gpu(torch.from_numpy(np.array(val)),
-                               self.use_cuda))
+                               self._use_cuda))
             i = X(idx).size(0)
 
             prod = (X(idx)
@@ -278,25 +278,23 @@ class FM_LFP(Classifier):
 
         x = x.reshape(n_users, n_items, self.n_features)
         x = gpu(_tensor_swap(rank, torch.from_numpy(x)),
-                self.use_cuda)
+                self._use_cuda)
         predictions = np.sort(predictions)[:, ::-1].copy()
         pred = gpu(torch.from_numpy(predictions),
-                   self.use_cuda).float()
+                   self._use_cuda).float()
 
         re_index(items, rank)
 
         v = self._model.v.data
 
         u_idx = Variable(gpu(torch.from_numpy(users),
-                             self.use_cuda))
+                             self._use_cuda))
         var = self.torch_variance()
         variance = var(u_idx).data
 
         for k in range(1, top):
 
             values = self._compute_delta_f(v, k, b, variance, pred, x)
-            # TODO it may not work with GPUs
-            # TODO if GPU enabled, arg_max_per_user should go to gpu as well
             arg_max_per_user = np.argsort(values, 1)[:, -1].copy()
             _swap_k(arg_max_per_user, k, rank)
             _tensor_swap_k(arg_max_per_user, k, pred, multi=False)
@@ -325,7 +323,7 @@ class FM_LFP(Classifier):
             term1 = torch.mul((t1 * var[u, :]).sum(1)[k:], wk)
             wm = gpu(torch.from_numpy(
                 np.array([1 / (2 ** m) for m in range(k)],
-                         dtype=np.float32)), self.use_cuda) \
+                         dtype=np.float32)), self._use_cuda) \
                 .unsqueeze(-1) \
                 .expand(k, self._n_factors)
             unranked = prod[k:, :]
@@ -373,7 +371,7 @@ class FM_LFP(Classifier):
         # delta = torch.mul(term0 - torch.mul(term1 + term2, b), wk)
 
     def torch_variance(self):
-        var = gpu(torch.from_numpy(self._var).float(), self.use_cuda)
+        var = gpu(torch.from_numpy(self._var).float(), self._use_cuda)
         e = Embedding(var.size(0), var.size(1))
         e.weight = Parameter(var)
         return e
