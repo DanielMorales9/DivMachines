@@ -273,9 +273,9 @@ class FM_MMR(Classifier):
             unranked = prod[k:, :]
             ranked = prod[:k, :]
 
-            e_corr = (unranked.unsqueeze(0)\
-                     .expand(k, n_items - k, self._n_factors) * \
-                 ranked.unsqueeze(1)\
+            e_corr = (unranked.unsqueeze(0)
+                     .expand(k, n_items - k, self._n_factors) *
+                 ranked.unsqueeze(1)
                      .expand(k, n_items - k, self._n_factors)).sum(2)
             corr[u, :, :] = e_corr.cpu().numpy()
 

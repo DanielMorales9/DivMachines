@@ -1,47 +1,39 @@
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
-from divmachines.topk.seqrank import SeqRank_MF
+from divmachines.topk.seqrank import MF_SeqRank
 from divmachines.logging import TrainingLogger as TLogger
 from divmachines.utility.helper import cartesian
 
-interactions = np.array([[100, 10, 0, 1, 5],
-                         [200, 10, 0, 1, 1],
-                         [100, 20, 1, 1, 2],
-                         [200, 20, 1, 1, 4],
-                         [100, 30, 1, 0, 3],
-                         [200, 30, 1, 0, 2],
-                         [100, 40, 1, 1, 4],
-                         [200, 40, 1, 1, 4]])
+cols = ['user', 'item', 'rating', 'timestamp']
+train = pd.read_csv('../../../../../data/ua.base', delimiter='\t', names=cols)
 
-n_users = 2
-n_items = 4
-train = np.zeros((n_users*n_items, 3), dtype=np.int)
-train[:, :2] = interactions[:, :2]
-train[:, -1] = interactions[:, -1]
+interactions = train[['user', 'item', 'rating']].values
 
-logger = TLogger()
-
-model = SeqRank_MF(n_iter=100,
-                   n_jobs=2,
-                   n_factors=4,
-                   learning_rate=.3,
-                   logger=logger)
-
+n_users = np.unique(train[["user"]].values).shape[0]
+n_items = np.unique(train[["item"]].values).shape[0]
 
 print("Number of users: %s" % n_users)
 print("Number of items: %s" % n_items)
+logger = TLogger()
 
-x = train[:, :-1]
-y = train[:, -1]
+model = MF_SeqRank(n_iter=10,
+                   n_jobs=8,
+                   n_factors=10,
+                   learning_rate=1,
+                   logger=logger)
+
+x = interactions[:, :-1]
+y = interactions[:, -1]
 
 model.fit(x, y, n_users=n_users, n_items=n_items)
 
-# plt.plot(logger.epochs, logger.losses)
-# plt.show()
-users = np.array(np.unique(x[:, 0]))
+plt.plot(logger.epochs, logger.losses)
+plt.show()
+users = np.unique(x[:, 0])
 values = cartesian(users, np.unique(x[:, 1]))
-top = 3
-table = np.zeros((users.shape[0], top+1), dtype=np.int)
+
+table = np.zeros((users.shape[0], 6), dtype=np.int)
 table[:, 0] = users
-table[:, 1:] = model.predict(values, top=top, b=1)
+table[:, 1:] = model.predict(values, top=5)
 print(table)

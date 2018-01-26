@@ -13,7 +13,7 @@ ITEMS = 'items'
 USERS = 'users'
 
 
-class SeqRank_MF(Classifier):
+class MF_SeqRank(Classifier):
     """
     Seq Rank for Matrix Factorization Model
     with MF-Correlation
