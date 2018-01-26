@@ -10,7 +10,7 @@ ITEMS = 'items'
 USERS = 'users'
 
 
-class MMR_FM(Classifier):
+class FM_MMR(Classifier):
     """
     MMR implementation based on Factorization Machine Model
 
@@ -240,8 +240,6 @@ class MMR_FM(Classifier):
         for k in range(1, top):
 
             values = self._mmr_objective(b, k, n_items, n_users, pred, v, x)
-            # TODO it may not work with GPUs
-            # TODO if GPU enabled, arg_max_per_user should go to gpu as well
             arg_max_per_user = np.argsort(values, 1)[:, -1].copy()
             _swap_k(arg_max_per_user, k, rank)
             _tensor_swap_k(arg_max_per_user, k, pred, multi=False)

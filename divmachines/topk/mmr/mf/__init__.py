@@ -13,7 +13,7 @@ ITEMS = 'items'
 USERS = 'users'
 
 
-class MMR_MF(Classifier):
+class MF_MMR(Classifier):
     """
     Maximal Marginal Relevance with Matrix Factorization Correlation measure
 

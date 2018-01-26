@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from divmachines.topk.mmr import MMR_MF
+from divmachines.topk.mmr import MF_MMR
 from divmachines.logging import TrainingLogger as TLogger
 from divmachines.utility.helper import cartesian
 
@@ -21,7 +21,7 @@ train[:, -1] = interactions[:, -1]
 
 logger = TLogger()
 
-model = MMR_MF(n_iter=100,
+model = MF_MMR(n_iter=100,
                n_jobs=2,
                n_factors=4,
                learning_rate=.3,
