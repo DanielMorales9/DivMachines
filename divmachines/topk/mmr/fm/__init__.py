@@ -143,13 +143,15 @@ class FM_MMR(Classifier):
         self._user_index = {}
         for k, v in self._model.index.items():
             if k.startswith(USERS):
-                try:
-                    self._user_index[int(k[len(USERS):])] = v
-                except ValueError:
-                    raise ValueError("You may want to provide an integer "
-                                     "index for the users")
+                self._user_index[k[len(USERS):]] = v
 
-    def fit(self, x, y, n_users=None, n_items=None):
+    def fit(self,
+            x,
+            y,
+            dic=None,
+            n_users=None,
+            n_items=None,
+            lengths=None):
         """
         Fit the underlying classifier.
         When called repeatedly, models fitting will resume from
@@ -159,23 +161,29 @@ class FM_MMR(Classifier):
         Parameters
         ----------
         x: ndarray
-            Training samples. User column must be 0 while item column
-            must be 1
+            Training samples
         y: ndarray
             Target values for samples
+        dic: dict, optional
+            dic indicates the columns to vectorize
+            if training samples are in raw format.
         n_users: int, optional
             Total number of users. The model will have `n_users` rows.
             Default is None, `n_users` will be inferred from `x`.
         n_items: int, optional
             Total number of items. The model will have `n_items` columns.
             Default is None, `n_items` will be inferred from `x`.
+        lengths: dic, optional
+            Dictionary of lengths of each feature in dic except for
+            users and items.
         """
         if not self._initialized:
             self._initialize()
 
-        dic = {USERS: 0, ITEMS: 1}
-
-        self._model.fit(x, y, dic=dic, n_users=n_users, n_items=n_items)
+        self._model.fit(x, y, dic=dic,
+                        n_users=n_users,
+                        n_items=n_items,
+                        lengths=lengths)
         self._init_dataset(x)
 
     def predict(self, x, top=10, b=0.5):
@@ -222,7 +230,7 @@ class FM_MMR(Classifier):
         rank = np.argsort(-predictions, 1)
         # zeroing users cols
         self.zero_users(x)
-
+        rank = rank.astype(np.object)
         x = x.reshape(n_users, n_items, self.n_features)
         x = gpu(_tensor_swap(rank, torch.from_numpy(x)),
                 self._use_cuda)
@@ -238,7 +246,6 @@ class FM_MMR(Classifier):
         n_users = pred.shape[0]
 
         for k in range(1, top):
-
             values = self._mmr_objective(b, k, n_items, n_users, pred, v, x)
             arg_max_per_user = np.argsort(values, 1)[:, -1].copy()
             _swap_k(arg_max_per_user, k, rank)

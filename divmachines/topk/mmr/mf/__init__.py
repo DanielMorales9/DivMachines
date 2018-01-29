@@ -128,20 +128,10 @@ class MF_MMR(Classifier):
         self._item_index = {}
         for k, v in self._model.index.items():
             if k.startswith(ITEMS):
-                try:
-                    self._rev_item_index[v] = int(k[len(ITEMS):])
-                    self._item_index[int(k[len(ITEMS):])] = v
-                except ValueError:
-                    raise ValueError("You may want to provide an integer "
-                                     "index for the items")
+                self._rev_item_index[str(v)] = k[len(ITEMS):]
+                self._item_index[k[len(ITEMS):]] = v
             elif k.startswith(USERS):
-                try:
-                    self._user_index[int(k[len(USERS):])] = v
-                except ValueError:
-                    raise ValueError("You may want to provide an integer "
-                                     "index for the users")
-            else:
-                raise ValueError("Not possible")
+                self._user_index[k[len(USERS):]] = v
         self._item_catalog = np.array(list(self._rev_item_index.values()))
 
     def fit(self, x, y, n_users=None, n_items=None):

@@ -28,21 +28,21 @@ print("Number of items: %s" % n_items)
 
 logger = TLogger()
 
-model = FM_MMR(n_iter=10,
+model = FM_MMR(n_iter=1,
                n_jobs=8,
                n_factors=100,
                learning_rate=.1,
-               use_cuda=True,
+               use_cuda=False,
                logger=logger)
 
 interactions = train.values
 x = interactions[:, :-1]
 y = interactions[:, -1]
 
-model.fit(x, y, n_users=n_users, n_items=n_items)
+model.fit(x, y, dic={'users': 0, 'items': 1}, n_users=n_users, n_items=n_items)
 plt.plot(logger.epochs, logger.losses)
 plt.show()
-users = np.unique(x[:1000, 0]).reshape(-1, 1)
+users = np.unique(x[:10, 0]).reshape(-1, 1)
 items = np.unique(x[:, 1:], axis=0)
 values = cartesian2D(users, items)
 top = 3

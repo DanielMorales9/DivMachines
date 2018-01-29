@@ -69,14 +69,31 @@ def precision_at_k(r, k):
         raise ValueError('Relevance score length < k')
     return np.mean(r)
 
-# TODO implement ALPHA-NDCG
-def alpha_dcg_at_k(alpha, k, relevance, topics):
-    acc = 0.0
-    for i in np.arange(1, k):
-        acc += gain_vector(alpha, i, relevance, topics) / np.log2(1+i)
-    return acc
+
+def dcg_at_k(relevance, topics):
+
+    scores = np.zeros(relevance.shape[0], dtype=np.float)
+    for u, top in enumerate(relevance):
+        tops = set([])
+
+        for i, item in enumerate(top):
+            wi = 1/(2**i)
+            if topics[item] is not None:
+                scores[u] += len(set(topics[item]).difference(tops))*wi
+                tops.update(topics[item])
+    return scores
 
 
-def gain_vector(alpha, k, relevance, topics):
-    for i in topics:
-        pass
+def dcg_at_k_with_importance(relevance, topics, importance):
+
+    scores = np.zeros(relevance.shape[0], dtype=np.float)
+    for u, top in enumerate(relevance):
+        tops = []
+        for i, item in enumerate(top):
+            wi = 1/(2**i)
+            if topics[item] is not None:
+                scores[u] += (importance[item]**tops.count(topics[item])) * wi
+                tops.append(topics[item])
+    return scores
+
+

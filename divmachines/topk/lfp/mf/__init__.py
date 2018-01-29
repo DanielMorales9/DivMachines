@@ -133,18 +133,11 @@ class MF_LFP(Classifier):
         self._item_index = {}
         for k, v in self._model.index.items():
             if k.startswith(ITEMS):
-                try:
-                    self._rev_item_index[v] = int(k[len(ITEMS):])
-                    self._item_index[int(k[len(ITEMS):])] = v
-                except ValueError:
-                    raise ValueError("You may want to provide an integer "
-                                     "index for the items")
+                self._rev_item_index[str(v)] = k[len(ITEMS):]
+                self._item_index[k[len(ITEMS):]] = v
             elif k.startswith(USERS):
-                try:
-                    self._user_index[int(k[len(USERS):])] = v
-                except ValueError:
-                    raise ValueError("You may want to provide an integer "
-                                     "index for the users")
+                self._user_index[k[len(USERS):]] = v
+
             else:
                 raise ValueError("Not possible")
         self._item_catalog = np.array(list(self._rev_item_index.values()))
@@ -327,7 +320,7 @@ class MF_LFP(Classifier):
                              dtype=np.float32)
 
         for i, (u, g) in enumerate(pd.DataFrame(train).groupby(0)):
-            user_profile = g.values[:, 1]
+            user_profile = g.values[:, 1].astype(np.int64)
             upl = user_profile.shape[0]
             user_idx = Variable(gpu(torch.from_numpy(np.array([u])),
                                     self._use_cuda))

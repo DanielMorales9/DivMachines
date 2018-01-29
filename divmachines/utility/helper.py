@@ -173,7 +173,7 @@ def _tensor_swap(index, tensor):
 
 
 def index(rank, idx):
-    re_idx = np.vectorize(lambda x: idx[x])
+    re_idx = np.vectorize(lambda x: idx[str(x)])
     return np.array([re_idx(lis) for lis in rank])
 
 

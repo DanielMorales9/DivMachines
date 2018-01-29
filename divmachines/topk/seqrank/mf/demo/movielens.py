@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from divmachines.topk.mmr import MF_MMR
+from divmachines.topk.seqrank import MF_SeqRank
 from divmachines.logging import TrainingLogger as TLogger
 from divmachines.utility.helper import cartesian
 
@@ -17,12 +17,12 @@ print("Number of users: %s" % n_users)
 print("Number of items: %s" % n_items)
 logger = TLogger()
 
-model = MF_MMR(n_iter=10,
-               n_jobs=8,
-               n_factors=10,
-               learning_rate=1,
-               use_cuda=False,
-               logger=logger)
+model = MF_SeqRank(n_iter=10,
+                   n_jobs=8,
+                   n_factors=10,
+                   learning_rate=1,
+                   use_cuda=False,
+                   logger=logger)
 
 x = interactions[:, :-1]
 y = interactions[:, -1]

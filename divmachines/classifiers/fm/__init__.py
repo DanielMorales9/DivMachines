@@ -147,12 +147,14 @@ class FM(Classifier):
                     y=None,
                     dic=None,
                     n_users=None,
-                    n_items=None):
+                    n_items=None,
+                    lengths=None):
         self._init_dataset(x,
                            y=y,
                            dic=dic,
                            n_users=n_users,
-                           n_items=n_items)
+                           n_items=n_items,
+                           lengths=lengths)
         self._init_model()
 
         self._init_optim_fun()
@@ -164,7 +166,8 @@ class FM(Classifier):
                       y=None,
                       dic=None,
                       n_users=None,
-                      n_items=None):
+                      n_items=None,
+                      lengths=None):
         if type(x).__module__ == np.__name__:
             if y is None or type(x).__module__ == np.__name__:
                 if self._dataset is not None:
@@ -174,13 +177,15 @@ class FM(Classifier):
                                                   y=y,
                                                   dic=dic,
                                                   n_users=n_users,
-                                                  n_items=n_items)
+                                                  n_items=n_items,
+                                                  lengths=lengths)
                 else:
                     self._dataset = DenseDataset(x,
                                                  y=y,
                                                  dic=dic,
                                                  n_users=n_users,
-                                                 n_items=n_items)
+                                                 n_items=n_items,
+                                                 lengths=lengths)
         else:
             raise TypeError("Training set must be of type "
                             "dataset or of type ndarray")
@@ -207,9 +212,15 @@ class FM(Classifier):
 
         else:
             self._model = gpu(FactorizationMachine(self.n_features,
-                                               self.n_factors), self.use_cuda)
+                                                   self.n_factors), self.use_cuda)
 
-    def fit(self, x, y, dic=None, n_users=None, n_items=None):
+    def fit(self,
+            x,
+            y,
+            dic=None,
+            n_users=None,
+            n_items=None,
+            lengths=None):
         """
         Fit the models.
         When called repeatedly, models fitting will resume from
@@ -226,15 +237,14 @@ class FM(Classifier):
             dic indicates the columns to vectorize
             if training samples are in raw format.
         n_users: int, optional
-            Total number of users in the training samples: `x`.
-            This will force the underlying Factorization Machine model to have
-            a feature vectors and model parameters with exactly `n_users` users.
+            Total number of users. The model will have `n_users` rows.
             Default is None, `n_users` will be inferred from `x`.
         n_items: int, optional
-            Total number of items in the training samples: `x`.
-            This will force the underlying Factorization Machine model to have
-            feature vectors and model parameters with exactly `n_items` items.
+            Total number of items. The model will have `n_items` columns.
             Default is None, `n_items` will be inferred from `x`.
+        lengths: dic, optional
+            Dictionary of lengths of each feature in dic except for
+            users and items.
         """
 
         if not self._initialized:
@@ -242,7 +252,8 @@ class FM(Classifier):
                              y=y,
                              dic=dic,
                              n_users=n_users,
-                             n_items=n_items)
+                             n_items=n_items,
+                             lengths=lengths)
 
         loader = DataLoader(self._dataset,
                             batch_size=self.batch_size,

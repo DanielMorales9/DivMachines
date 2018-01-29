@@ -76,14 +76,24 @@ def make_indexable(dic, x, ix=None):
     return new_x, ix
 
 
-def vectorize_dic(dic, ix=None, n_users=None, n_items=None):
+def vectorize_dic(dic,
+                  ix=None,
+                  n_users=None,
+                  n_items=None,
+                  lengths=None):
     """
     Creates a scipy csr matrix from a list of lists
     (each inner list is a set of values corresponding to a feature)
     """
 
     if ix is None:
-        if n_users and n_items:
+        if n_users and n_items and lengths:
+
+            lista = [n_users, n_items]
+            lista.extend(lengths.values())
+            args = tuple(lista)
+            ix = IndexDictionary(FeaturesFactory(dic, *args))
+        elif n_users and n_items:
             ix = IndexDictionary(FeaturesFactory(dic, n_users, n_items))
         else:
             ix = defaultdict(lambda c=count(0): next(c))
@@ -124,7 +134,9 @@ def vectorize_interactions(interactions,
                            dic=None,
                            ix=None,
                            n_users=None,
-                           n_items=None):
+                           n_items=None,
+                           lengths=None):
+    # TODO not elegant
     if dic is not None:
         vec_dic = dic.copy()
         keys = []
@@ -133,7 +145,11 @@ def vectorize_interactions(interactions,
             keys.append(dic[k])
             vec_dic[k] = interactions[:, dic[k]]
 
-        d, r, c, ix = vectorize_dic(vec_dic, ix=ix, n_users=n_users, n_items=n_items)
+        d, r, c, ix = vectorize_dic(vec_dic,
+                                    ix=ix,
+                                    n_users=n_users,
+                                    n_items=n_items,
+                                    lengths=lengths)
 
         real_valued_cols = list(set(range(interactions.shape[1])) - set(keys))
         cat_nz = len(d)
@@ -163,7 +179,12 @@ def vectorize_interactions(interactions,
     if n_users is None or n_items is None:
         n_features = len(np.unique(cols))
     else:
-        n_features = n_users + n_items + len(real_valued_cols)
+        if lengths:
+            n_features = n_users + n_items + len(real_valued_cols)
+            for v in lengths.values():
+                n_features += v
+        else:
+            n_features = n_users + n_items + len(real_valued_cols)
     return data, rows, cols, ix, n_features
 
 

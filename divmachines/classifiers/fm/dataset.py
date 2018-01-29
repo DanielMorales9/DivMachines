@@ -29,12 +29,14 @@ class DenseDataset(Dataset):
                  y=None,
                  dic=None,
                  n_users=None,
-                 n_items=None):
+                 n_items=None,
+                 lengths=None):
         super(DenseDataset, self).__init__()
         self._n_features = None
         self._ix = None
         self._n_users = n_users
         self._n_items = n_items
+        self._lengths = lengths
         self._initialize(x, y, dic)
 
     def _initialize(self, x, y, dic):
@@ -58,7 +60,8 @@ class DenseDataset(Dataset):
                                          dic=dic,
                                          ix=self._ix,
                                          n_users=self._n_users,
-                                         n_items=self._n_items)
+                                         n_items=self._n_items,
+                                         lengths=self._lengths)
             self._n_features = self._n_features or n_feats
             try:
                 coo = coo_matrix((data, (rows, cols)),
@@ -149,10 +152,12 @@ class SparseDataset(Dataset):
                  y=None,
                  dic=None,
                  n_users=None,
-                 n_items=None):
+                 n_items=None,
+                 lengths=None):
         super(SparseDataset, self).__init__()
         self._n_features = None
         self._ix = None
+        self._lengths = lengths
         self._n_users = n_users
         self._n_items = n_items
         self._initialize(x, y, dic)
@@ -182,7 +187,8 @@ class SparseDataset(Dataset):
                                          dic=self._dic,
                                          ix=self._ix,
                                          n_users=self._n_users,
-                                         n_items=self._n_items)
+                                         n_items=self._n_items,
+                                         lengths=self._lengths)
             self._n_features = self._n_features or n_feats
             self._sparse_x = list2dic(d, rows, cols)
         self._zero = np.zeros(self._n_features, dtype=np.float32)
