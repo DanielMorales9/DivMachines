@@ -29,10 +29,10 @@ print("Number of items: %s" % n_items)
 logger = TLogger()
 
 model = FM_SeqRank(n_iter=1,
-                   n_jobs=8,
+                   n_jobs=4,
                    n_factors=10,
                    learning_rate=.1,
-                   use_cuda=False,
+                   use_cuda=True,
                    logger=logger)
 
 interactions = train.values

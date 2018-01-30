@@ -120,10 +120,14 @@ class FM(Classifier):
 
     @property
     def model(self):
+        if self.use_cuda and torch.cuda.device_count() > 1:
+            return self._model.module
         return self._model
 
     @model.getter
     def model(self):
+        if self.use_cuda and torch.cuda.device_count() > 1:
+            return self._model.module
         return self._model
 
     @property
@@ -136,10 +140,14 @@ class FM(Classifier):
 
     @property
     def v(self):
+        if self.use_cuda and torch.cuda.device_count() > 1:
+            return self._model.module.v
         return self._model.v
 
     @v.getter
     def v(self):
+        if self.use_cuda and torch.cuda.device_count() > 1:
+            return self._model.module.v
         return self._model.v
 
     def _initialize(self,
@@ -211,8 +219,14 @@ class FM(Classifier):
                 raise ValueError("Model must be an instance of FactorizationMachine")
 
         else:
-            self._model = gpu(FactorizationMachine(self.n_features,
-                                                   self.n_factors), self.use_cuda)
+            if self.use_cuda and torch.cuda.device_count() > 1:
+                self._model = torch.nn.DataParallel(
+                    gpu(FactorizationMachine(self.n_features,
+                                             self.n_factors), self.use_cuda))
+            else:
+                self._model = gpu(FactorizationMachine(self.n_features,
+                                                       self.n_factors),
+                                  self.use_cuda)
 
     def fit(self,
             x,

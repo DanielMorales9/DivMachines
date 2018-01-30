@@ -17,7 +17,9 @@ print("Number of items: %s" % n_items)
 model = FM(n_iter=10,
            learning_rate=1e-1,
            logger=logger,
+           batch_size=1000,
            n_jobs=4,
+           sparse=True,
            use_cuda=True)
 
 interactions = train[['user', 'item', 'rating']].values
