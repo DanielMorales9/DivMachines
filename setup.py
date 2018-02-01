@@ -10,7 +10,7 @@ setup(name="divmachines",
       author_email="dnlmrls9@gmail.com",
       license="MIT",
       packages=find_packages(),
-      install_requires=['torch', 'numpy', 'scipy', 'scikit-learn', 'joblib', 'matplotlib', 'pandas'],
+      install_requires=['torch', 'numpy', 'scipy', 'scikit-learn', 'joblib', 'matplotlib', 'pandas', 'tqdm'],
       zip_safe=False,
       classifiers=[
           'Intended Audience :: Science/Research',

@@ -8,6 +8,7 @@ from divmachines.models import FactorizationMachine
 from divmachines.classifiers import Classifier
 from divmachines.logging import Logger
 from divmachines.utility.torch import set_seed, gpu, cpu
+from tqdm import tqdm
 
 
 class FM(Classifier):
@@ -45,6 +46,12 @@ class FM(Classifier):
     n_jobs: int, optional
         Number of jobs for data loading.
         Default is 0, it means that the data loader runs in the main process.
+    pin_memory bool, optional:
+        If ``True``, the data loader will copy tensors
+        into CUDA pinned memory before returning them.
+    verbose: bool, optional:
+        If ``True``, it will print information about iterations.
+        Default False.
     """
 
     def __init__(self,
@@ -60,7 +67,10 @@ class FM(Classifier):
                  random_state=None,
                  use_cuda=False,
                  logger=None,
-                 n_jobs=0):
+                 n_jobs=0,
+                 shuffle=True,
+                 pin_memory=False,
+                 verbose=False):
 
         super(FM, self).__init__()
         self.n_factors = n_factors
@@ -82,6 +92,9 @@ class FM(Classifier):
         self._initialized = False
         self._n_items = None
         self._n_users = None
+        self._shuffle = shuffle
+        self._pin_memory = pin_memory
+        self._disable = not verbose
 
         set_seed(self._random_state.randint(-10 ** 8, 10 ** 8),
                  cuda=self.use_cuda)
@@ -216,17 +229,13 @@ class FM(Classifier):
             if isinstance(self._model, FactorizationMachine):
                 self._model = gpu(self._model, self.use_cuda)
             else:
-                raise ValueError("Model must be an instance of FactorizationMachine")
-
+                raise ValueError("Model must be an instance "
+                                 "of FactorizationMachine")
         else:
-            if self.use_cuda and torch.cuda.device_count() > 1:
-                self._model = torch.nn.DataParallel(
-                    gpu(FactorizationMachine(self.n_features,
-                                             self.n_factors), self.use_cuda))
-            else:
-                self._model = gpu(FactorizationMachine(self.n_features,
-                                                       self.n_factors),
-                                  self.use_cuda)
+            self._model = gpu(
+                FactorizationMachine(self.n_features,
+                                     self.n_factors),
+                self.use_cuda)
 
     def fit(self,
             x,
@@ -269,13 +278,23 @@ class FM(Classifier):
                              n_items=n_items,
                              lengths=lengths)
 
+        disable_batch = self._disable or self.batch_size is None
+
         loader = DataLoader(self._dataset,
+                            pin_memory=self._pin_memory,
                             batch_size=self.batch_size,
                             num_workers=self._n_jobs,
                             shuffle=True)
 
-        for epoch in range(self.n_iter):
-            for mini_batch_num, (batch_tensor, batch_ratings) in enumerate(loader):
+        for epoch in tqdm(range(self.n_iter),
+                          desc='Fitting',
+                          leave=False,
+                          disable=self._disable):
+            for mini_batch_num, \
+                (batch_tensor, batch_ratings) in tqdm(enumerate(loader),
+                                                      desc='Batches',
+                                                      leave=False,
+                                                      disable=disable_batch):
                 batch_tensor = gpu(batch_tensor, self.use_cuda)
                 batch_ratings = gpu(batch_ratings, self.use_cuda)
 
@@ -297,6 +316,7 @@ class FM(Classifier):
 
                 # backward step
                 loss.backward()
+
                 # optimization step
                 self._optimizer.step()
 
@@ -318,18 +338,21 @@ class FM(Classifier):
             x = np.array([x])
 
         self._init_dataset(x)
+        disable_batch = self._disable or self.batch_size is None
         if self.batch_size is None:
             self.batch_size = len(self._dataset)
-
         loader = DataLoader(self._dataset,
                             batch_size=self.batch_size,
                             shuffle=False,
                             num_workers=self._n_jobs)
 
         out = np.zeros(len(x))
-        for i, batch_data in enumerate(loader):
+        for i, batch_data in tqdm(enumerate(loader),
+                                  desc="Prediction",
+                                  leave=False,
+                                  disable=disable_batch):
             var = Variable(gpu(batch_data, self.use_cuda))
-            out[(i*self.batch_size):((i+1)*self.batch_size)] = self._model(var) \
-                .cpu().data.numpy()
+            out[(i*self.batch_size):((i+1)*self.batch_size)] = \
+                cpu(self._model(var), self.use_cuda).data.numpy()
 
         return out.flatten()

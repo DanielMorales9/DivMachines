@@ -32,7 +32,7 @@ x = interactions[:, :-1]
 y = interactions[:, -1]
 
 gSearch = GridSearchCV(model,
-                       param_grid={"iter": [1], "learning_rate": [0.1]},
+                       param_grid={"iter": [100, 1000], "learning_rate": [1], "l2": [0, 0.1, 0.2]},
                        cv='kFold',
                        metrics='mean_square_error',
                        verbose=10,

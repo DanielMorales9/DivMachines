@@ -5,6 +5,7 @@ from divmachines.classifiers import FM
 from divmachines.utility.helper import index, \
     _tensor_swap, re_index, _swap_k, _tensor_swap_k
 from divmachines.utility.torch import gpu
+from tqdm import tqdm
 
 ITEMS = 'items'
 USERS = 'users'
@@ -46,6 +47,12 @@ class FM_MMR(Classifier):
     n_jobs: int, optional
         Number of jobs for data loading.
         Default is 0, it means that the data loader runs in the main process.
+    pin_memory bool, optional:
+        If ``True``, the data loader will copy tensors
+        into CUDA pinned memory before returning them.
+    verbose: bool, optional:
+        If ``True``, it will print information about iterations.
+        Default False.
     """
 
     def __init__(self,
@@ -61,7 +68,9 @@ class FM_MMR(Classifier):
                  random_state=None,
                  use_cuda=False,
                  logger=None,
-                 n_jobs=0):
+                 n_jobs=0,
+                 pin_memory=False,
+                 verbose=False):
         self._model = model
         self._n_factors = n_factors
         self._sparse = sparse
@@ -75,6 +84,8 @@ class FM_MMR(Classifier):
         self._use_cuda = use_cuda
         self._logger = logger
         self._n_jobs = n_jobs
+        self._pin_memory = pin_memory
+        self._verbose = verbose
 
         self._initialized = False
 
@@ -134,7 +145,9 @@ class FM_MMR(Classifier):
                              random_state=self._random_state,
                              use_cuda=self._use_cuda,
                              logger=self._logger,
-                             n_jobs=self._n_jobs)
+                             n_jobs=self._n_jobs,
+                             pin_memory=self._pin_memory,
+                             verbose=self._verbose)
         elif not isinstance(self._model, FM):
             raise ValueError("Model must be an instance of "
                              "divmachines.classifiers.FM class")
@@ -184,7 +197,6 @@ class FM_MMR(Classifier):
                         n_users=n_users,
                         n_items=n_items,
                         lengths=lengths)
-        self._init_dataset(x)
 
     def predict(self, x, top=10, b=0.5):
         """
@@ -207,7 +219,7 @@ class FM_MMR(Classifier):
         topk: ndarray
             `top` items for each user supplied
         """
-
+        self._init_dataset(x)
         n_users = np.unique(x[:, 0]).shape[0]
         n_items = np.unique(x[:, 1]).shape[0]
 
@@ -217,8 +229,6 @@ class FM_MMR(Classifier):
 
         items = np.array([x[i, 1] for i in sorted(
             np.unique(x[:, 1], return_index=True)[1])])
-        users = index(np.array([x[i, 0] for i in sorted(
-            np.unique(x[:, 0], return_index=True)[1])]), self._user_index)
 
         x = self.dataset.copy()
 
@@ -245,7 +255,10 @@ class FM_MMR(Classifier):
         n_items = pred.shape[1]
         n_users = pred.shape[0]
 
-        for k in range(1, top):
+        for k in tqdm(range(1, top),
+                      desc="MMR Re-ranking",
+                      leave=False,
+                      disable=not self._verbose):
             values = self._mmr_objective(b, k, n_items, n_users, pred, v, x)
             arg_max_per_user = np.argsort(values, 1)[:, -1].copy()
             _swap_k(arg_max_per_user, k, rank)
@@ -271,7 +284,10 @@ class FM_MMR(Classifier):
         corr = np.zeros((n_users, k, n_items-k),
                         dtype=np.float32)
 
-        for u in range(n_users):
+        for u in tqdm(range(n_users),
+                      desc="User Correlation",
+                      leave=False,
+                      disable=not self._verbose):
             prod = (x[u, :, :].squeeze()
                     .unsqueeze(-1).expand(n_items,
                                           self.n_features,
@@ -281,9 +297,9 @@ class FM_MMR(Classifier):
             ranked = prod[:k, :]
 
             e_corr = (unranked.unsqueeze(0)
-                     .expand(k, n_items - k, self._n_factors) *
-                 ranked.unsqueeze(1)
-                     .expand(k, n_items - k, self._n_factors)).sum(2)
+                      .expand(k, n_items - k, self._n_factors) *
+                      ranked.unsqueeze(1)
+                      .expand(k, n_items - k, self._n_factors)).sum(2)
             corr[u, :, :] = e_corr.cpu().numpy()
 
         return corr

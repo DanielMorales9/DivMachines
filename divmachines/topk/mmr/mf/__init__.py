@@ -1,13 +1,12 @@
 import torch
 import numpy as np
-import pandas as pd
 from torch.autograd.variable import Variable
 from divmachines.classifiers import Classifier
 from divmachines.classifiers.mf import MF
 from divmachines.utility.helper import shape_for_mf, \
     _swap_k, _tensor_swap_k, index, re_index
 from divmachines.utility.torch import gpu
-
+from tqdm import tqdm
 
 ITEMS = 'items'
 USERS = 'users'
@@ -64,6 +63,8 @@ class MF_MMR(Classifier):
                  random_state=None,
                  use_cuda=False,
                  logger=None,
+                 verbose=False,
+                 pin_memory=False,
                  n_jobs=0):
         self._model = model
         self._n_factors = n_factors
@@ -78,6 +79,8 @@ class MF_MMR(Classifier):
         self._use_cuda = use_cuda
         self._logger = logger
         self._n_jobs = n_jobs
+        self._verbose = verbose
+        self._pin_memory = pin_memory
 
         self._initialized = False
 
@@ -117,7 +120,9 @@ class MF_MMR(Classifier):
                              random_state=self._random_state,
                              use_cuda=self._use_cuda,
                              logger=self._logger,
-                             n_jobs=self._n_jobs)
+                             n_jobs=self._n_jobs,
+                             pin_memory=self._pin_memory,
+                             verbose=self._verbose)
         elif not isinstance(self._model, MF):
             raise ValueError("Model must be an instance of "
                              "divmachines.classifiers.lfp.MF class")
@@ -134,7 +139,12 @@ class MF_MMR(Classifier):
                 self._user_index[k[len(USERS):]] = v
         self._item_catalog = np.array(list(self._rev_item_index.values()))
 
-    def fit(self, x, y, n_users=None, n_items=None):
+    def fit(self,
+            x,
+            y,
+            dic=None,
+            n_users=None,
+            n_items=None):
         """
         Fit the underlying classifier.
         When called repeatedly, models fitting will resume from
@@ -144,10 +154,12 @@ class MF_MMR(Classifier):
         Parameters
         ----------
         x: ndarray
-            Training samples. User column must be 0 while item column
-            must be 1
+            Training samples
         y: ndarray
             Target values for samples
+        dic: dict, optional
+            dic indicates the columns to vectorize
+            if training samples are in raw format.
         n_users: int, optional
             Total number of users. The model will have `n_users` rows.
             Default is None, `n_users` will be inferred from `x`.
@@ -161,33 +173,31 @@ class MF_MMR(Classifier):
         if x.shape[1] != 2:
             raise ValueError("x must have two columns: users and items cols")
 
-        dic = {USERS: 0, ITEMS: 1}
-
         self._model.fit(x, y, dic=dic, n_users=n_users, n_items=n_items)
         self._init_dataset(x)
 
     def predict(self, x, top=10, b=0.5):
         """
-        Predicts
+         Predicts
 
-        Parameters
-        ----------
-        x: ndarray or int
-            array of users, user item interactions matrix
-            (you must provide the same items for all user
-            listed) or instead a single user to which
-            predict the item ranking.
-        top: int, optional
-            Length of the ranking
-        b: float, optional
-            System-level Diversity.
-            It controls the trade-off for all users between
-            accuracy and diversity.
-        Returns
-        -------
-        top-k: ndarray
-            `top` items for each user supplied
-        """
+         Parameters
+         ----------
+         x: ndarray or int
+             array of users, user item interactions matrix
+             (you must provide the same items for all user
+             listed) or instead a single user to which
+             predict the item ranking.
+         top: int, optional
+             Length of the ranking
+         b: float, optional
+             System-level Diversity.
+             It controls the trade-off for all users between
+             accuracy and diversity.
+         Returns
+         -------
+         top-k: ndarray
+             `top` items for each user supplied
+         """
 
         n_items, n_users, test, update_dataset = \
             shape_for_mf(self._item_catalog, x)
@@ -221,7 +231,10 @@ class MF_MMR(Classifier):
 
         y = self._model.y
 
-        for k in range(1, top):
+        for k in tqdm(range(1, top),
+                      desc="MMR Re-ranking",
+                      leave=False,
+                      disable=not self._verbose):
             values = self._mmr_objective(b, k, pred, rank, y)
             arg_max_per_user = np.argsort(values, 1)[:, -1].copy()
             _swap_k(arg_max_per_user, k, rank)

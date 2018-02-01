@@ -22,15 +22,15 @@ model = MF_MMR(n_iter=10,
                n_factors=10,
                learning_rate=1,
                use_cuda=False,
-               logger=logger)
+               logger=logger,
+               verbose=True)
 
 x = interactions[:, :-1]
 y = interactions[:, -1]
 
-model.fit(x, y, n_users=n_users, n_items=n_items)
+model.fit(x, y, dic={'users': 0, 'items': 1},
+          n_users=n_users, n_items=n_items)
 
-plt.plot(logger.epochs, logger.losses)
-plt.show()
 users = np.unique(x[:, 0])
 values = cartesian(users, np.unique(x[:, 1]))
 
@@ -38,3 +38,6 @@ table = np.zeros((users.shape[0], 6), dtype=np.int)
 table[:, 0] = users
 table[:, 1:] = model.predict(values, top=5)
 print(table)
+
+plt.plot(logger.epochs, logger.losses)
+plt.show()

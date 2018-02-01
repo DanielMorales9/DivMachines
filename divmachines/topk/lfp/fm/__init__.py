@@ -7,6 +7,7 @@ from divmachines.classifiers import FM
 from divmachines.utility.helper import index, \
     _swap_k, _tensor_swap_k, _tensor_swap, re_index
 from divmachines.utility.torch import gpu
+from tqdm import tqdm
 
 ITEMS = 'items'
 USERS = 'users'
@@ -65,7 +66,9 @@ class FM_LFP(Classifier):
                  random_state=None,
                  use_cuda=False,
                  logger=None,
-                 n_jobs=0):
+                 n_jobs=0,
+                 pin_memory=False,
+                 verbose=False):
         self._model = model
         self._n_factors = n_factors
         self._sparse = sparse
@@ -79,7 +82,8 @@ class FM_LFP(Classifier):
         self._use_cuda = use_cuda
         self._logger = logger
         self._n_jobs = n_jobs
-
+        self._pin_memory = pin_memory
+        self._verbose = verbose
         self._initialized = False
 
     @property
@@ -138,7 +142,9 @@ class FM_LFP(Classifier):
                              random_state=self._random_state,
                              use_cuda=self._use_cuda,
                              logger=self._logger,
-                             n_jobs=self._n_jobs)
+                             n_jobs=self._n_jobs,
+                             pin_memory=self._pin_memory,
+                             verbose=self._verbose)
         elif not isinstance(self._model, FM):
             raise ValueError("Model must be an instance of "
                              "divmachines.classifiers.FM class")
@@ -149,6 +155,18 @@ class FM_LFP(Classifier):
             if k.startswith(USERS):
                 self._user_index[k[len(USERS):]] = v
 
+        if self._sparse:
+            self._sparse_variance_computation()
+        else:
+            self._dense_variance_computation()
+
+    def _sparse_variance_computation(self):
+        for x, _ in self.dataset:
+            print(x)
+        raise NotImplementedError("Adding support for sparse "
+                                  "representation")
+
+    def _dense_variance_computation(self):
         x = self.dataset.copy()
         nz = list(filter(lambda k: k[1] < self.n_users,
                          [(r, c) for r, c in zip(*np.nonzero(x))]))
@@ -156,22 +174,17 @@ class FM_LFP(Classifier):
         d = {}
         for r, c in nz:
             d.setdefault(c, []).append(r)
-
         # getting parameter from the model
         v = self._model.v.cpu().data.numpy()
-
         # (t, n)
         x = gpu(torch.from_numpy(x), self._use_cuda)
         X = gpu(Embedding(x.size(0), x.size(1)), self._use_cuda)
         X.weight = Parameter(x)
-
         # (n, f)
         V = Variable(gpu(torch.from_numpy(v), self._use_cuda))
-
         var = np.zeros((self.n_users, self._n_factors),
                        dtype=np.float)
         var = gpu(torch.from_numpy(var), self._use_cuda)
-
         for k, val in d.items():
             idx = Variable(gpu(torch.from_numpy(np.array(val)),
                                self._use_cuda))
@@ -191,10 +204,7 @@ class FM_LFP(Classifier):
             var[k, :] = torch.div(a, len(val)).data
         self._var = var.cpu().numpy()
 
-    def fit(self,
-            x,
-            y,
-            dic=None,
+    def fit(self, x, y, dic=None,
             n_users=None,
             n_items=None,
             lengths=None):
@@ -226,9 +236,7 @@ class FM_LFP(Classifier):
         if not self._initialized:
             self._initialize()
 
-        self._model.fit(x,
-                        y,
-                        dic=dic,
+        self._model.fit(x, y, dic=dic,
                         n_users=n_users,
                         n_items=n_items,
                         lengths=lengths)
@@ -255,7 +263,6 @@ class FM_LFP(Classifier):
         topk: ndarray
             `top` items for each user supplied
         """
-
         n_users = np.unique(x[:, 0]).shape[0]
         n_items = np.unique(x[:, 1]).shape[0]
 
@@ -270,14 +277,8 @@ class FM_LFP(Classifier):
 
         x = self.dataset.copy()
 
-        re_ranking = self._sequential_re_ranking(x,
-                                                 n_users,
-                                                 n_items,
-                                                 top,
-                                                 b,
-                                                 rank,
-                                                 items,
-                                                 users)
+        re_ranking = self._sequential_re_ranking(x, n_users, n_items, top,
+                                                 b, rank, items, users)
         return re_ranking
 
     def _sequential_re_ranking(self, x, n_users, n_items, top, b,
@@ -302,8 +303,10 @@ class FM_LFP(Classifier):
         var = self.torch_variance()
         variance = var(u_idx).data
 
-        for k in range(1, top):
-
+        for k in tqdm(range(1, top),
+                      leave=False,
+                      desc="Sequential Re-ranking",
+                      disable=not self._verbose):
             values = self._compute_delta_f(v, k, b, variance, pred, x)
             arg_max_per_user = np.argsort(values, 1)[:, -1].copy()
             _swap_k(arg_max_per_user, k, rank)
@@ -324,7 +327,10 @@ class FM_LFP(Classifier):
         delta = np.zeros((n_users, n_items-k),
                          dtype=np.float32)
         wk = 1 / (2 ** k)
-        for u in range(n_users):
+        for u in tqdm(range(n_users),
+                      leave=False,
+                      desc="DeltaF",
+                      disable=not self._verbose):
             prod = (x[u, :, :].squeeze()
                     .unsqueeze(-1).expand(n_items,
                                           self.n_features,
@@ -344,7 +350,8 @@ class FM_LFP(Classifier):
                  ranked.unsqueeze(1) \
                      .expand(k, n_items - k, self._n_factors)
             term2 = torch.mul((t2 * var[u, :]).sum(2).sum(0), 2)
-            delta[u, :] = torch.mul(term0[u, :] - torch.mul(term1 + term2, b), wk).cpu().numpy()
+            delta[u, :] = torch.mul(term0[u, :] - torch.mul(term1 + term2, b),
+                                    wk).cpu().numpy()
 
         return delta
 

@@ -32,7 +32,9 @@ model = FM_MMR(n_iter=10,
                n_jobs=8,
                n_factors=100,
                learning_rate=.1,
-               use_cuda=True,
+               use_cuda=False,
+               batch_size=1000,
+               verbose=True,
                logger=logger)
 
 interactions = train.values

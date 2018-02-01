@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-import pandas as pd
+from tqdm import tqdm
 from torch.autograd.variable import Variable
 from divmachines.classifiers import Classifier
 from divmachines.classifiers.mf import MF
@@ -50,6 +50,12 @@ class MF_SeqRank(Classifier):
     n_jobs: int, optional
         Number of jobs for data loading.
         Default is 0, it means that the data loader runs in the main process.
+    pin_memory bool, optional:
+        If ``True``, the data loader will copy tensors
+        into CUDA pinned memory before returning them.
+    verbose: bool, optional:
+        If ``True``, it will print information about iterations.
+        Default False.
     """
 
     def __init__(self,
@@ -65,6 +71,8 @@ class MF_SeqRank(Classifier):
                  random_state=None,
                  use_cuda=False,
                  logger=None,
+                 pin_memory=False,
+                 verbose=False,
                  n_jobs=0):
         self._model = model
         self._n_factors = n_factors
@@ -79,6 +87,8 @@ class MF_SeqRank(Classifier):
         self._use_cuda = use_cuda
         self._logger = logger
         self._n_jobs = n_jobs
+        self._pin_memory = pin_memory
+        self._verbose = verbose
 
         self._initialized = False
 
@@ -118,7 +128,9 @@ class MF_SeqRank(Classifier):
                              random_state=self._random_state,
                              use_cuda=self._use_cuda,
                              logger=self._logger,
-                             n_jobs=self._n_jobs)
+                             n_jobs=self._n_jobs,
+                             pin_memory=self._pin_memory,
+                             verbose=self._verbose)
         elif not isinstance(self._model, MF):
             raise ValueError("Model must be an instance of "
                              "divmachines.classifiers.lfp.MF class")
@@ -134,11 +146,9 @@ class MF_SeqRank(Classifier):
             elif k.startswith(USERS):
                 self._user_index[k[len(USERS):]] = v
 
-            else:
-                raise ValueError("Not possible")
         self._item_catalog = np.array(list(self._rev_item_index.values()))
 
-    def fit(self, x, y, n_users=None, n_items=None):
+    def fit(self, x, y, dic=None, n_users=None, n_items=None):
         """
         Fit the underlying classifier.
         When called repeatedly, models fitting will resume from
@@ -152,6 +162,9 @@ class MF_SeqRank(Classifier):
             must be 1
         y: ndarray
             Target values for samples
+        dic: dict, optional
+            dic indicates the columns to vectorize
+            if training samples are in raw format.
         n_users: int, optional
             Total number of users. The model will have `n_users` rows.
             Default is None, `n_users` will be inferred from `x`.
@@ -165,9 +178,10 @@ class MF_SeqRank(Classifier):
         if x.shape[1] != 2:
             raise ValueError("x must have two columns: users and items cols")
 
-        dic = {USERS: 0, ITEMS: 1}
-
-        self._model.fit(x, y, dic=dic, n_users=n_users, n_items=n_items)
+        self._model.fit(x, y,
+                        dic=dic,
+                        n_users=n_users,
+                        n_items=n_items)
         self._init_dataset(x)
 
     def predict(self, x, top=10, b=0.5):
@@ -224,7 +238,10 @@ class MF_SeqRank(Classifier):
         x = self._model.x
         y = self._model.y
 
-        for k in range(1, top):
+        for k in tqdm(range(1, top),
+                      desc="Sequential Re-ranking",
+                      leave=False,
+                      disable=not self._verbose):
             values = self._compute_delta_f(x, y, k, b, rank, users)
 
             arg_max_per_user = np.argsort(values, 1)[:, -1].copy()

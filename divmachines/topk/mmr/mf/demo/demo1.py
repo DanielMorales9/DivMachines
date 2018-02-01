@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from divmachines.topk.mmr import MF_MMR
 from divmachines.logging import TrainingLogger as TLogger
 from divmachines.utility.helper import cartesian

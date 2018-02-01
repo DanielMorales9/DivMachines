@@ -29,7 +29,7 @@ model = FM_SeqRank(n_iter=120,
 x = interactions[:, :-1]
 y = interactions[:, -1]
 
-model.fit(x, y, n_users=n_users, n_items=n_items)
+model.fit(x, y, dic={'users': 0, 'items': 1}, n_users=n_users, n_items=n_items)
 
 users = np.unique(x[:, 0]).reshape(-1, 1)
 items = np.unique(x[:, 1:], axis=0)

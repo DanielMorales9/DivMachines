@@ -22,12 +22,14 @@ model = MF_SeqRank(n_iter=10,
                    n_factors=10,
                    learning_rate=1,
                    use_cuda=False,
+                   verbose=True,
                    logger=logger)
 
 x = interactions[:, :-1]
 y = interactions[:, -1]
 
-model.fit(x, y, n_users=n_users, n_items=n_items)
+model.fit(x, y, dic={'users': 0, 'items': 1},
+          n_users=n_users, n_items=n_items)
 
 plt.plot(logger.epochs, logger.losses)
 plt.show()

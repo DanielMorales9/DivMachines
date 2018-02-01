@@ -7,7 +7,7 @@ from divmachines.classifiers.mf import MF
 from divmachines.utility.helper import shape_for_mf, \
     _swap_k, index, re_index
 from divmachines.utility.torch import gpu
-
+from tqdm import tqdm
 
 ITEMS = 'items'
 USERS = 'users'
@@ -54,6 +54,12 @@ class MF_LFP(Classifier):
     n_jobs: int, optional
         Number of jobs for data loading.
         Default is 0, it means that the data loader runs in the main process.
+    pin_memory bool, optional:
+        If ``True``, the data loader will copy tensors
+        into CUDA pinned memory before returning them.
+    verbose: bool, optional:
+        If ``True``, it will print information about iterations.
+        Default False.
     """
 
     def __init__(self,
@@ -69,7 +75,9 @@ class MF_LFP(Classifier):
                  random_state=None,
                  use_cuda=False,
                  logger=None,
-                 n_jobs=0):
+                 n_jobs=0,
+                 pin_memory=False,
+                 verbose=False):
         self._model = model
         self._n_factors = n_factors
         self._sparse = sparse
@@ -83,6 +91,8 @@ class MF_LFP(Classifier):
         self._use_cuda = use_cuda
         self._logger = logger
         self._n_jobs = n_jobs
+        self._pin_memory = pin_memory
+        self._verbose = verbose
 
         self._initialized = False
 
@@ -122,7 +132,9 @@ class MF_LFP(Classifier):
                              random_state=self._random_state,
                              use_cuda=self._use_cuda,
                              logger=self._logger,
-                             n_jobs=self._n_jobs)
+                             n_jobs=self._n_jobs,
+                             verbose=self._verbose,
+                             pin_memory=self._pin_memory)
         elif not isinstance(self._model, MF):
             raise ValueError("Model must be an instance of "
                              "divmachines.classifiers.lfp.MF class")
@@ -231,7 +243,10 @@ class MF_LFP(Classifier):
         y = self._model.y
         var = self.torch_variance()
 
-        for k in range(1, top):
+        for k in tqdm(range(1, top),
+                      desc="Sequential Re-ranking",
+                      leave=False,
+                      disable=not self._verbose):
             values = self._compute_delta_f(x, y, k, b, var, rank, users)
 
             arg_max_per_user = np.argsort(values, 1)[:, -1].copy()
@@ -319,7 +334,10 @@ class MF_LFP(Classifier):
         self._var = np.zeros((self.n_users, self._n_factors),
                              dtype=np.float32)
 
-        for i, (u, g) in enumerate(pd.DataFrame(train).groupby(0)):
+        for i, (u, g) in tqdm(enumerate(pd.DataFrame(train).groupby(0)),
+                              desc="Var. Estimate",
+                              leave=False,
+                              disable=not self._verbose):
             user_profile = g.values[:, 1].astype(np.int64)
             upl = user_profile.shape[0]
             user_idx = Variable(gpu(torch.from_numpy(np.array([u])),

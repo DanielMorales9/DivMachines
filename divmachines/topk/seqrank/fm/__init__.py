@@ -1,7 +1,6 @@
 import torch
 import numpy as np
-from torch.autograd.variable import Variable
-from torch.nn import Embedding, Parameter
+from tqdm import tqdm
 from divmachines.classifiers import Classifier
 from divmachines.classifiers import FM
 from divmachines.utility.helper import index, \
@@ -48,6 +47,12 @@ class FM_SeqRank(Classifier):
     n_jobs: int, optional
         Number of jobs for data loading.
         Default is 0, it means that the data loader runs in the main process.
+    pin_memory bool, optional:
+        If ``True``, the data loader will copy tensors
+        into CUDA pinned memory before returning them.
+    verbose: bool, optional:
+        If ``True``, it will print information about iterations.
+        Default False.
     """
 
     def __init__(self,
@@ -63,7 +68,9 @@ class FM_SeqRank(Classifier):
                  random_state=None,
                  use_cuda=False,
                  logger=None,
-                 n_jobs=0):
+                 n_jobs=0,
+                 verbose=False,
+                 pin_memory=False):
         self._model = model
         self._n_factors = n_factors
         self._sparse = sparse
@@ -77,6 +84,8 @@ class FM_SeqRank(Classifier):
         self._use_cuda = use_cuda
         self._logger = logger
         self._n_jobs = n_jobs
+        self._pin_memory = pin_memory
+        self._verbose = verbose
 
         self._initialized = False
 
@@ -136,7 +145,9 @@ class FM_SeqRank(Classifier):
                              random_state=self._random_state,
                              use_cuda=self._use_cuda,
                              logger=self._logger,
-                             n_jobs=self._n_jobs)
+                             n_jobs=self._n_jobs,
+                             pin_memory=self._pin_memory,
+                             verbose=self._verbose)
         elif not isinstance(self._model, FM):
             raise ValueError("Model must be an instance of "
                              "divmachines.classifiers.FM class")
@@ -147,9 +158,7 @@ class FM_SeqRank(Classifier):
             if k.startswith(USERS):
                 self._user_index[k[len(USERS):]] = v
 
-    def fit(self,
-            x,
-            y,
+    def fit(self, x, y,
             dic=None,
             n_users=None,
             n_items=None,
@@ -188,7 +197,6 @@ class FM_SeqRank(Classifier):
                         n_users=n_users,
                         n_items=n_items,
                         lengths=lengths)
-        self._init_dataset(x)
 
     def predict(self, x, top=10, b=0.5):
         """
@@ -211,6 +219,7 @@ class FM_SeqRank(Classifier):
         topk: ndarray
             `top` items for each user supplied
         """
+        self._init_dataset(x)
 
         n_users = np.unique(x[:, 0]).shape[0]
         n_items = np.unique(x[:, 1]).shape[0]
@@ -226,13 +235,9 @@ class FM_SeqRank(Classifier):
 
         x = self.dataset.copy()
 
-        re_ranking = self._sequential_re_ranking(x,
-                                                 n_users,
-                                                 n_items,
-                                                 top,
-                                                 b,
-                                                 rank,
-                                                 items)
+        re_ranking = self._sequential_re_ranking(x, n_users,
+                                                 n_items, top,
+                                                 b, rank, items)
         return re_ranking
 
     def _sequential_re_ranking(self, x, n_users, n_items, top, b,
@@ -252,11 +257,12 @@ class FM_SeqRank(Classifier):
 
         v = self._model.v.data
 
-        for k in range(1, top):
+        for k in tqdm(range(1, top),
+                      desc="Sequential Re-ranking",
+                      leave=False,
+                      disable=not self._verbose):
 
             values = self._compute_delta_f(v, k, b, pred, x)
-            # TODO it may not work with GPUs
-            # TODO if GPU enabled, arg_max_per_user should go to gpu as well
             arg_max_per_user = np.argsort(values, 1)[:, -1].copy()
             _swap_k(arg_max_per_user, k, rank)
             _tensor_swap_k(arg_max_per_user, k, pred, multi=False)
@@ -277,7 +283,10 @@ class FM_SeqRank(Classifier):
                          dtype=np.float32)
 
         wk = 1 / (2 ** k)
-        for u in range(n_users):
+        for u in tqdm(range(n_users),
+                      desc="MMR Re-ranking",
+                      leave=False,
+                      disable=not self._verbose):
             prod = (x[u, :, :].squeeze()
                     .unsqueeze(-1).expand(n_items,
                                           self.n_features,
@@ -296,8 +305,10 @@ class FM_SeqRank(Classifier):
                      .expand(k, n_items - k, self._n_factors)
             term2 = t2.sum(2).sum(0)
             term2 = torch.mul(term2, 2)
-            delta[u, :] = torch.mul(term0[u, :] - torch.mul(term2, 2*b), wk).cpu().numpy()
+            delta[u, :] = torch.mul(term0[u, :] - torch.mul(term2, 2*b), wk)\
+                .cpu().numpy()
         return delta
+
         # dim (u, i, n, f) -> (u, i, f)
         # prod = (x.unsqueeze(-1).expand(n_users,
         #                                n_items,

@@ -28,12 +28,13 @@ print("Number of items: %s" % n_items)
 
 logger = TLogger()
 
-model = FM_LFP(n_iter=10,
+model = FM_LFP(n_iter=1,
                n_jobs=8,
                n_factors=10,
                batch_size=1000,
                learning_rate=.1,
-               use_cuda=True,
+               use_cuda=False,
+               verbose=True,
                logger=logger)
 
 interactions = train.values

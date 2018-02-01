@@ -32,16 +32,16 @@ model = FM_SeqRank(n_iter=1,
                    n_jobs=4,
                    n_factors=10,
                    learning_rate=.1,
-                   use_cuda=True,
+                   use_cuda=False,
+                   verbose=True,
                    logger=logger)
 
 interactions = train.values
 x = interactions[:, :-1]
 y = interactions[:, -1]
 
-model.fit(x, y, dic={'users':0, 'items':1}, n_users=n_users, n_items=n_items)
-plt.plot(logger.epochs, logger.losses)
-plt.show()
+model.fit(x, y, dic={'users': 0, 'items': 1},
+          n_users=n_users, n_items=n_items)
 users = np.unique(x[:10, 0]).reshape(-1, 1)
 items = np.unique(x[:, 1:], axis=0)
 values = cartesian2D(users, items)
@@ -50,3 +50,5 @@ table = np.zeros((users.shape[0], top+1), dtype=np.int)
 table[:, 0] = users[:, 0]
 table[:, 1:] = model.predict(values, top=top, b=1)
 print(table)
+plt.plot(logger.epochs, logger.losses)
+plt.show()

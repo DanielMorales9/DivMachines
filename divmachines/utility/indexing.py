@@ -136,7 +136,7 @@ def vectorize_interactions(interactions,
                            n_users=None,
                            n_items=None,
                            lengths=None):
-    # TODO not elegant
+    # TODO not elegant solution for passing maximum
     if dic is not None:
         vec_dic = dic.copy()
         keys = []

@@ -1,4 +1,3 @@
-# coding=utf-8
 import numpy as np
 import torch
 from torch import optim
@@ -10,6 +9,7 @@ from divmachines.models import SimpleMatrixFactorizationModel
 from divmachines.utility.torch import set_seed, gpu
 from torch.utils.data import DataLoader
 from .dataset import DenseDataset
+from tqdm import tqdm
 
 
 class MF(Classifier):
@@ -52,6 +52,12 @@ class MF(Classifier):
     n_jobs: int, optional
         Number of workers for data loading.
         Default is 0, it means that the data loader runs in the main process.
+    pin_memory bool, optional:
+        If ``True``, the data loader will copy tensors
+        into CUDA pinned memory before returning them.
+    verbose: bool, optional:
+        If ``True``, it will print information about iterations.
+        Default False.
     """
 
     def __init__(self,
@@ -67,7 +73,9 @@ class MF(Classifier):
                  random_state=None,
                  use_cuda=False,
                  logger=None,
-                 n_jobs=0):
+                 n_jobs=0,
+                 pin_memory=False,
+                 verbose=False):
 
         super(MF, self).__init__()
         self.n_factors = n_factors
@@ -86,6 +94,8 @@ class MF(Classifier):
         self._dataset = None
         self._optimizer = None
         self._initialized = False
+        self._pin_memory = pin_memory
+        self._disable = not verbose
 
         set_seed(self._random_state.randint(-10 ** 8, 10 ** 8),
                  cuda=self._use_cuda)
@@ -225,15 +235,22 @@ class MF(Classifier):
                              n_users=n_users,
                              n_items=n_items)
 
+        disable_batch = self._disable or self.batch_size is None
         loader = DataLoader(self._dataset,
                             shuffle=True,
                             batch_size=self.batch_size,
                             num_workers=self._n_jobs)
 
-        for epoch in range(self.iter):
+        for epoch in tqdm(range(self.iter),
+                          desc='Fitting',
+                          leave=False,
+                          disable=self._disable):
 
             for (mini_batch_num,
-                 (batch_data, batch_rating)) in enumerate(loader):
+                 (batch_data, batch_rating)) in tqdm(enumerate(loader),
+                                                     desc='Batches',
+                                                     leave=False,
+                                                     disable=disable_batch):
                 user_var = Variable(gpu(batch_data[:, 0], self._use_cuda))
                 item_var = Variable(gpu(batch_data[:, 1], self._use_cuda))
                 rating_var = Variable(gpu(batch_rating, self._use_cuda).float(),
@@ -275,6 +292,7 @@ class MF(Classifier):
         x = _prepare_for_prediction(x, 2)
 
         self._init_dataset(x)
+        disable_batch = self._disable or self.batch_size is None
         if self.batch_size is None:
             self.batch_size = len(self._dataset)
 
@@ -284,7 +302,10 @@ class MF(Classifier):
                             num_workers=self._n_jobs)
 
         out = np.zeros(len(x))
-        for i, batch_data in enumerate(loader):
+        for i, batch_data in tqdm(enumerate(loader),
+                                  leave=False,
+                                  desc="Prediction",
+                                  disable=disable_batch):
             user_var = Variable(gpu(batch_data[:, 0], self._use_cuda))
             item_var = Variable(gpu(batch_data[:, 1], self._use_cuda))
             out[(i*self.batch_size):((i+1)*self.batch_size)] = self._model(user_var, item_var) \

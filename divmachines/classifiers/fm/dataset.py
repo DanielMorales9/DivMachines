@@ -235,11 +235,8 @@ class SparseDataset(Dataset):
 
     @x.getter
     def x(self):
-        x = np.zeros((self._n_features, len(self)))
-
         for i in range(len(self)):
-            x[i, :] = self[i]
-        return x
+            yield self[i]
 
     def __call__(self, x, y=None):
         self._initialize(x, y, self._dic)
@@ -261,4 +258,3 @@ class SparseDataset(Dataset):
             raise IndexError('Index out of bound. '
                              'You may want to specify the number '
                              'of users and items.')
-
