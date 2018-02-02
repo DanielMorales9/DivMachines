@@ -98,7 +98,7 @@ class ParameterGrid(object):
         raise IndexError('ParameterGrid index out of range')
 
 
-class BaseSearchCV(metaclass=ABCMeta):
+class BaseSearchCV(metaclass = ABCMeta):
     """Base class for hyper parameter search with cross-validation."""
 
     @abstractmethod

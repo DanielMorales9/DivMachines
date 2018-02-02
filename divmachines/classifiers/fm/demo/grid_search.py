@@ -24,19 +24,18 @@ n_items = np.unique(train[["item"]].values).shape[0]
 print("Number of users: %s" % n_users)
 print("Number of items: %s" % n_items)
 
-model = FM(n_iter=10,
-           use_cuda=True)
+model = FM(verbose=True)
 
 interactions = train.values
 x = interactions[:, :-1]
 y = interactions[:, -1]
 
 gSearch = GridSearchCV(model,
-                       param_grid={"iter": [100, 1000], "learning_rate": [1], "l2": [0, 0.1, 0.2]},
+                       param_grid={"n_iter": [1000], "learning_rate": [1], "l2": [0, 0.1, 0.2]},
                        cv='kFold',
                        metrics='mean_square_error',
-                       verbose=10,
                        n_jobs=8,
+                       verbose=10,
                        return_train_score=True)
 
 gSearch.fit(x, y, fit_params={'dic':
