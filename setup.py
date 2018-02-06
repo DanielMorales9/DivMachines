@@ -1,7 +1,5 @@
-import numpy
 from setuptools import find_packages
 from distutils.core import setup
-from distutils.extension import Extension
 
 setup(name="divmachines",
       version="0.1",

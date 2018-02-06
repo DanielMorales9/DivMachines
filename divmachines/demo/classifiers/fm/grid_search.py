@@ -31,7 +31,7 @@ x = interactions[:, :-1]
 y = interactions[:, -1]
 
 gSearch = GridSearchCV(model,
-                       param_grid={"n_iter": [1000], "learning_rate": [1], "l2": [0, 0.1, 0.2]},
+                       param_grid={"n_iter": [10], "learning_rate": [1], "l2": [0, 0.1, 0.2]},
                        cv='kFold',
                        metrics='mean_square_error',
                        n_jobs=8,
@@ -42,5 +42,6 @@ gSearch.fit(x, y, fit_params={'dic':
                                   {'users': 0, 'items': 1},
                               'n_users': n_users,
                               'n_items': n_items})
-
-print(gSearch.get_scores(pretty=True))
+import json
+with open('./result.json', 'w') as fp:
+    json.dump(gSearch.get_scores(), fp)

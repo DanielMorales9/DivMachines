@@ -70,7 +70,8 @@ class FM(Classifier):
                  n_jobs=0,
                  shuffle=True,
                  pin_memory=False,
-                 verbose=False):
+                 verbose=False,
+                 sparse_num=0):
 
         super(FM, self).__init__()
         self.n_factors = n_factors
@@ -95,6 +96,7 @@ class FM(Classifier):
         self._shuffle = shuffle
         self._pin_memory = pin_memory
         self._disable = not verbose
+        self._sparse_num = sparse_num
 
         set_seed(self._random_state.randint(-10 ** 8, 10 ** 8),
                  cuda=self.use_cuda)
@@ -231,11 +233,15 @@ class FM(Classifier):
             else:
                 raise ValueError("Model must be an instance "
                                  "of FactorizationMachine")
-        else:
-            self._model = gpu(
+        elif torch.cuda.device_count() > 1:
+            self._model = torch.nn.DataParallel(gpu(
                 FactorizationMachine(self.n_features,
                                      self.n_factors),
-                self.use_cuda)
+                self.use_cuda))
+        else:
+            self._model = gpu(FactorizationMachine(self.n_features,
+                                                   self.n_factors),
+                              self.use_cuda)
 
     def fit(self,
             x,
@@ -295,6 +301,7 @@ class FM(Classifier):
                                                       desc='Batches',
                                                       leave=False,
                                                       disable=disable_batch):
+
                 batch_tensor = gpu(batch_tensor, self.use_cuda)
                 batch_ratings = gpu(batch_ratings, self.use_cuda)
 
@@ -320,39 +327,39 @@ class FM(Classifier):
                 # optimization step
                 self._optimizer.step()
 
-    def predict(self, x, **kwargs):
-        """
-        Make predictions: given a user id, compute the recommendation
-        scores for items.
-        Parameters
-        ----------
-        x: ndarray or :class:`divmachines.fm.dataset`
-            samples for which predict the ratings/rank score
-        Returns
-        -------
-        predictions: np.array
-            Predicted scores for each sample in x
-        """
-        self._model.train(False)
-        if len(x.shape) == 1:
-            x = np.array([x])
+def predict(self, x, **kwargs):
+    """
+    Make predictions: given a user id, compute the recommendation
+    scores for items.
+    Parameters
+    ----------
+    x: ndarray or :class:`divmachines.fm.dataset`
+        samples for which predict the ratings/rank score
+    Returns
+    -------
+    predictions: np.array
+        Predicted scores for each sample in x
+    """
+    self._model.train(False)
+    if len(x.shape) == 1:
+        x = np.array([x])
 
-        self._init_dataset(x)
-        disable_batch = self._disable or self.batch_size is None
-        if self.batch_size is None:
-            self.batch_size = len(self._dataset)
-        loader = DataLoader(self._dataset,
-                            batch_size=self.batch_size,
-                            shuffle=False,
-                            num_workers=self._n_jobs)
+    self._init_dataset(x)
+    disable_batch = self._disable or self.batch_size is None
+    if self.batch_size is None:
+        self.batch_size = len(self._dataset)
+    loader = DataLoader(self._dataset,
+                        batch_size=self.batch_size,
+                        shuffle=False,
+                        num_workers=self._n_jobs)
 
-        out = np.zeros(len(x))
-        for i, batch_data in tqdm(enumerate(loader),
-                                  desc="Prediction",
-                                  leave=False,
-                                  disable=disable_batch):
-            var = Variable(gpu(batch_data, self.use_cuda))
-            out[(i*self.batch_size):((i+1)*self.batch_size)] = \
-                cpu(self._model(var), self.use_cuda).data.numpy()
+    out = np.zeros(len(x))
+    for i, batch_data in tqdm(enumerate(loader),
+                              desc="Prediction",
+                              leave=False,
+                              disable=disable_batch):
+        var = Variable(gpu(batch_data, self.use_cuda))
+        out[(i*self.batch_size):((i+1)*self.batch_size)] = \
+            cpu(self._model(var), self.use_cuda).data.numpy()
 
-        return out.flatten()
+    return out.flatten()

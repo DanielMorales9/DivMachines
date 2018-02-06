@@ -189,10 +189,8 @@ def vectorize_interactions(interactions,
 
 
 def list2dic(data, rows, cols):
-    dic = defaultdict()
+    dic = defaultdict(lambda: [])
     for d, r, c in zip(data, rows, cols):
-        if dic.get(r, None) is None:
-            dic[r] = [[d, c]]
-        else:
-            dic[r].append([d, c])
+        dic[r].append([d, c])
     return dic
+

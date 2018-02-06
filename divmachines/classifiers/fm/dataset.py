@@ -228,7 +228,6 @@ class SparseDataset(Dataset):
     @property
     def x(self):
         x = np.zeros((self._n_features, len(self)))
-
         for i in range(len(self)):
             x[i, :] = self[i]
         return x
@@ -247,14 +246,9 @@ class SparseDataset(Dataset):
 
     def __getitem__(self, item):
         copy = self._zero.copy()
-        try:
-            for d, col in self._sparse_x[item]:
-                copy[col] = d
-            if self._y is None:
-                return copy
-            else:
-                return copy, self._y[item]
-        except IndexError:
-            raise IndexError('Index out of bound. '
-                             'You may want to specify the number '
-                             'of users and items.')
+        for d, col in self._sparse_x[item]:
+            copy[col] = d
+        if self._y is None:
+            return copy
+        else:
+            return copy, self._y[item]
