@@ -12,7 +12,6 @@ n_items = np.unique(train[["item"]].values).shape[0]
 model = FM(n_iter=20,
            batch_size=1000,
            learning_rate=1e-1,
-           sparse_num=1,
            sparse=True,
            n_jobs=2,
            logger=logger)
