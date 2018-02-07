@@ -161,16 +161,17 @@ class FM_LFP(Classifier):
             self._dense_variance_computation()
 
     def _sparse_variance_computation(self):
-        V = self._model.v.cpu().data.numpy().T
+        v = self._model.v.cpu().data.numpy().T
         Nu = np.zeros(self.n_users, dtype=np.int)
-        variance = np.zeros((self.n_users, self._n_factors), dtype=np.float32)
+        variance = np.zeros((self.n_users, self._n_factors),
+                            dtype=np.float32)
+
         for x, _ in self.dataset:
             u_idx = list(filter(lambda k: k < self.n_users, np.nonzero(x)[0]))[0]
-            user_factors = V[:, u_idx]
+            user_factors = v[:, u_idx]
             x[u_idx] = 0
             Nu[u_idx] += 1
-            variance[u_idx] += np.square(user_factors - V.dot(x))
-
+            variance[u_idx] += np.square(user_factors - v.dot(x))
         self._var = (variance.T * (1.0/Nu)).T
 
     def _dense_variance_computation(self):

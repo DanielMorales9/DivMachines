@@ -30,7 +30,7 @@ print("Number of items: %s" % n_items)
 
 logger = TLogger(batch=True)
 
-model = FM_LFP(n_iter=5,
+model = FM_LFP(n_iter=1,
                optimizer_func=Adam,
                n_jobs=8,
                n_factors=10,
