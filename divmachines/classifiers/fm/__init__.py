@@ -233,7 +233,7 @@ class FM(Classifier):
             else:
                 raise ValueError("Model must be an instance "
                                  "of FactorizationMachine")
-        elif torch.cuda.device_count() > 1:
+        elif self.use_cuda and torch.cuda.device_count() > 1:
             self._model = torch.nn.DataParallel(gpu(
                 FactorizationMachine(self.n_features,
                                      self.n_factors),

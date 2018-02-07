@@ -28,12 +28,13 @@ print("Number of items: %s" % n_items)
 
 logger = TLogger()
 
-model = FM_SeqRank(n_iter=1,
+model = FM_SeqRank(n_iter=10,
                    n_jobs=4,
                    n_factors=10,
                    learning_rate=.1,
                    use_cuda=False,
                    verbose=True,
+                   sparse=True,
                    logger=logger)
 
 interactions = train.values

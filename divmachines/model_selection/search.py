@@ -98,7 +98,7 @@ class ParameterGrid(object):
         raise IndexError('ParameterGrid index out of range')
 
 
-class BaseSearchCV(metaclass = ABCMeta):
+class BaseSearchCV(metaclass=ABCMeta):
     """Base class for hyper parameter search with cross-validation."""
 
     @abstractmethod
@@ -141,7 +141,8 @@ class BaseSearchCV(metaclass = ABCMeta):
         base_classifier = clone(self.classifier)
 
         scores = Parallel(
-            n_jobs=self.n_jobs, verbose=self.verbose,
+            n_jobs=self.n_jobs,
+            verbose=self.verbose,
             pre_dispatch=self.pre_dispatch
         )(delayed(fit_and_score)(clone(base_classifier),
                                  x,

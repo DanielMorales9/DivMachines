@@ -14,6 +14,7 @@ def cross_validate(classifier,
                    fit_params=None,
                    verbose=0,
                    n_jobs=1,
+                   parameters=None,
                    pre_dispatch='2*n_jobs',
                    return_train_score=False,
                    return_times=False):
@@ -43,6 +44,8 @@ def cross_validate(classifier,
     n_jobs: int or optional
         The number of CPUs to use to do the computation. -1 means
         'all CPUs'.
+    parameters : dict or None
+        Parameters to be set on the estimator.
     pre_dispatch: int, or string, optional
         Controls the number of jobs that get dispatched during parallel
         execution. Reducing this number can be useful to avoid an
@@ -102,11 +105,144 @@ def cross_validate(classifier,
                                fit_params,
                                train_idx,
                                test_idx,
-                               None,
+                               parameters,
                                verbose,
                                return_train_score=return_train_score,
                                return_times=return_times)
         for train_idx, test_idx in cv.split(x, y))
+
+    train_scores = []
+    test_scores = []
+    fit_times = []
+    score_times = []
+    for score in scores:
+        i = 0
+        if return_train_score:
+            train_scores.append(score[i])
+            i += 1
+        test_scores.append(score[i])
+        i += 1
+        if return_times:
+            fit_times.append(score[i])
+            score_times.append(score[i+1])
+
+    if return_train_score:
+        train_scores = _aggregate_score_dicts(train_scores)
+
+    test_scores = _aggregate_score_dicts(test_scores)
+
+    if return_times:
+        ret = {'fit_time': np.array(fit_times), 'score_time': np.array(score_times)}
+    else:
+        ret = {}
+
+    for name in test_scores.keys():
+        ret['test_%s' % name] = np.array(test_scores[name])
+        if return_train_score:
+            key = 'train_%s' % name
+            ret[key] = np.array(train_scores[name])
+
+    return ret
+
+
+def cross_validate_seq(classifier,
+                       x,
+                       y,
+                       metrics,
+                       cv="kFold",
+                       fit_params=None,
+                       verbose=0,
+                       parameters=None,
+                       return_train_score=False,
+                       return_times=False):
+    """
+    Cross validation function
+    Parameters
+    ----------
+    classifier: :class:`divmachines.classifiers.Classifier`
+        Classifier that has fit method.
+        In order to run classifiers in parallel make sure that
+        the n_jobs parameters in classifiers is 0.
+    x: ndarray
+        Training samples
+    y: ndarray
+        The target variable to try to predict in the case of
+        supervised learning.
+    cv: string, :class:`divmachines.validate`, optional
+        Determines the cross-validation splitting strategy.
+        Default strategy is KFold with 3 splits.
+        Consider to use Hold-Out cross-validation for models-based classifiers.
+        KFold will lead the classifiers to fail during prediction phase
+        because of the different parameter dimensions.
+    metrics: str, list, set, tuple
+        Metric to use in the cross validation phase
+    fit_params : dict, optional
+        Parameters to pass to the fit method of the estimator.
+    n_jobs: int or optional
+        The number of CPUs to use to do the computation. -1 means
+        'all CPUs'.
+    parameters : dict or None
+        Parameters to be set on the estimator.
+    pre_dispatch: int, or string, optional
+        Controls the number of jobs that get dispatched during parallel
+        execution. Reducing this number can be useful to avoid an
+        explosion of memory consumption when more jobs get dispatched
+        than CPUs can process. This parameter can be:
+            - None, in which case all the jobs are immediately
+              created and spawned. Use this for lightweight and
+              fast-running jobs, to avoid delays due to on-demand
+              spawning of the jobs
+            - An int, giving the exact number of total jobs that are
+              spawned
+            - A string, giving an expression as a function of n_jobs,
+              as in '2*n_jobs'
+    verbose: integer, optional
+        The verbosity level.
+    return_train_score: bool, optional
+        Whether to return train scores or not.
+        Default is False.
+    return_times: bool, optional
+        Whether to return times scores or not.
+        Default is False.
+    Returns
+    -------
+    scores : dict of float arrays of shape=(n_splits,)
+        Array of scores of the estimator for each run of the cross validation.
+        A dict of arrays containing the score/time arrays for each scorer is
+        returned. The possible keys for this ``dict`` are:
+            ``test_score``
+                The score array for test scores on each cv split.
+            ``train_score``
+                The score array for train scores on each cv split.
+                This is available only if ``return_train_score`` parameter
+                is ``True``.
+            ``fit_time``
+                The time for fitting the estimator on the train
+                set for each cv split.
+            ``score_time``
+                The time for scoring the estimator on the test set for each
+                cv split. (Note time for scoring on the train set is not
+                included even if ``return_train_score`` is set to ``True``
+
+    """
+
+    if metrics is None:
+        raise ValueError("Metrics must be provided")
+
+    cv = create_cross_validator(cv)
+
+    scores = [fit_and_score(clone(classifier),
+                            x,
+                            y,
+                            metrics,
+                            fit_params,
+                            train_idx,
+                            test_idx,
+                            parameters,
+                            verbose,
+                            return_train_score=return_train_score,
+                            return_times=return_times)
+              for train_idx, test_idx in cv.split(x, y)]
 
     train_scores = []
     test_scores = []

@@ -4,6 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from divmachines.logging import TrainingLogger as TLogger
 from divmachines.utility.helper import cartesian2D
+from torch.optim.adam import Adam
+
 
 DATASET_PATH = './../../../../../data/ua.base'
 GENRE_PATH = './../../../../../data/u.item'
@@ -26,15 +28,17 @@ n_items = np.unique(train[["item"]].values).shape[0]
 print("Number of users: %s" % n_users)
 print("Number of items: %s" % n_items)
 
-logger = TLogger()
+logger = TLogger(batch=True)
 
-model = FM_LFP(n_iter=1,
+model = FM_LFP(n_iter=5,
+               optimizer_func=Adam,
                n_jobs=8,
                n_factors=10,
-               batch_size=1000,
-               learning_rate=.1,
+               batch_size=100,
+               learning_rate=.001,
                use_cuda=False,
                verbose=True,
+               sparse=True,
                logger=logger)
 
 interactions = train.values
@@ -42,7 +46,16 @@ x = interactions[:, :-1]
 y = interactions[:, -1]
 
 model.fit(x, y, dic={'users': 0, 'items': 1}, n_users=n_users, n_items=n_items)
-plt.plot(logger.epochs, logger.losses)
+logs = pd.DataFrame()
+mm = max(logger.batches)
+logs['batch'] = logger.batches
+logs['epochs'] = logger.epochs
+logs['losses'] = logger.losses
+
+logs['epochs'] = logs['epochs']*mm + logs['batch']
+err = logs.values
+
+plt.plot(np.arange(err[:, 0].shape[0]), err[:, 2])
 plt.show()
 users = np.unique(x[:10, 0]).reshape(-1, 1)
 items = np.unique(x[:, 1:], axis=0)

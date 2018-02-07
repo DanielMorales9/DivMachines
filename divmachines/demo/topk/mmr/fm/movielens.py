@@ -33,6 +33,7 @@ model = FM_MMR(n_iter=10,
                n_factors=100,
                learning_rate=.1,
                use_cuda=False,
+               sparse=True,
                batch_size=1000,
                verbose=True,
                logger=logger)

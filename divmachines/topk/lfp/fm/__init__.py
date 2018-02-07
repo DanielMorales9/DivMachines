@@ -161,10 +161,17 @@ class FM_LFP(Classifier):
             self._dense_variance_computation()
 
     def _sparse_variance_computation(self):
+        V = self._model.v.cpu().data.numpy().T
+        Nu = np.zeros(self.n_users, dtype=np.int)
+        variance = np.zeros((self.n_users, self._n_factors), dtype=np.float32)
         for x, _ in self.dataset:
-            print(x)
-        raise NotImplementedError("Adding support for sparse "
-                                  "representation")
+            u_idx = list(filter(lambda k: k < self.n_users, np.nonzero(x)[0]))[0]
+            user_factors = V[:, u_idx]
+            x[u_idx] = 0
+            Nu[u_idx] += 1
+            variance[u_idx] += np.square(user_factors - V.dot(x))
+
+        self._var = (variance.T * (1.0/Nu)).T
 
     def _dense_variance_computation(self):
         x = self.dataset.copy()
@@ -275,7 +282,13 @@ class FM_LFP(Classifier):
         users = index(np.array([x[i, 0] for i in sorted(
             np.unique(x[:, 0], return_index=True)[1])]), self._user_index)
 
-        x = self.dataset.copy()
+        if self._sparse:
+            x = np.zeros((len(self._model._dataset), self.n_features),
+                         dtype=np.float32)
+            for i, xi in enumerate(self.dataset):
+                x[i, :] = xi
+        else:
+            x = self.dataset.copy()
 
         re_ranking = self._sequential_re_ranking(x, n_users, n_items, top,
                                                  b, rank, items, users)

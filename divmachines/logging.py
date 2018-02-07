@@ -74,7 +74,7 @@ class TrainingLogger(Logger):
         """
         if not self._batch:
             raise ValueError("Batch logging is disabled")
-        if self._batch is None:
+        if self._batch is not None:
             self._batches = [c for _, _, c in self._logs]
         return self._batches
 
@@ -104,4 +104,4 @@ class TrainingLogger(Logger):
             self._logs.append((loss, epoch))
 
     def flush(self):
-        self._logs = None
+        self._logs = []

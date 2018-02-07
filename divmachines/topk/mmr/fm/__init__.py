@@ -230,7 +230,13 @@ class FM_MMR(Classifier):
         items = np.array([x[i, 1] for i in sorted(
             np.unique(x[:, 1], return_index=True)[1])])
 
-        x = self.dataset.copy()
+        if self._sparse:
+            x = np.zeros((len(self._model._dataset), self.n_features),
+                         dtype=np.float32)
+            for i, xi in enumerate(self.dataset):
+                x[i, :] = xi
+        else:
+            x = self.dataset.copy()
 
         re_ranking = self._mmr(x, n_users, n_items, top, b, predictions, items)
         return re_ranking

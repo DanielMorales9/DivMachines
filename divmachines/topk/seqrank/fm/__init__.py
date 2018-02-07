@@ -233,7 +233,13 @@ class FM_SeqRank(Classifier):
         users = index(np.array([x[i, 0] for i in sorted(
             np.unique(x[:, 0], return_index=True)[1])]), self._user_index)
 
-        x = self.dataset.copy()
+        if self._sparse:
+            x = np.zeros((len(self._model._dataset), self.n_features),
+                         dtype=np.float32)
+            for i, xi in enumerate(self.dataset):
+                x[i, :] = xi
+        else:
+            x = self.dataset.copy()
 
         re_ranking = self._sequential_re_ranking(x, n_users,
                                                  n_items, top,
