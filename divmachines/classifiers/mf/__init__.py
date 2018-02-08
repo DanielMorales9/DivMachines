@@ -79,7 +79,7 @@ class MF(Classifier):
                  n_jobs=0,
                  pin_memory=False,
                  verbose=False,
-                 save_path=None):
+                 early_stopping=None):
 
         super(MF, self).__init__()
         self.n_factors = n_factors
@@ -90,7 +90,7 @@ class MF(Classifier):
         self._model = model
         self._sparse = sparse
         self._random_state = random_state or np.random.RandomState()
-        self._use_cuda = use_cuda
+        self.use_cuda = use_cuda
         self._n_jobs = n_jobs
         self._optimizer_func = optimizer_func
         self._loss_func = loss or torch.nn.MSELoss()
@@ -100,10 +100,10 @@ class MF(Classifier):
         self._initialized = False
         self._pin_memory = pin_memory
         self._disable = not verbose
-        self._save_path = save_path
+        self._early_stopping = early_stopping
 
         set_seed(self._random_state.randint(-10 ** 8, 10 ** 8),
-                 cuda=self._use_cuda)
+                 cuda=self.use_cuda)
 
     @property
     def n_users(self):
@@ -170,6 +170,12 @@ class MF(Classifier):
                       dic=None,
                       n_users=None,
                       n_items=None):
+        ix = None
+        if isinstance(self._model, str):
+            dic = torch.load(self._model)['dic']
+            n_users = torch.load(self._model)['n_users']
+            n_items = torch.load(self._model)['n_items']
+            ix = torch.load(self._model)['ix']
         if type(x).__module__ == np.__name__:
             if y is None or type(x).__module__ == np.__name__:
                 if self._dataset is not None:
@@ -179,7 +185,8 @@ class MF(Classifier):
                                                  y=y,
                                                  dic=dic,
                                                  n_users=n_users,
-                                                 n_items=n_items)
+                                                 n_items=n_items,
+                                                 ix=ix)
         else:
             raise TypeError("Training set must be of type dataset or of type ndarray")
 
@@ -197,18 +204,33 @@ class MF(Classifier):
 
     def _init_model(self):
         if self._model is not None:
-            if issubclass(self._model, torch.nn.Module):
-                self._model = gpu(self._model, self._use_cuda)
+            if isinstance(self._model, str):
+                model_dict = torch.load(self._model)
+                sparse = model_dict["sparse"]
+                n_factors = model_dict["n_factors"]
+                n_items = model_dict["n_items"]
+                n_users = model_dict["n_users"]
+                self._model = SimpleMatrixFactorizationModel(
+                    n_users,
+                    n_items,
+                    n_factors,
+                    sparse)
+                self._model.load_state_dict(model_dict['state_dict'])
+            elif issubclass(self._model, torch.nn.Module):
+                self._model = gpu(self._model, self.use_cuda)
             else:
                 raise ValueError("Model must be an instance of "
                                  "torch.nn.Module class")
-
         else:
-            self._model = gpu(SimpleMatrixFactorizationModel(self.n_users,
-                                                             self.n_items,
-                                                             self.n_factors,
-                                                             self._sparse),
-                              self._use_cuda)
+            self._model = SimpleMatrixFactorizationModel(self.n_users,
+                                                         self.n_items,
+                                                         self.n_factors,
+                                                         self._sparse)
+        if self.use_cuda and torch.cuda.device_count() > 1:
+            self._model = torch.nn.DataParallel(gpu(self._model,
+                                                    self.use_cuda))
+        else:
+            self._model = gpu(self._model, self.use_cuda)
 
     def fit(self, x, y, dic=None, n_users=None, n_items=None):
         """
@@ -256,9 +278,9 @@ class MF(Classifier):
                                                      desc='Batches',
                                                      leave=False,
                                                      disable=disable_batch):
-                user_var = Variable(gpu(batch_data[:, 0], self._use_cuda))
-                item_var = Variable(gpu(batch_data[:, 1], self._use_cuda))
-                rating_var = Variable(gpu(batch_rating, self._use_cuda).float(),
+                user_var = Variable(gpu(batch_data[:, 0], self.use_cuda))
+                item_var = Variable(gpu(batch_data[:, 1], self.use_cuda))
+                rating_var = Variable(gpu(batch_rating, self.use_cuda).float(),
                                       requires_grad=False)
 
                 # forward step
@@ -270,7 +292,7 @@ class MF(Classifier):
                 # Compute Loss
                 loss = self._loss_func(predictions, rating_var)
 
-                self._logger.log(loss, epoch=epoch, batch=mini_batch_num, cpu=self._use_cuda)
+                self._logger.log(loss, epoch=epoch, batch=mini_batch_num, cpu=self.use_cuda)
 
                 # backward step
                 loss.backward()
@@ -278,12 +300,25 @@ class MF(Classifier):
                 # optimization step
                 self._optimizer.step()
 
-        if self._save_path:
-                self._save()
+        if self._early_stopping:
+            self._prepare(dic)
 
-    def _save(self):
-        torch.save(self._model.state_dict(),
-                   self._save_path)
+    def _prepare(self, dic):
+        idx = None
+        if self._dataset.index:
+            idx = {}
+            for k, v in self._dataset.index.items():
+                idx[k] = v
+        self.dump = {'state_dict': self._model.state_dict(),
+                     'sparse': self._sparse,
+                     'n_factors': self.n_factors,
+                     'dic': dic,
+                     'n_users': self.n_users,
+                     'n_items': self.n_items,
+                     'ix': idx}
+
+    def save(self, path):
+        torch.save(self.dump, path)
 
     def predict(self, x, **kwargs):
         """
@@ -299,11 +334,13 @@ class MF(Classifier):
             Predicted scores for all elements
         """
 
-        self._model.train(False)
-
         x = _prepare_for_prediction(x, 2)
 
-        self._init_dataset(x)
+        if isinstance(self._model, str):
+            self._initialize(x)
+        else:
+            self._init_dataset(x)
+
         disable_batch = self._disable or self.batch_size is None
         if self.batch_size is None:
             self.batch_size = len(self._dataset)
@@ -318,10 +355,10 @@ class MF(Classifier):
                                   leave=False,
                                   desc="Prediction",
                                   disable=disable_batch):
-            user_var = Variable(gpu(batch_data[:, 0], self._use_cuda))
-            item_var = Variable(gpu(batch_data[:, 1], self._use_cuda))
+            user_var = Variable(gpu(batch_data[:, 0], self.use_cuda))
+            item_var = Variable(gpu(batch_data[:, 1], self.use_cuda))
             out[(i*self.batch_size):((i+1)*self.batch_size)] = self._model(user_var, item_var) \
                 .cpu().data.numpy()
 
         return out.flatten()
-# TODO add save API
+#TODO add save API

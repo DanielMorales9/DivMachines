@@ -27,9 +27,10 @@ class DenseDataset(Dataset):
                  y=None,
                  dic=None,
                  n_users=None,
-                 n_items=None):
+                 n_items=None,
+                 ix=None):
         super(Dataset, self).__init__()
-        self._ix = None
+        self._ix = ix
         self._n_users = n_users
         self._n_items = n_items
         self._initialize(x, y, dic)
@@ -48,14 +49,8 @@ class DenseDataset(Dataset):
         users = len(np.unique(self._x[:, 0]))
         items = len(np.unique(self._x[:, 1]))
 
-        if self._n_users is None and self._n_items is None:
-            self._n_users = users
-            self._n_items = items
-        if self._n_users < users or self._n_items < items:
-            raise ValueError("Number of users or items provided is "
-                             "lower than the one detected")
-        self._n_users = self._n_users if self._n_users > users else users
-        self._n_items = self._n_items if self._n_items > items else items
+        self._n_users = self._n_users if self._n_users is not None else users
+        self._n_items = self._n_items if self._n_items is not None else items
         self._y = y
 
     @property

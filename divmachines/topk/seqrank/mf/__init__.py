@@ -134,7 +134,7 @@ class MF_SeqRank(Classifier):
                              n_jobs=self._n_jobs,
                              pin_memory=self._pin_memory,
                              verbose=self._verbose,
-                             save_path=self._save_path)
+                             early_stopping=self._save_path)
         elif not isinstance(self._model, MF):
             raise ValueError("Model must be an instance of "
                              "divmachines.classifiers.lfp.MF class")

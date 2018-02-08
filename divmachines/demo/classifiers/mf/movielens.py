@@ -15,12 +15,13 @@ train = pd.read_csv('../../../../data/ua.base', delimiter='\t', names=cols)
 
 logger = TLogger()
 
-model = MF(n_iter=10,
+model = MF(n_iter=1,
            n_jobs=8,
-           batch_size=100,
+           batch_size=1000,
            learning_rate=0.60653066,
            use_cuda=False,
            logger=logger,
+           early_stopping=True,
            verbose=True)
 
 interactions = train[['user', 'item', 'rating']].values
@@ -39,6 +40,18 @@ model.fit(x,
           dic={'users': 0, 'items': 1})
 
 print(model.predict(x))
+model.save("./time.pth.tar")
 
+model = MF(n_iter=1,
+           n_jobs=8,
+           batch_size=1000,
+           learning_rate=0.60653066,
+           use_cuda=False,
+           logger=logger,
+           early_stopping=True,
+           model="./time.pth.tar",
+           verbose=True)
+
+print(model.predict(x))
 plt.plot(logger.epochs, logger.losses)
 plt.show()
