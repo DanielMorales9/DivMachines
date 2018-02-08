@@ -85,7 +85,6 @@ class MF_MMR(Classifier):
         self._n_jobs = n_jobs
         self._pin_memory = pin_memory
         self._verbose = verbose
-        self._initialized = False
         self._early_stopping = early_stopping
 
     @property
@@ -189,8 +188,7 @@ class MF_MMR(Classifier):
             Total number of items. The model will have `n_items` columns.
             Default is None, `n_items` will be inferred from `x`.
         """
-        if not self._initialized:
-            self._initialize()
+        self._initialize()
 
         if x.shape[1] != 2:
             raise ValueError("x must have two columns: users and items cols")

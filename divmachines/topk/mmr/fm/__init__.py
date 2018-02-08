@@ -84,7 +84,6 @@ class FM_MMR(Classifier):
         self._n_jobs = n_jobs
         self._pin_memory = pin_memory
         self._verbose = verbose
-        self._initialized = False
         self._early_stopping = early_stopping
 
     @property
@@ -206,8 +205,7 @@ class FM_MMR(Classifier):
             Dictionary of lengths of each feature in dic except for
             users and items.
         """
-        if not self._initialized:
-            self._initialize()
+        self._initialize()
 
         self._model.fit(x, y, dic=dic,
                         n_users=n_users,

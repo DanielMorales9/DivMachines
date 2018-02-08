@@ -97,7 +97,6 @@ class MF(Classifier):
         self._logger = logger or Logger()
         self._dataset = None
         self._optimizer = None
-        self._initialized = False
         self._pin_memory = pin_memory
         self._disable = not verbose
         self._early_stopping = early_stopping
@@ -162,7 +161,6 @@ class MF(Classifier):
 
         self._init_optim_fun()
 
-        self._initialized = True
 
     def _init_dataset(self,
                       x,
@@ -255,12 +253,9 @@ class MF(Classifier):
             Default is None, `n_items` will be inferred from `x`.
         """
 
-        if not self._initialized:
-            self._initialize(x,
-                             y=y,
-                             dic=dic,
-                             n_users=n_users,
-                             n_items=n_items)
+        self._initialize(x, y=y, dic=dic,
+                         n_users=n_users,
+                         n_items=n_items)
 
         disable_batch = self._disable or self.batch_size is None
         loader = DataLoader(self._dataset,

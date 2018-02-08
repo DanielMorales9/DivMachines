@@ -95,7 +95,6 @@ class FM(Classifier):
         self._optimizer = None
         self._dataset = None
         self._sparse = sparse
-        self._initialized = False
         self._n_items = None
         self._n_users = None
         self._shuffle = shuffle
@@ -298,13 +297,10 @@ class FM(Classifier):
             users and items.
         """
 
-        if not self._initialized:
-            self._initialize(x,
-                             y=y,
-                             dic=dic,
-                             n_users=n_users,
-                             n_items=n_items,
-                             lengths=lengths)
+        self._initialize(x, y=y, dic=dic,
+                         n_users=n_users,
+                         n_items=n_items,
+                         lengths=lengths)
 
         disable_batch = self._disable or self.batch_size is None
 
