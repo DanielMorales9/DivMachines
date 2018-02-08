@@ -18,10 +18,10 @@ class MF_SeqRank(Classifier):
     Seq Rank for Matrix Factorization Model
     with MF-Correlation
 
-    Parameters
+        Parameters
     ----------
-    model: classifier, optional
-        An instance of `divmachines.classifier.lfp.MF`.
+    model: classifier, str or optional
+        An instance of `divmachines.classifier.lfp.FM`.
         Default is None
     n_factors: int, optional
         Number of factors to use in user and item latent factors
@@ -50,14 +50,9 @@ class MF_SeqRank(Classifier):
     n_jobs: int, optional
         Number of jobs for data loading.
         Default is 0, it means that the data loader runs in the main process.
-    pin_memory bool, optional:
-        If ``True``, the data loader will copy tensors
-        into CUDA pinned memory before returning them.
-    verbose: bool, optional:
-        If ``True``, it will print information about iterations.
+    early_stopping: bool, optional
+        Performs a dump every time to enable early stopping.
         Default False.
-    save_path: string, optional
-        Path name to save the model. Default None.
     """
 
     def __init__(self,
@@ -73,10 +68,10 @@ class MF_SeqRank(Classifier):
                  random_state=None,
                  use_cuda=False,
                  logger=None,
+                 n_jobs=0,
                  pin_memory=False,
                  verbose=False,
-                 n_jobs=0,
-                 save_path=None):
+                 early_stopping=False):
         self._model = model
         self._n_factors = n_factors
         self._sparse = sparse
@@ -92,8 +87,8 @@ class MF_SeqRank(Classifier):
         self._n_jobs = n_jobs
         self._pin_memory = pin_memory
         self._verbose = verbose
-        self._save_path = save_path
         self._initialized = False
+        self._early_stopping = early_stopping
 
     @property
     def n_users(self):
@@ -134,10 +129,27 @@ class MF_SeqRank(Classifier):
                              n_jobs=self._n_jobs,
                              pin_memory=self._pin_memory,
                              verbose=self._verbose,
-                             early_stopping=self._save_path)
+                             early_stopping=self._early_stopping)
+        elif isinstance(self._model, str):
+            self._model = MF(model=self._model,
+                             n_factors=self._n_factors,
+                             sparse=self._sparse,
+                             n_iter=self._n_iter,
+                             loss=self._loss,
+                             l2=self._l2,
+                             learning_rate=self._learning_rate,
+                             optimizer_func=self._optimizer_func,
+                             batch_size=self._batch_size,
+                             random_state=self._random_state,
+                             use_cuda=self._use_cuda,
+                             logger=self._logger,
+                             n_jobs=self._n_jobs,
+                             pin_memory=self._pin_memory,
+                             verbose=self._verbose,
+                             early_stopping=self._early_stopping)
         elif not isinstance(self._model, MF):
             raise ValueError("Model must be an instance of "
-                             "divmachines.classifiers.lfp.MF class")
+                             "divmachines.classifiers.FM class")
 
     def _init_dataset(self, x):
         self._rev_item_index = {}
@@ -149,8 +161,6 @@ class MF_SeqRank(Classifier):
                 self._item_index[k[len(ITEMS):]] = v
             elif k.startswith(USERS):
                 self._user_index[k[len(USERS):]] = v
-
-        self._item_catalog = np.array(list(self._rev_item_index.values()))
 
     def fit(self, x, y, dic=None, n_users=None, n_items=None):
         """
@@ -187,6 +197,15 @@ class MF_SeqRank(Classifier):
                         n_users=n_users,
                         n_items=n_items)
         self._init_dataset(x)
+        if self._early_stopping:
+            self._prepare()
+
+    def _prepare(self):
+        dump = self._model.dump
+        self.dump = dump
+
+    def save(self, path):
+        torch.save(self.dump, path)
 
     def predict(self, x, top=10, b=0.5):
         """
@@ -211,19 +230,22 @@ class MF_SeqRank(Classifier):
             `top` items for each user supplied
         """
 
-        n_items, n_users, test, update_dataset = \
-            shape_for_mf(self._item_catalog, x)
+        load = isinstance(self._model, str)
+        if load:
+            self._initialize()
+
+        n_users = np.unique(x[:, 0]).shape[0]
+        n_items = np.unique(x[:, 1]).shape[0]
 
         try:
-            rank = self._model.predict(test).reshape(n_users, n_items)
+            rank = self._model.predict(x).reshape(n_users, n_items)
         except ValueError:
             raise ValueError("You may want to provide for each user "
                              "the item catalog as transaction matrix.")
 
         # Rev-indexes and other data structures are updated
         # if new items and new users are provided.
-        if update_dataset:
-            self._init_dataset(x)
+        self._init_dataset(x)
 
         users = index(np.array([x[i, 0] for i in sorted(
             np.unique(x[:, 0], return_index=True)[1])]), self._user_index)
@@ -299,5 +321,4 @@ def index_dataset(x, idx0, idx1):
     user_profile[:, 0] = users
     user_profile[:, 1] = items
     return user_profile
-# TODO add save API
 

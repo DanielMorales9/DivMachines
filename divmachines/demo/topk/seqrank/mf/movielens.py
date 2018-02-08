@@ -23,7 +23,8 @@ model = MF_SeqRank(n_iter=10,
                    learning_rate=1,
                    use_cuda=False,
                    verbose=True,
-                   logger=logger)
+                   logger=logger,
+                   early_stopping=True)
 
 x = interactions[:, :-1]
 y = interactions[:, -1]
@@ -31,8 +32,6 @@ y = interactions[:, -1]
 model.fit(x, y, dic={'users': 0, 'items': 1},
           n_users=n_users, n_items=n_items)
 
-plt.plot(logger.epochs, logger.losses)
-plt.show()
 users = np.unique(x[:, 0])
 values = cartesian(users, np.unique(x[:, 1]))
 
@@ -40,3 +39,26 @@ table = np.zeros((users.shape[0], 6), dtype=np.int)
 table[:, 0] = users
 table[:, 1:] = model.predict(values, top=5)
 print(table)
+
+
+model.save("./saveme.pth.tar")
+
+model = MF_SeqRank(n_iter=10,
+                   n_jobs=8,
+                   model="./saveme.pth.tar",
+                   n_factors=10,
+                   learning_rate=1,
+                   use_cuda=False,
+                   verbose=True,
+                   logger=logger,
+                   early_stopping=True)
+users = np.unique(x[:, 0])
+values = cartesian(users, np.unique(x[:, 1]))
+
+table = np.zeros((users.shape[0], 6), dtype=np.int)
+table[:, 0] = users
+table[:, 1:] = model.predict(values, top=5)
+print(table)
+
+plt.plot(logger.epochs, logger.losses)
+plt.show()

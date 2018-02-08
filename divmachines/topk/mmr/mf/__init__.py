@@ -305,4 +305,3 @@ class MF_MMR(Classifier):
         corr = (e_ranked * e_unranked).sum(3)
 
         return corr.cpu().data.numpy()
-# TODO add save API
