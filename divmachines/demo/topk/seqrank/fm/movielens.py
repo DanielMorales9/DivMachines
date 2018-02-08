@@ -28,14 +28,15 @@ print("Number of items: %s" % n_items)
 
 logger = TLogger()
 
-model = FM_SeqRank(n_iter=10,
+model = FM_SeqRank(n_iter=1,
                    n_jobs=4,
                    n_factors=10,
                    learning_rate=.1,
                    use_cuda=False,
                    verbose=True,
                    sparse=True,
-                   logger=logger)
+                   logger=logger,
+                   early_stopping=True)
 
 interactions = train.values
 x = interactions[:, :-1]
@@ -43,6 +44,19 @@ y = interactions[:, -1]
 
 model.fit(x, y, dic={'users': 0, 'items': 1},
           n_users=n_users, n_items=n_items)
+
+model.save("./saveme.pth.tar")
+
+model = FM_SeqRank(n_iter=10,
+                   n_jobs=4,
+                   n_factors=10,
+                   learning_rate=.1,
+                   use_cuda=False,
+                   verbose=True,
+                   sparse=True,
+                   logger=logger,
+                   model="./saveme.pth.tar")
+
 users = np.unique(x[:10, 0]).reshape(-1, 1)
 items = np.unique(x[:, 1:], axis=0)
 values = cartesian2D(users, items)

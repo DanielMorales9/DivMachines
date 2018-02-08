@@ -17,8 +17,8 @@ class FM_MMR(Classifier):
 
     Parameters
     ----------
-    model: classifier, optional
-        An instance of `divmachines.classifier.lfp.MF`.
+    model: classifier, str or optional
+        An instance of `divmachines.classifier.lfp.FM`.
         Default is None
     n_factors: int, optional
         Number of factors to use in user and item latent factors
@@ -47,11 +47,8 @@ class FM_MMR(Classifier):
     n_jobs: int, optional
         Number of jobs for data loading.
         Default is 0, it means that the data loader runs in the main process.
-    pin_memory bool, optional:
-        If ``True``, the data loader will copy tensors
-        into CUDA pinned memory before returning them.
-    verbose: bool, optional:
-        If ``True``, it will print information about iterations.
+    early_stopping: bool, optional
+        Performs a dump every time to enable early stopping.
         Default False.
     """
 
@@ -70,7 +67,8 @@ class FM_MMR(Classifier):
                  logger=None,
                  n_jobs=0,
                  pin_memory=False,
-                 verbose=False):
+                 verbose=False,
+                 early_stopping=False):
         self._model = model
         self._n_factors = n_factors
         self._sparse = sparse
@@ -86,8 +84,8 @@ class FM_MMR(Classifier):
         self._n_jobs = n_jobs
         self._pin_memory = pin_memory
         self._verbose = verbose
-
         self._initialized = False
+        self._early_stopping = early_stopping
 
     @property
     def n_users(self):
@@ -147,7 +145,25 @@ class FM_MMR(Classifier):
                              logger=self._logger,
                              n_jobs=self._n_jobs,
                              pin_memory=self._pin_memory,
-                             verbose=self._verbose)
+                             verbose=self._verbose,
+                             early_stopping=self._early_stopping)
+        elif isinstance(self._model, str):
+            self._model = FM(model=self._model,
+                             n_factors=self._n_factors,
+                             sparse=self._sparse,
+                             n_iter=self._n_iter,
+                             loss=self._loss,
+                             l2=self._l2,
+                             learning_rate=self._learning_rate,
+                             optimizer_func=self._optimizer_func,
+                             batch_size=self._batch_size,
+                             random_state=self._random_state,
+                             use_cuda=self._use_cuda,
+                             logger=self._logger,
+                             n_jobs=self._n_jobs,
+                             pin_memory=self._pin_memory,
+                             verbose=self._verbose,
+                             early_stopping=self._early_stopping)
         elif not isinstance(self._model, FM):
             raise ValueError("Model must be an instance of "
                              "divmachines.classifiers.FM class")
@@ -198,6 +214,16 @@ class FM_MMR(Classifier):
                         n_items=n_items,
                         lengths=lengths)
 
+        if self._early_stopping:
+            self._prepare()
+
+    def _prepare(self):
+        dump = self._model.dump
+        self.dump = dump
+
+    def save(self, path):
+        torch.save(self.dump, path)
+
     def predict(self, x, top=10, b=0.5):
         """
         Predicts
@@ -219,13 +245,16 @@ class FM_MMR(Classifier):
         topk: ndarray
             `top` items for each user supplied
         """
-        self._init_dataset(x)
         n_users = np.unique(x[:, 0]).shape[0]
         n_items = np.unique(x[:, 1]).shape[0]
+        if isinstance(self._model, str):
+            self._initialize()
 
         # prediction of the relevance of all the item catalog
         # for the users supplied
         predictions = self._model.predict(x).reshape(n_users, n_items)
+
+        self._init_dataset(x)
 
         items = np.array([x[i, 1] for i in sorted(
             np.unique(x[:, 1], return_index=True)[1])])

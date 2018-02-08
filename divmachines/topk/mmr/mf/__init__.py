@@ -48,6 +48,8 @@ class MF_MMR(Classifier):
     n_jobs: int, optional
         Number of jobs for data loading.
         Default is 0, it means that the data loader runs in the main process.
+    save_path: string, optional
+        Path name to save the model. Default None.
     """
 
     def __init__(self,
@@ -65,7 +67,8 @@ class MF_MMR(Classifier):
                  logger=None,
                  verbose=False,
                  pin_memory=False,
-                 n_jobs=0):
+                 n_jobs=0,
+                 save_path=None):
         self._model = model
         self._n_factors = n_factors
         self._sparse = sparse
@@ -81,7 +84,7 @@ class MF_MMR(Classifier):
         self._n_jobs = n_jobs
         self._verbose = verbose
         self._pin_memory = pin_memory
-
+        self._save_path = save_path
         self._initialized = False
 
     @property
@@ -122,7 +125,8 @@ class MF_MMR(Classifier):
                              logger=self._logger,
                              n_jobs=self._n_jobs,
                              pin_memory=self._pin_memory,
-                             verbose=self._verbose)
+                             verbose=self._verbose,
+                             save_path=self._save_path)
         elif not isinstance(self._model, MF):
             raise ValueError("Model must be an instance of "
                              "divmachines.classifiers.lfp.MF class")
@@ -270,3 +274,4 @@ class MF_MMR(Classifier):
         corr = (e_ranked * e_unranked).sum(3)
 
         return corr.cpu().data.numpy()
+# TODO add save API

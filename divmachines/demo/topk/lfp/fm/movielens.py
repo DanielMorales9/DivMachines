@@ -16,7 +16,7 @@ header = "item | movie_title | release_date | video_release_date | " \
          "Musical | Mystery | Romance | Sci-Fi | Thriller | War | Western "
 header = header.replace(" |", "")
 header = header.split()
-items = pd.read_csv(GENRE_PATH, sep="|", names=header, encoding='iso-8859-2')
+items = pd.read_csv(GENRE_PATH, sep="|", names=header, encoding='iso-8859-2').sample(1000)
 proj = ['user', 'item']
 proj.extend(header[5:])
 proj.append('rating')
@@ -39,24 +39,29 @@ model = FM_LFP(n_iter=1,
                use_cuda=False,
                verbose=True,
                sparse=True,
-               logger=logger)
+               logger=logger,
+               early_stopping=True)
 
 interactions = train.values
 x = interactions[:, :-1]
 y = interactions[:, -1]
 
 model.fit(x, y, dic={'users': 0, 'items': 1}, n_users=n_users, n_items=n_items)
-logs = pd.DataFrame()
-mm = max(logger.batches)
-logs['batch'] = logger.batches
-logs['epochs'] = logger.epochs
-logs['losses'] = logger.losses
 
-logs['epochs'] = logs['epochs']*mm + logs['batch']
-err = logs.values
+model.save("./saveme.pth.tar")
 
-plt.plot(np.arange(err[:, 0].shape[0]), err[:, 2])
-plt.show()
+model = FM_LFP(n_iter=1,
+               model="./saveme.pth.tar",
+               optimizer_func=Adam,
+               n_jobs=8,
+               n_factors=10,
+               learning_rate=.001,
+               use_cuda=False,
+               verbose=True,
+               sparse=True,
+               logger=logger)
+
+
 users = np.unique(x[:10, 0]).reshape(-1, 1)
 items = np.unique(x[:, 1:], axis=0)
 values = cartesian2D(users, items)

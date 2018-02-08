@@ -19,8 +19,9 @@ class FM(Classifier):
     ----------
     n_factors: int, optional
         Number of factors to use in user and item latent factors
-    model: :class: div.machines.models, optional
-        A matrix Factorization models
+    model: :class: div.machines.models, string, optional
+        A Factorization Machine model or
+        the pathname of the saved model. Default None
     sparse: boolean, optional
         Use sparse dataset
     loss: function, optional
@@ -52,6 +53,9 @@ class FM(Classifier):
     verbose: bool, optional:
         If ``True``, it will print information about iterations.
         Default False.
+    early_stopping: bool, optional
+        Performs a dump every time to enable early stopping.
+        Default False.
     """
 
     def __init__(self,
@@ -71,7 +75,8 @@ class FM(Classifier):
                  shuffle=True,
                  pin_memory=False,
                  verbose=False,
-                 sparse_num=0):
+                 sparse_num=0,
+                 early_stopping=True):
 
         super(FM, self).__init__()
         self.n_factors = n_factors
@@ -97,6 +102,7 @@ class FM(Classifier):
         self._pin_memory = pin_memory
         self._disable = not verbose
         self._sparse_num = sparse_num
+        self._early_stopping = early_stopping
 
         set_seed(self._random_state.randint(-10 ** 8, 10 ** 8),
                  cuda=self.use_cuda)
@@ -191,8 +197,17 @@ class FM(Classifier):
                       n_users=None,
                       n_items=None,
                       lengths=None):
+        ix = None
+        if isinstance(self._model, str):
+            dic = torch.load(self._model)['dic']
+            n_users = torch.load(self._model)['n_users']
+            n_items = torch.load(self._model)['n_items']
+            lengths = torch.load(self._model)['lengths']
+            ix = torch.load(self._model)['ix']
+
         if type(x).__module__ == np.__name__:
             if y is None or type(x).__module__ == np.__name__:
+
                 if self._dataset is not None:
                     self._dataset = self._dataset(x, y=y)
                 elif self._sparse:
@@ -201,14 +216,17 @@ class FM(Classifier):
                                                   dic=dic,
                                                   n_users=n_users,
                                                   n_items=n_items,
-                                                  lengths=lengths)
+                                                  lengths=lengths,
+                                                  ix=ix)
                 else:
                     self._dataset = DenseDataset(x,
                                                  y=y,
                                                  dic=dic,
                                                  n_users=n_users,
                                                  n_items=n_items,
-                                                 lengths=lengths)
+                                                 lengths=lengths,
+                                                 ix=ix)
+
         else:
             raise TypeError("Training set must be of type "
                             "dataset or of type ndarray")
@@ -226,21 +244,25 @@ class FM(Classifier):
                                      lr=self.learning_rate)
 
     def _init_model(self):
-
         if self._model is not None:
-            if isinstance(self._model, FactorizationMachine):
-                self._model = gpu(self._model, self.use_cuda)
-            else:
+            if isinstance(self._model, str):
+                model_dict = torch.load(self._model)
+                n_features = model_dict["n_features"]
+                n_factors = model_dict["n_factors"]
+                self._model = FactorizationMachine(n_features,
+                                                   n_factors=n_factors)
+                self._model.load_state_dict(model_dict['state_dict'])
+            elif not isinstance(self._model, FactorizationMachine):
                 raise ValueError("Model must be an instance "
                                  "of FactorizationMachine")
-        elif self.use_cuda and torch.cuda.device_count() > 1:
-            self._model = torch.nn.DataParallel(gpu(
-                FactorizationMachine(self.n_features,
-                                     self.n_factors),
-                self.use_cuda))
         else:
-            self._model = gpu(FactorizationMachine(self.n_features,
-                                                   self.n_factors),
+            self._model = FactorizationMachine(self.n_features,
+                                               n_factors=self.n_factors)
+        if self.use_cuda and torch.cuda.device_count() > 1:
+            self._model = torch.nn.DataParallel(gpu(self._model,
+                                                    self.use_cuda))
+        else:
+            self._model = gpu(self._model,
                               self.use_cuda)
 
     def fit(self,
@@ -327,6 +349,27 @@ class FM(Classifier):
                 # optimization step
                 self._optimizer.step()
 
+        if self._early_stopping:
+            self._prepare(dic, n_users, n_items, lengths)
+
+    def _prepare(self, dic, n_users, n_items, lengths):
+        idx = None
+        if self._dataset.index:
+            idx = {}
+            for k, v in self._dataset.index.items():
+                idx[k] = v
+        self.dump = {'state_dict': self._model.state_dict(),
+                     'n_features': self.n_features,
+                     'n_factors': self.n_factors,
+                     'dic': dic,
+                     'n_users': n_users,
+                     'n_items': n_items,
+                     'lengths': lengths,
+                     'ix': idx}
+
+    def save(self, path):
+        torch.save(self.dump, path)
+
     def predict(self, x, **kwargs):
         """
         Make predictions: given a user id, compute the recommendation
@@ -340,11 +383,14 @@ class FM(Classifier):
         predictions: np.array
             Predicted scores for each sample in x
         """
-        self._model.train(False)
         if len(x.shape) == 1:
             x = np.array([x])
 
-        self._init_dataset(x)
+        if isinstance(self._model, str):
+            self._initialize(x)
+        else:
+            self._init_dataset(x)
+
         disable_batch = self._disable or self.batch_size is None
         if self.batch_size is None:
             self.batch_size = len(self._dataset)

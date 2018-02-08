@@ -23,8 +23,9 @@ class MF(Classifier):
 
     Parameters
     ----------
-    model: :class: div.machines.models, optional
-        A matrix Factorization model
+    model: :class: div.machines.models, str, optional
+        A matrix Factorization model or
+        the pathname of the saved model. Default None.
     n_factors: int, optional
         Number of factors to use in user and item latent factors
     sparse: boolean, optional
@@ -58,6 +59,8 @@ class MF(Classifier):
     verbose: bool, optional:
         If ``True``, it will print information about iterations.
         Default False.
+    save_path: string, optional
+        Path name to save the model. Default None.
     """
 
     def __init__(self,
@@ -75,7 +78,8 @@ class MF(Classifier):
                  logger=None,
                  n_jobs=0,
                  pin_memory=False,
-                 verbose=False):
+                 verbose=False,
+                 save_path=None):
 
         super(MF, self).__init__()
         self.n_factors = n_factors
@@ -96,6 +100,7 @@ class MF(Classifier):
         self._initialized = False
         self._pin_memory = pin_memory
         self._disable = not verbose
+        self._save_path = save_path
 
         set_seed(self._random_state.randint(-10 ** 8, 10 ** 8),
                  cuda=self._use_cuda)
@@ -273,6 +278,13 @@ class MF(Classifier):
                 # optimization step
                 self._optimizer.step()
 
+        if self._save_path:
+                self._save()
+
+    def _save(self):
+        torch.save(self._model.state_dict(),
+                   self._save_path)
+
     def predict(self, x, **kwargs):
         """
         Make predictions: given a user id, compute the recommendation
@@ -312,3 +324,4 @@ class MF(Classifier):
                 .cpu().data.numpy()
 
         return out.flatten()
+# TODO add save API

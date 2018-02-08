@@ -30,10 +30,11 @@ class DenseDataset(Dataset):
                  dic=None,
                  n_users=None,
                  n_items=None,
-                 lengths=None):
+                 lengths=None,
+                 ix=None):
         super(DenseDataset, self).__init__()
         self._n_features = None
-        self._ix = None
+        self._ix = ix
         self._n_users = n_users
         self._n_items = n_items
         self._lengths = lengths
@@ -51,9 +52,9 @@ class DenseDataset(Dataset):
             items = len(np.unique(x[:, 1]))
 
             self._n_users = self._n_users \
-                if self._n_users is None else users
+                if self._n_users is not None else users
             self._n_items = self._n_items \
-                if self._n_items is None else items
+                if self._n_items is not None else items
 
             data, rows, cols, self._ix, n_feats \
                 = vectorize_interactions(x,
@@ -114,7 +115,7 @@ class DenseDataset(Dataset):
     def x(self):
         return self._x
 
-    def __call__(self, x, y=None):
+    def __call__(self, x, y=None, ):
         self._initialize(x, y=y, dic=self._dic)
         return self
 
@@ -153,10 +154,11 @@ class SparseDataset(Dataset):
                  dic=None,
                  n_users=None,
                  n_items=None,
-                 lengths=None):
+                 lengths=None,
+                 ix=None):
         super(SparseDataset, self).__init__()
         self._n_features = None
-        self._ix = None
+        self._ix = ix
         self._lengths = lengths
         self._n_users = n_users
         self._n_items = n_items
@@ -178,9 +180,9 @@ class SparseDataset(Dataset):
             items = len(np.unique(x[:, 1]))
 
             self._n_users = self._n_users \
-                if self._n_users is None else users
+                if self._n_users is not None else users
             self._n_items = self._n_items \
-                if self._n_items is None else items
+                if self._n_items is not None else items
 
             d, rows, cols, self._ix, n_feats \
                 = vectorize_interactions(x,

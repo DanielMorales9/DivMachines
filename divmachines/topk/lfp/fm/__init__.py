@@ -21,8 +21,8 @@ class FM_LFP(Classifier):
 
     Parameters
     ----------
-    model: classifier, optional
-        An instance of `divmachines.classifier.lfp.MF`.
+    model: classifier, str or optional
+        An instance of `divmachines.classifier.lfp.FM`.
         Default is None
     n_factors: int, optional
         Number of factors to use in user and item latent factors
@@ -51,6 +51,9 @@ class FM_LFP(Classifier):
     n_jobs: int, optional
         Number of jobs for data loading.
         Default is 0, it means that the data loader runs in the main process.
+    early_stopping: bool, optional
+        Performs a dump every time to enable early stopping.
+        Default False.
     """
 
     def __init__(self,
@@ -68,7 +71,8 @@ class FM_LFP(Classifier):
                  logger=None,
                  n_jobs=0,
                  pin_memory=False,
-                 verbose=False):
+                 verbose=False,
+                 early_stopping=False):
         self._model = model
         self._n_factors = n_factors
         self._sparse = sparse
@@ -85,6 +89,7 @@ class FM_LFP(Classifier):
         self._pin_memory = pin_memory
         self._verbose = verbose
         self._initialized = False
+        self._early_stopping = early_stopping
 
     @property
     def n_users(self):
@@ -144,21 +149,42 @@ class FM_LFP(Classifier):
                              logger=self._logger,
                              n_jobs=self._n_jobs,
                              pin_memory=self._pin_memory,
-                             verbose=self._verbose)
+                             verbose=self._verbose,
+                             early_stopping=self._early_stopping)
+        elif isinstance(self._model, str):
+            self._model = FM(model=self._model,
+                             n_factors=self._n_factors,
+                             sparse=self._sparse,
+                             n_iter=self._n_iter,
+                             loss=self._loss,
+                             l2=self._l2,
+                             learning_rate=self._learning_rate,
+                             optimizer_func=self._optimizer_func,
+                             batch_size=self._batch_size,
+                             random_state=self._random_state,
+                             use_cuda=self._use_cuda,
+                             logger=self._logger,
+                             n_jobs=self._n_jobs,
+                             pin_memory=self._pin_memory,
+                             verbose=self._verbose,
+                             early_stopping=self._early_stopping)
         elif not isinstance(self._model, FM):
             raise ValueError("Model must be an instance of "
                              "divmachines.classifiers.FM class")
 
     def _init_dataset(self, x):
-        self._user_index = {}
-        for k, v in self._model.index.items():
-            if k.startswith(USERS):
-                self._user_index[k[len(USERS):]] = v
+        self._build_user_index()
 
         if self._sparse:
             self._sparse_variance_computation()
         else:
             self._dense_variance_computation()
+
+    def _build_user_index(self):
+        self._user_index = {}
+        for k, v in self._model.index.items():
+            if k.startswith(USERS):
+                self._user_index[k[len(USERS):]] = v
 
     def _sparse_variance_computation(self):
         v = self._model.v.cpu().data.numpy().T
@@ -250,6 +276,17 @@ class FM_LFP(Classifier):
                         lengths=lengths)
         self._init_dataset(x)
 
+        if self._early_stopping:
+            self._prepare()
+
+    def _prepare(self):
+        dump = self._model.dump
+        dump['variance'] = self.torch_variance().cpu().state_dict()
+        self.dump = dump
+
+    def save(self, path):
+        torch.save(self.dump, path)
+
     def predict(self, x, top=10, b=0.5):
         """
         Predicts
@@ -273,10 +310,21 @@ class FM_LFP(Classifier):
         """
         n_users = np.unique(x[:, 0]).shape[0]
         n_items = np.unique(x[:, 1]).shape[0]
+        file = None
+        load = isinstance(self._model, str)
+        if load:
+            file = self._model
+            self._initialize()
 
         # prediction of the relevance of all the item catalog
         # for the users supplied
         rank = self._model.predict(x).reshape(n_users, n_items)
+
+        if load:
+            self._build_user_index()
+            variance = Embedding(self.n_users, self._n_factors)
+            variance.load_state_dict(torch.load(file)['variance'])
+            self._var = variance.weight.data.numpy()
 
         items = np.array([x[i, 1] for i in sorted(
             np.unique(x[:, 1], return_index=True)[1])])

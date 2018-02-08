@@ -60,6 +60,8 @@ class MF_LFP(Classifier):
     verbose: bool, optional:
         If ``True``, it will print information about iterations.
         Default False.
+    save_path: string, optional
+        Path name to save the model. Default None.
     """
 
     def __init__(self,
@@ -77,7 +79,8 @@ class MF_LFP(Classifier):
                  logger=None,
                  n_jobs=0,
                  pin_memory=False,
-                 verbose=False):
+                 verbose=False,
+                 save_path=None):
         self._model = model
         self._n_factors = n_factors
         self._sparse = sparse
@@ -93,6 +96,7 @@ class MF_LFP(Classifier):
         self._n_jobs = n_jobs
         self._pin_memory = pin_memory
         self._verbose = verbose
+        self._save_path = save_path
 
         self._initialized = False
 
@@ -134,7 +138,8 @@ class MF_LFP(Classifier):
                              logger=self._logger,
                              n_jobs=self._n_jobs,
                              verbose=self._verbose,
-                             pin_memory=self._pin_memory)
+                             pin_memory=self._pin_memory,
+                             save_path=self._save_path)
         elif not isinstance(self._model, MF):
             raise ValueError("Model must be an instance of "
                              "divmachines.classifiers.lfp.MF class")
@@ -359,5 +364,4 @@ def index_dataset(x, idx0, idx1):
     user_profile[:, 0] = users
     user_profile[:, 1] = items
     return user_profile
-
-
+# TODO add save API
