@@ -18,6 +18,7 @@ print("Number of items: %s" % n_items)
 logger = TLogger()
 
 model = MF_MMR(n_iter=10,
+               early_stopping=True,
                n_jobs=8,
                n_factors=10,
                learning_rate=1,
@@ -33,6 +34,22 @@ model.fit(x, y, dic={'users': 0, 'items': 1},
 
 users = np.unique(x[:, 0])
 values = cartesian(users, np.unique(x[:, 1]))
+
+table = np.zeros((users.shape[0], 6), dtype=np.int)
+table[:, 0] = users
+table[:, 1:] = model.predict(values, top=5)
+print(table)
+
+model.save("./saveme.pth.tar")
+
+model = MF_MMR(n_iter=10,
+               model="./saveme.pth.tar",
+               n_jobs=8,
+               n_factors=10,
+               learning_rate=1,
+               use_cuda=False,
+               logger=logger,
+               verbose=True)
 
 table = np.zeros((users.shape[0], 6), dtype=np.int)
 table[:, 0] = users

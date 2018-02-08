@@ -398,4 +398,3 @@ def index_dataset(x, idx0, idx1):
     user_profile[:, 0] = users
     user_profile[:, 1] = items
     return user_profile
-# TODO add save API

@@ -213,6 +213,7 @@ class FM_MMR(Classifier):
                         n_users=n_users,
                         n_items=n_items,
                         lengths=lengths)
+        self._init_dataset(x)
 
         if self._early_stopping:
             self._prepare()
