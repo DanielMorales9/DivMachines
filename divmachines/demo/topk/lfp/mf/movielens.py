@@ -17,7 +17,8 @@ print("Number of users: %s" % n_users)
 print("Number of items: %s" % n_items)
 logger = TLogger()
 
-model = MF_LFP(n_iter=10,
+model = MF_LFP(n_iter=1,
+               early_stopping=True,
                n_jobs=8,
                batch_size=1000,
                n_factors=10,
@@ -30,6 +31,24 @@ y = interactions[:, -1]
 
 model.fit(x, y, n_users=n_users, n_items=n_items)
 
+users = np.unique(x[:, 0])
+values = cartesian(users, np.unique(x[:, 1]))
+
+table = np.zeros((users.shape[0], 6), dtype=np.int)
+table[:, 0] = users
+table[:, 1:] = model.predict(values, top=5)
+print(table)
+
+model.save("./saveme.pth.tar")
+
+model = MF_LFP(n_iter=1,
+               model="./saveme.pth.tar",
+               n_jobs=8,
+               batch_size=1000,
+               n_factors=10,
+               learning_rate=1,
+               logger=logger,
+               verbose=True)
 users = np.unique(x[:, 0])
 values = cartesian(users, np.unique(x[:, 1]))
 

@@ -361,4 +361,3 @@ class MF(Classifier):
                 .cpu().data.numpy()
 
         return out.flatten()
-#TODO add save API

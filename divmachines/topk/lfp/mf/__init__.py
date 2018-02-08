@@ -4,8 +4,7 @@ import pandas as pd
 from torch.autograd.variable import Variable
 from divmachines.classifiers import Classifier
 from divmachines.classifiers.mf import MF
-from divmachines.utility.helper import shape_for_mf, \
-    _swap_k, index, re_index
+from divmachines.utility.helper import _swap_k, index, re_index
 from divmachines.utility.torch import gpu
 from tqdm import tqdm
 
@@ -24,8 +23,8 @@ class MF_LFP(Classifier):
 
     Parameters
     ----------
-    model: classifier, optional
-        An instance of `divmachines.classifier.lfp.MF`.
+    model: classifier, str or optional
+        An instance of `divmachines.classifier.lfp.FM`.
         Default is None
     n_factors: int, optional
         Number of factors to use in user and item latent factors
@@ -54,14 +53,9 @@ class MF_LFP(Classifier):
     n_jobs: int, optional
         Number of jobs for data loading.
         Default is 0, it means that the data loader runs in the main process.
-    pin_memory bool, optional:
-        If ``True``, the data loader will copy tensors
-        into CUDA pinned memory before returning them.
-    verbose: bool, optional:
-        If ``True``, it will print information about iterations.
+    early_stopping: bool, optional
+        Performs a dump every time to enable early stopping.
         Default False.
-    save_path: string, optional
-        Path name to save the model. Default None.
     """
 
     def __init__(self,
@@ -80,7 +74,7 @@ class MF_LFP(Classifier):
                  n_jobs=0,
                  pin_memory=False,
                  verbose=False,
-                 save_path=None):
+                 early_stopping=False):
         self._model = model
         self._n_factors = n_factors
         self._sparse = sparse
@@ -96,9 +90,9 @@ class MF_LFP(Classifier):
         self._n_jobs = n_jobs
         self._pin_memory = pin_memory
         self._verbose = verbose
-        self._save_path = save_path
-
         self._initialized = False
+        self._early_stopping = early_stopping
+
 
     @property
     def n_users(self):
@@ -137,14 +131,36 @@ class MF_LFP(Classifier):
                              use_cuda=self._use_cuda,
                              logger=self._logger,
                              n_jobs=self._n_jobs,
-                             verbose=self._verbose,
                              pin_memory=self._pin_memory,
-                             early_stopping=self._save_path)
+                             verbose=self._verbose,
+                             early_stopping=self._early_stopping)
+        elif isinstance(self._model, str):
+            self._model = MF(model=self._model,
+                             n_factors=self._n_factors,
+                             sparse=self._sparse,
+                             n_iter=self._n_iter,
+                             loss=self._loss,
+                             l2=self._l2,
+                             learning_rate=self._learning_rate,
+                             optimizer_func=self._optimizer_func,
+                             batch_size=self._batch_size,
+                             random_state=self._random_state,
+                             use_cuda=self._use_cuda,
+                             logger=self._logger,
+                             n_jobs=self._n_jobs,
+                             pin_memory=self._pin_memory,
+                             verbose=self._verbose,
+                             early_stopping=self._early_stopping)
         elif not isinstance(self._model, MF):
             raise ValueError("Model must be an instance of "
                              "divmachines.classifiers.lfp.MF class")
 
     def _init_dataset(self, x, train=True):
+        self._build_indexes()
+        if train:
+            self._estimate_variance(x)
+
+    def _build_indexes(self):
         self._rev_item_index = {}
         self._user_index = {}
         self._item_index = {}
@@ -157,9 +173,6 @@ class MF_LFP(Classifier):
 
             else:
                 raise ValueError("Not possible")
-        self._item_catalog = np.array(list(self._rev_item_index.values()))
-        if train:
-            self._estimate_variance(x)
 
     def fit(self, x, y, n_users=None, n_items=None):
         """
@@ -193,6 +206,17 @@ class MF_LFP(Classifier):
         self._model.fit(x, y, dic=dic, n_users=n_users, n_items=n_items)
         self._init_dataset(x)
 
+        if self._early_stopping:
+            self._prepare()
+
+    def _prepare(self):
+        dump = self._model.dump
+        dump['variance'] = self.torch_variance().cpu().state_dict()
+        self.dump = dump
+
+    def save(self, path):
+        torch.save(self.dump, path)
+
     def predict(self, x, top=10, b=0.5):
         """
         Predicts
@@ -215,20 +239,30 @@ class MF_LFP(Classifier):
         top-k: ndarray
             `top` items for each user supplied
         """
+        file = None
+        load = isinstance(self._model, str)
+        if load:
+            file = self._model
+            self._initialize()
 
-        n_items, n_users, test, update_dataset = \
-            shape_for_mf(self._item_catalog, x)
+        n_users = np.unique(x[:, 0]).shape[0]
+        n_items = np.unique(x[:, 1]).shape[0]
 
         try:
-            rank = self._model.predict(test).reshape(n_users, n_items)
+            rank = self._model.predict(x).reshape(n_users, n_items)
         except ValueError:
             raise ValueError("You may want to provide for each user "
                              "the item catalog as transaction matrix.")
 
         # Rev-indexes and other data structures are updated
         # if new items and new users are provided.
-        if update_dataset:
-            self._init_dataset(x, train=False)
+        if load:
+            self._build_indexes()
+            variance = torch.nn.Embedding(self.n_users, self._n_factors)
+            variance.load_state_dict(torch.load(file)['variance'])
+            self._var = variance.weight.data.numpy()
+
+        self._init_dataset(x, train=False)
 
         users = index(np.array([x[i, 0] for i in sorted(
             np.unique(x[:, 0], return_index=True)[1])]), self._user_index)
