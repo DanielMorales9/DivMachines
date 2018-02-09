@@ -214,21 +214,21 @@ class MF(Classifier):
                     n_factors,
                     sparse)
                 self._model.load_state_dict(model_dict['state_dict'])
-            elif issubclass(self._model, torch.nn.Module):
-                self._model = gpu(self._model, self.use_cuda)
-            else:
-                raise ValueError("Model must be an instance of "
-                                 "torch.nn.Module class")
+            elif not (issubclass(self._model, torch.nn.Module) or
+                      isinstance(self._model, torch.nn.DataParallel)):
+                raise ValueError("Model must be an instance "
+                                 "of FactorizationMachine")
         else:
             self._model = SimpleMatrixFactorizationModel(self.n_users,
                                                          self.n_items,
                                                          self.n_factors,
                                                          self._sparse)
-        if self.use_cuda and torch.cuda.device_count() > 1:
-            self._model = torch.nn.DataParallel(gpu(self._model,
-                                                    self.use_cuda))
-        else:
-            self._model = gpu(self._model, self.use_cuda)
+        if not isinstance(self._model, torch.nn.DataParallel):
+            if self.use_cuda and torch.cuda.device_count() > 1:
+                self._model = torch.nn.DataParallel(gpu(self._model,
+                                                        self.use_cuda))
+            else:
+                self._model = gpu(self._model, self.use_cuda)
 
     def fit(self, x, y, dic=None, n_users=None, n_items=None):
         """

@@ -187,8 +187,6 @@ class FM(Classifier):
 
         self._init_optim_fun()
 
-        self._initialized = True
-
     def _init_dataset(self,
                       x,
                       y=None,
@@ -237,10 +235,11 @@ class FM(Classifier):
                           weight_decay=self.l2,
                           lr=self.learning_rate)
         else:
-            self._optimizer = \
-                self._optimizer_func(self._model.parameters(),
-                                     weight_decay=self.l2,
-                                     lr=self.learning_rate)
+            pass
+        self._optimizer = \
+            self._optimizer_func(self._model.parameters(),
+                                 weight_decay=self.l2,
+                                 lr=self.learning_rate)
 
     def _init_model(self):
         if self._model is not None:
@@ -251,18 +250,20 @@ class FM(Classifier):
                 self._model = FactorizationMachine(n_features,
                                                    n_factors=n_factors)
                 self._model.load_state_dict(model_dict['state_dict'])
-            elif not isinstance(self._model, FactorizationMachine):
+            elif not (isinstance(self._model, FactorizationMachine) or
+                      isinstance(self._model, torch.nn.DataParallel)):
                 raise ValueError("Model must be an instance "
                                  "of FactorizationMachine")
         else:
             self._model = FactorizationMachine(self.n_features,
                                                n_factors=self.n_factors)
-        if self.use_cuda and torch.cuda.device_count() > 1:
-            self._model = torch.nn.DataParallel(gpu(self._model,
-                                                    self.use_cuda))
-        else:
-            self._model = gpu(self._model,
-                              self.use_cuda)
+        if not isinstance(self._model, torch.nn.DataParallel):
+            if self.use_cuda and torch.cuda.device_count() > 1:
+                self._model = torch.nn.DataParallel(gpu(self._model,
+                                                        self.use_cuda))
+            else:
+                self._model = gpu(self._model,
+                                  self.use_cuda)
 
     def fit(self,
             x,
