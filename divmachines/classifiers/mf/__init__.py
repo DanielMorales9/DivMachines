@@ -214,7 +214,7 @@ class MF(Classifier):
                     n_factors,
                     sparse)
                 self._model.load_state_dict(model_dict['state_dict'])
-            elif not (issubclass(self._model, torch.nn.Module) or
+            elif not (issubclass(type(self._model), torch.nn.Module) or
                       isinstance(self._model, torch.nn.DataParallel)):
                 raise ValueError("Model must be an instance "
                                  "of FactorizationMachine")

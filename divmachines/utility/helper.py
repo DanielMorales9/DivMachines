@@ -164,6 +164,7 @@ def _tensor_swap_k(index, k, matrix, multi=False):
 
 
 def _tensor_swap(index, tensor):
+    # Ogni riga è un ranking dell'utente
     for r, cols in enumerate(index):
         for col, i in zip(cols, range(len(index))):
             temp = tensor[r, i].clone()

@@ -18,18 +18,37 @@ class ColumnDefaultFactory:
 
 class FeaturesFactory:
 
-    def __init__(self, dic, *args):
+    def __init__(self, dic, *args, old=False, prefix=None):
         self._dic = {}
-        args = [0] + list(args)
-        for i in range(len(args)):
-            if i > 0:
-                args[i] += args[i - 1]
+        if not old:
+            args = [0] + list(args)
+            for i in range(len(args)):
+                if i > 0:
+                    args[i] += args[i - 1]
 
-        i = 0
-        for k, _ in dic.items():
-            self._dic[k] = defaultdict(lambda c=count(args[i]): next(c))
-            i += 1
-        self._dic['feats'] = defaultdict(lambda c=count(args[i]): next(c))
+            i = 0
+            for k, _ in dic.items():
+                self._dic[k] = defaultdict(lambda c=count(args[i]): next(c))
+                i += 1
+            self._dic['feats'] = defaultdict(lambda c=count(args[i]): next(c))
+        else:
+            for k in prefix.keys():
+                prefix[k] = -1
+            prefix['feats'] = 0
+
+            for k, v in dic.items():
+                for p in prefix.keys():
+                    if k.startswith(p):
+                        if v > prefix[p]:
+                            prefix[p] = v
+
+            for k in prefix.keys():
+                self._dic[k] = defaultdict(lambda c=count(prefix[k]+1):
+                                           next(c))
+            for k, v in dic.items():
+                for p in prefix.keys():
+                    if k.startswith(p):
+                        self._dic[p][k] = v
 
     def __call__(self, key):
         for k in self._dic:
@@ -112,7 +131,7 @@ def vectorize_dic(dic,
 
     row_ix = np.repeat(np.arange(0, n), g)
     data = np.ones(nz)
-    if n_users and n_items:
+    if n_users and n_items and not lengths:
         p = n_users + n_items
     else:
         p = len(ix)
@@ -136,7 +155,7 @@ def vectorize_interactions(interactions,
                            n_users=None,
                            n_items=None,
                            lengths=None):
-    # TODO not elegant solution for passing maximum
+    # TODO not elegant solution
     if dic is not None:
         vec_dic = dic.copy()
         keys = []

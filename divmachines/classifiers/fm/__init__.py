@@ -9,6 +9,7 @@ from divmachines.classifiers import Classifier
 from divmachines.logging import Logger
 from divmachines.utility.torch import set_seed, gpu, cpu
 from tqdm import tqdm
+from divmachines.utility.indexing import FeaturesFactory, IndexDictionary
 
 
 class FM(Classifier):
@@ -76,7 +77,7 @@ class FM(Classifier):
                  pin_memory=False,
                  verbose=False,
                  sparse_num=0,
-                 early_stopping=True):
+                 early_stopping=False):
 
         super(FM, self).__init__()
         self.n_factors = n_factors
@@ -200,7 +201,13 @@ class FM(Classifier):
             n_users = torch.load(self._model)['n_users']
             n_items = torch.load(self._model)['n_items']
             lengths = torch.load(self._model)['lengths']
-            ix = torch.load(self._model)['ix']
+            ixx = torch.load(self._model)['ix']
+            ix = IndexDictionary(FeaturesFactory(ixx,
+                                                 old=True,
+                                                 prefix=dic.copy()))
+            # feeding the dictionary
+            for k in ixx:
+                f = ix[k]
 
         if type(x).__module__ == np.__name__:
             if y is None or type(x).__module__ == np.__name__:
@@ -235,11 +242,10 @@ class FM(Classifier):
                           weight_decay=self.l2,
                           lr=self.learning_rate)
         else:
-            pass
-        self._optimizer = \
-            self._optimizer_func(self._model.parameters(),
-                                 weight_decay=self.l2,
-                                 lr=self.learning_rate)
+            self._optimizer = \
+                self._optimizer_func(self._model.parameters(),
+                                     weight_decay=self.l2,
+                                     lr=self.learning_rate)
 
     def _init_model(self):
         if self._model is not None:
@@ -249,7 +255,13 @@ class FM(Classifier):
                 n_factors = model_dict["n_factors"]
                 self._model = FactorizationMachine(n_features,
                                                    n_factors=n_factors)
-                self._model.load_state_dict(model_dict['state_dict'])
+                dic = {}
+                for m in model_dict['state_dict']:
+                    if m.startswith('module.'):
+                        dic[m[7:]] = model_dict['state_dict'][m]
+                    else:
+                        dic[m] = model_dict['state_dict'][m]
+                self._model.load_state_dict(dic)
             elif not (isinstance(self._model, FactorizationMachine) or
                       isinstance(self._model, torch.nn.DataParallel)):
                 raise ValueError("Model must be an instance "
@@ -315,8 +327,8 @@ class FM(Classifier):
                           desc='Fitting',
                           leave=False,
                           disable=self._disable):
-            for mini_batch_num, \
-                (batch_tensor, batch_ratings) in tqdm(enumerate(loader),
+            mini_batch_num = 0
+            for batch_tensor, batch_ratings in tqdm(loader,
                                                       desc='Batches',
                                                       leave=False,
                                                       disable=disable_batch):
@@ -345,6 +357,8 @@ class FM(Classifier):
 
                 # optimization step
                 self._optimizer.step()
+
+                mini_batch_num += 1
 
         if self._early_stopping:
             self._prepare(dic, n_users, n_items, lengths)
@@ -397,12 +411,14 @@ class FM(Classifier):
                             num_workers=self._n_jobs)
 
         out = np.zeros(len(x))
-        for i, batch_data in tqdm(enumerate(loader),
-                                  desc="Prediction",
-                                  leave=False,
-                                  disable=disable_batch):
+        i = 0
+        for batch_data in tqdm(loader,
+                               desc="Prediction",
+                               leave=False,
+                               disable=disable_batch):
             var = Variable(gpu(batch_data, self.use_cuda))
             out[(i*self.batch_size):((i+1)*self.batch_size)] = \
                 cpu(self._model(var), self.use_cuda).data.numpy()
+            i += 1
 
         return out.flatten()
