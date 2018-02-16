@@ -32,19 +32,20 @@ n_items = np.unique(train[["item"]].values).shape[0]
 print("Number of users: %s" % n_users)
 print("Number of items: %s" % n_items)
 
-x = interactions[:, :-1]
-y = interactions[:, -1]
+x = interactions[:100, :-1]
+y = interactions[:100, -1]
 
 model.fit(x,
           y,
-          dic={'users': 0, 'items': 1})
+          dic={'users': 0, 'items': 1},
+          n_users=n_users, n_items=n_items)
 
 print(model.predict(x))
 model.save("./time.pth.tar")
 
 model = MF(n_iter=1,
            n_jobs=8,
-           batch_size=1000,
+           batch_size=10,
            learning_rate=0.60653066,
            use_cuda=False,
            logger=logger,
@@ -52,6 +53,8 @@ model = MF(n_iter=1,
            model="./time.pth.tar",
            verbose=True)
 
+x = interactions[1000:, :-1]
+y = interactions[1000:, -1]
 print(model.predict(x))
 plt.plot(logger.epochs, logger.losses)
 plt.show()

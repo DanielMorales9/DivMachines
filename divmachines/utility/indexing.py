@@ -5,10 +5,29 @@ from collections import defaultdict
 
 class ColumnDefaultFactory:
 
-    def __init__(self, dic):
+    def __init__(self, dic, old=False, prefix=None):
         self._dic = {}
-        for k, _ in dic.items():
-            self._dic[k] = defaultdict(lambda c=count(0): next(c))
+        if not old:
+            for k, _ in dic.items():
+                self._dic[k] = defaultdict(lambda c=count(0): next(c))
+        else:
+            for k in prefix.keys():
+                prefix[k] = -1
+
+            for k, v in dic.items():
+                for p in prefix.keys():
+                    if k.startswith(p):
+                        if v > prefix[p]:
+                            prefix[p] = v
+
+            for k in prefix.keys():
+                self._dic[k] = defaultdict(lambda c=count(prefix[k] + 1):
+                                           next(c))
+            for k, v in dic.items():
+                for p in prefix.keys():
+                    if k.startswith(p):
+                        self._dic[p][k] = v
+
 
     def __call__(self, key):
         for k in self._dic:
@@ -104,10 +123,9 @@ def vectorize_dic(dic,
     Creates a scipy csr matrix from a list of lists
     (each inner list is a set of values corresponding to a feature)
     """
-
+    args = None
     if ix is None:
         if n_users and n_items and lengths:
-
             lista = [n_users, n_items]
             lista.extend(lengths.values())
             args = tuple(lista)
@@ -131,8 +149,8 @@ def vectorize_dic(dic,
 
     row_ix = np.repeat(np.arange(0, n), g)
     data = np.ones(nz)
-    if n_users and n_items and not lengths:
-        p = n_users + n_items
+    if args:
+        p = sum(args)
     else:
         p = len(ix)
     ixx = np.where(col_ix < p)
