@@ -2,6 +2,8 @@ import torch
 import numpy as np
 from tqdm import tqdm
 from divmachines.classifiers import Classifier
+from torch.utils.data import DataLoader
+from divmachines.topk import Rank
 from divmachines.classifiers import FM
 from divmachines.utility.helper import index, \
     _swap_k, _tensor_swap_k, _tensor_swap, re_index
@@ -169,10 +171,7 @@ class FM_SeqRank(Classifier):
                              "divmachines.classifiers.FM class")
 
     def _init_dataset(self, x):
-        self._user_index = {}
-        for k, v in self._model.index.items():
-            if k.startswith(USERS):
-                self._user_index[k[len(USERS):]] = v
+        pass
 
     def fit(self, x, y,
             dic=None,
@@ -253,18 +252,11 @@ class FM_SeqRank(Classifier):
         # for the users supplied
         rank = self._model.predict(x).reshape(n_users, n_items)
 
-        self._init_dataset(x)
-
         items = np.array([x[i, 1] for i in sorted(
             np.unique(x[:, 1], return_index=True)[1])])
-        users = index(np.array([x[i, 0] for i in sorted(
-            np.unique(x[:, 0], return_index=True)[1])]), self._user_index)
 
         if self._sparse:
-            x = np.zeros((len(self._model._dataset), self.n_features),
-                         dtype=np.float32)
-            for i, xi in enumerate(self.dataset):
-                x[i, :] = xi
+            x = self._model._dataset
         else:
             x = self.dataset.copy()
 
@@ -277,16 +269,16 @@ class FM_SeqRank(Classifier):
                                predictions, items):
         rank = np.argsort(-predictions, 1)
         # zeroing users cols
-        self.zero_users(x)
-        rank = rank.astype(np.object)
-        x = x.reshape(n_users, n_items, self.n_features)
-        x = gpu(_tensor_swap(rank, torch.from_numpy(x)),
-                self._use_cuda)
+        rank = rank.astype(dtype=np.object)
+        if not self._sparse:
+            self.zero_users(x)
+            x = x.reshape(n_users, n_items, self.n_features)
+            x = gpu(_tensor_swap(rank, torch.from_numpy(x)),
+                    self._use_cuda)
+
         predictions = np.sort(predictions)[:, ::-1].copy()
         pred = gpu(torch.from_numpy(predictions),
                    self._use_cuda).float()
-
-        re_index(items, rank)
 
         v = self._model.v.data
 
@@ -294,13 +286,17 @@ class FM_SeqRank(Classifier):
                       desc="Sequential Re-ranking",
                       leave=False,
                       disable=not self._verbose):
-
-            values = self._compute_delta_f(v, k, b, pred, x)
+            if not self._sparse:
+                values = self._compute_delta_f(v, k, b, pred, x)
+            else:
+                values = self._sparse_compute_delta_f(v, k, b, pred, x, rank)
             arg_max_per_user = np.argsort(values, 1)[:, -1].copy()
             _swap_k(arg_max_per_user, k, rank)
             _tensor_swap_k(arg_max_per_user, k, pred, multi=False)
-            _tensor_swap_k(arg_max_per_user, k, x, multi=True)
+            if not self._sparse:
+                _tensor_swap_k(arg_max_per_user, k, x, multi=True)
 
+        re_index(items, rank)
         return rank[:, :top]
 
     def zero_users(self, x):
@@ -323,7 +319,7 @@ class FM_SeqRank(Classifier):
             prod = (x[u, :, :].squeeze()
                     .unsqueeze(-1).expand(n_items,
                                           self.n_features,
-                                          self._n_factors) * v)\
+                                          self._n_factors) * v) \
                 .sum(1)
             wm = gpu(torch.from_numpy(
                 np.array([1 / (2 ** m) for m in range(k)],
@@ -338,7 +334,63 @@ class FM_SeqRank(Classifier):
                      .expand(k, n_items - k, self._n_factors)
             term2 = t2.sum(2).sum(0)
             term2 = torch.mul(term2, 2)
-            delta[u, :] = torch.mul(term0[u, :] - torch.mul(term2, 2*b), wk)\
+            delta[u, :] = torch.mul(term0[u, :] - torch.mul(term2, 2*b), wk) \
+                .cpu().numpy()
+        return delta
+
+    def _sparse_compute_delta_f(self, v, k, b, pred, x, rank):
+
+        term0 = pred[:, k:]
+        n_items = pred.shape[1]
+        n_users = pred.shape[0]
+        delta = np.zeros((n_users, n_items - k),
+                         dtype=np.float32)
+        ranking = None
+        wk = 1 / (2 ** k)
+        for u in tqdm(range(n_users),
+                      desc="MMR Re-ranking",
+                      leave=False,
+                      disable=not self._verbose):
+            prod_numpy = np.zeros((n_items, self._n_factors),
+                                  dtype=np.float32)
+            prod = gpu(torch.from_numpy(prod_numpy), self._use_cuda)
+
+            if ranking:
+                ranking(u)
+            else:
+                ranking = Rank(x, rank, u, n_items, self.n_users)
+
+            data_loader = DataLoader(ranking,
+                                     pin_memory=self._pin_memory,
+                                     batch_size=self._batch_size,
+                                     num_workers=self._n_jobs)
+
+            for batch, i in tqdm(data_loader,
+                                 disable=not self._verbose,
+                                 desc="Rank", leave=False):
+                batch = gpu(batch, self._use_cuda)
+                i = gpu(i, self._use_cuda)
+                batch_size = list(batch.shape)[0]
+                prod[i, :] = (batch.squeeze()
+                              .unsqueeze(-1)
+                              .expand(batch_size,
+                                      self.n_features,
+                                      self._n_factors) * v).sum(1)
+
+            wm = gpu(torch.from_numpy(
+                np.array([1 / (2 ** m) for m in range(k)],
+                         dtype=np.float32)), self._use_cuda) \
+                .unsqueeze(-1) \
+                .expand(k, self._n_factors)
+            unranked = prod[k:, :]
+            ranked = (prod[:k, :] * wm)
+            t2 = unranked.unsqueeze(0) \
+                     .expand(k, n_items - k, self._n_factors) * \
+                 ranked.unsqueeze(1) \
+                     .expand(k, n_items - k, self._n_factors)
+            term2 = t2.sum(2).sum(0)
+            term2 = torch.mul(term2, 2)
+            delta[u, :] = torch.mul(term0[u, :] - torch.mul(term2, 2 * b), wk) \
                 .cpu().numpy()
         return delta
 

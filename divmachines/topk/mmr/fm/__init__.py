@@ -2,6 +2,8 @@ import torch
 import numpy as np
 from divmachines.classifiers import Classifier
 from divmachines.classifiers import FM
+from torch.utils.data import DataLoader
+from divmachines.topk import Rank
 from divmachines.utility.helper import index, \
     _tensor_swap, re_index, _swap_k, _tensor_swap_k
 from divmachines.utility.torch import gpu
@@ -168,10 +170,7 @@ class FM_MMR(Classifier):
                              "divmachines.classifiers.FM class")
 
     def _init_dataset(self, x):
-        self._user_index = {}
-        for k, v in self._model.index.items():
-            if k.startswith(USERS):
-                self._user_index[k[len(USERS):]] = v
+        pass
 
     def fit(self,
             x,
@@ -253,16 +252,11 @@ class FM_MMR(Classifier):
         # for the users supplied
         predictions = self._model.predict(x).reshape(n_users, n_items)
 
-        self._init_dataset(x)
-
         items = np.array([x[i, 1] for i in sorted(
             np.unique(x[:, 1], return_index=True)[1])])
 
         if self._sparse:
-            x = np.zeros((len(self._model._dataset), self.n_features),
-                         dtype=np.float32)
-            for i, xi in enumerate(self.dataset):
-                x[i, :] = xi
+            x = self._model._dataset
         else:
             x = self.dataset.copy()
 
@@ -273,16 +267,16 @@ class FM_MMR(Classifier):
              predictions, items):
         rank = np.argsort(-predictions, 1)
         # zeroing users cols
-        self.zero_users(x)
-        rank = rank.astype(np.object)
-        x = x.reshape(n_users, n_items, self.n_features)
-        x = gpu(_tensor_swap(rank, torch.from_numpy(x)),
-                self._use_cuda)
+        rank = rank.astype(dtype=np.object)
+        if not self._sparse:
+            self.zero_users(x)
+            x = x.reshape(n_users, n_items, self.n_features)
+            x = gpu(_tensor_swap(rank, torch.from_numpy(x)),
+                    self._use_cuda)
+
         predictions = np.sort(predictions)[:, ::-1].copy()
         pred = gpu(torch.from_numpy(predictions),
                    self._use_cuda).float()
-
-        re_index(items, rank)
 
         v = self._model.v.data
 
@@ -293,16 +287,33 @@ class FM_MMR(Classifier):
                       desc="MMR Re-ranking",
                       leave=False,
                       disable=not self._verbose):
-            values = self._mmr_objective(b, k, n_items, n_users, pred, v, x)
+            if not self._sparse:
+                values = self._mmr_objective(b, k,
+                                             n_items, n_users,
+                                             pred, v, x)
+            else:
+                values = self._sparse_mmr_objective(b, k,
+                                                    n_items, n_users,
+                                                    pred, v, x, rank)
             arg_max_per_user = np.argsort(values, 1)[:, -1].copy()
             _swap_k(arg_max_per_user, k, rank)
             _tensor_swap_k(arg_max_per_user, k, pred, multi=False)
-            _tensor_swap_k(arg_max_per_user, k, x, multi=True)
+            if not self._sparse:
+                _tensor_swap_k(arg_max_per_user, k, x, multi=True)
 
+        re_index(items, rank)
         return rank[:, :top]
 
     def _mmr_objective(self, b, k, n_items, n_users, pred, v, x):
         corr = self._correlation(v, k, x, n_users, n_items)
+        max_corr_per_user = np.sort(corr, 1)[:, -1, :].copy()
+        max_corr = gpu(torch.from_numpy(max_corr_per_user), self._use_cuda)
+        values = torch.mul(pred[:, k:], b) - torch.mul(max_corr, 1 - b)
+        values = values.cpu().numpy()
+        return values
+
+    def _sparse_mmr_objective(self, b, k, n_items, n_users, pred, v, x, rank):
+        corr = self._sparse_correlation(v, k, x, n_users, n_items, rank)
         max_corr_per_user = np.sort(corr, 1)[:, -1, :].copy()
         max_corr = gpu(torch.from_numpy(max_corr_per_user), self._use_cuda)
         values = torch.mul(pred[:, k:], b) - torch.mul(max_corr, 1 - b)
@@ -326,6 +337,53 @@ class FM_MMR(Classifier):
                     .unsqueeze(-1).expand(n_items,
                                           self.n_features,
                                           self._n_factors) * v).sum(1)
+
+            unranked = prod[k:, :]
+            ranked = prod[:k, :]
+
+            e_corr = (unranked.unsqueeze(0)
+                      .expand(k, n_items - k, self._n_factors) *
+                      ranked.unsqueeze(1)
+                      .expand(k, n_items - k, self._n_factors)).sum(2)
+            corr[u, :, :] = e_corr.cpu().numpy()
+
+        return corr
+
+    def _sparse_correlation(self, v, k, x, n_users, n_items, rank):
+
+        corr = np.zeros((n_users, k, n_items - k),
+                        dtype=np.float32)
+
+        ranking = None
+        for u in tqdm(range(n_users),
+                      desc="User Correlation",
+                      leave=False,
+                      disable=not self._verbose):
+            prod_numpy = np.zeros((n_items, self._n_factors),
+                                  dtype=np.float32)
+            prod = gpu(torch.from_numpy(prod_numpy), self._use_cuda)
+
+            if ranking:
+                ranking(u)
+            else:
+                ranking = Rank(x, rank, u, n_items, self.n_users)
+
+            dataloader = DataLoader(ranking,
+                                    pin_memory=self._pin_memory,
+                                    batch_size=self._batch_size,
+                                    num_workers=self._n_jobs)
+
+            for batch, i in tqdm(dataloader,
+                                 disable=not self._verbose,
+                                 desc="Rank", leave=False):
+                batch = gpu(batch, self._use_cuda)
+                i = gpu(i, self._use_cuda)
+                batch_size = list(batch.shape)[0]
+                prod[i, :] = (batch.squeeze()
+                              .unsqueeze(-1)
+                              .expand(batch_size,
+                                      self.n_features,
+                                      self._n_factors) * v).sum(1)
 
             unranked = prod[k:, :]
             ranked = prod[:k, :]
