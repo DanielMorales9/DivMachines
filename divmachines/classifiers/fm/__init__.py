@@ -57,6 +57,13 @@ class FM(Classifier):
     early_stopping: bool, optional
         Performs a dump every time to enable early stopping.
         Default False.
+    n_iter_no_change : int, optional, default 10
+        Maximum number of epochs to not meet ``tol`` improvement.
+        Only effective when solver='sgd' or 'adam'
+    tol : float, optional, default 1e-4
+        Tolerance for the optimization. When the loss or score is not improving
+        by at least ``tol`` for ``n_iter_no_change`` consecutive iterations,
+        convergence is considered to be reached and training stops.
     """
 
     def __init__(self,
@@ -77,7 +84,9 @@ class FM(Classifier):
                  pin_memory=False,
                  verbose=False,
                  sparse_num=0,
-                 early_stopping=False):
+                 early_stopping=False,
+                 n_iter_no_change=10,
+                 tol=1e-4):
 
         super(FM, self).__init__()
         self.n_factors = n_factors
@@ -103,7 +112,8 @@ class FM(Classifier):
         self._disable = not verbose
         self._sparse_num = sparse_num
         self._early_stopping = early_stopping
-
+        self._n_iter_no_change = n_iter_no_change
+        self._tol = tol
         set_seed(self._random_state.randint(-10 ** 8, 10 ** 8),
                  cuda=self.use_cuda)
 
@@ -178,6 +188,10 @@ class FM(Classifier):
                     n_users=None,
                     n_items=None,
                     lengths=None):
+
+        self._best_loss = np.inf
+        self._no_improvement_count = 0
+
         self._init_dataset(x,
                            y=y,
                            dic=dic,
@@ -328,11 +342,12 @@ class FM(Classifier):
                           leave=False,
                           disable=self._disable):
             mini_batch_num = 0
+            acc_loss = 0.0
             for batch_tensor, batch_ratings in tqdm(loader,
                                                       desc='Batches',
                                                       leave=False,
                                                       disable=disable_batch):
-
+                batch_size = batch_tensor.shape[0]
                 batch_tensor = gpu(batch_tensor, self.use_cuda)
                 batch_ratings = gpu(batch_ratings, self.use_cuda)
 
@@ -348,6 +363,8 @@ class FM(Classifier):
                 # Compute Loss
                 loss = self._loss_func(predictions, rating_var)
 
+                acc_loss += loss.data.cpu().numpy()[0] * batch_size
+
                 # logging
                 self._logger.log(loss, epoch, batch=mini_batch_num,
                                  cpu=self.use_cuda)
@@ -360,8 +377,23 @@ class FM(Classifier):
 
                 mini_batch_num += 1
 
+            acc_loss /= len(self._dataset)
+
+            self._update_no_improvement_count(acc_loss)
+
+            if self._no_improvement_count > self._n_iter_no_change:
+                break
+
         if self._early_stopping:
             self._prepare(dic, n_users, n_items, lengths)
+
+    def _update_no_improvement_count(self, acc_loss):
+        if acc_loss > self._best_loss - self._tol:
+            self._no_improvement_count += 1
+        else:
+            self._no_improvement_count = 0
+        if acc_loss < self._best_loss:
+            self._best_loss = acc_loss
 
     def _prepare(self, dic, n_users, n_items, lengths):
         idx = None

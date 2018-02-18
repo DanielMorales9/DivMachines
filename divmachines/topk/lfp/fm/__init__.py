@@ -57,6 +57,13 @@ class FM_LFP(Classifier):
     early_stopping: bool, optional
         Performs a dump every time to enable early stopping.
         Default False.
+    n_iter_no_change : int, optional, default 10
+        Maximum number of epochs to not meet ``tol`` improvement.
+        Only effective when solver='sgd' or 'adam'
+    tol : float, optional, default 1e-4
+        Tolerance for the optimization. When the loss or score is not improving
+        by at least ``tol`` for ``n_iter_no_change`` consecutive iterations,
+        convergence is considered to be reached and training stops.
     """
 
     def __init__(self,
@@ -75,7 +82,9 @@ class FM_LFP(Classifier):
                  n_jobs=0,
                  pin_memory=False,
                  verbose=False,
-                 early_stopping=False):
+                 early_stopping=False,
+                 n_iter_no_change=10,
+                 tol=1e-4):
         self._model = model
         self._n_factors = n_factors
         self._sparse = sparse
@@ -93,6 +102,8 @@ class FM_LFP(Classifier):
         self._verbose = verbose
         self._early_stopping = early_stopping
         self._user_index = None
+        self._n_iter_no_change = n_iter_no_change
+        self._tol = tol
 
     @property
     def n_users(self):
@@ -153,7 +164,9 @@ class FM_LFP(Classifier):
                              n_jobs=self._n_jobs,
                              pin_memory=self._pin_memory,
                              verbose=self._verbose,
-                             early_stopping=self._early_stopping)
+                             early_stopping=self._early_stopping,
+                             n_iter_no_change=self._n_iter_no_change,
+                             tol=self._tol)
         elif isinstance(self._model, str):
             self._model = FM(model=self._model,
                              n_factors=self._n_factors,
@@ -170,7 +183,9 @@ class FM_LFP(Classifier):
                              n_jobs=self._n_jobs,
                              pin_memory=self._pin_memory,
                              verbose=self._verbose,
-                             early_stopping=self._early_stopping)
+                             early_stopping=self._early_stopping,
+                             n_iter_no_change=self._n_iter_no_change,
+                             tol=self._tol)
         elif not isinstance(self._model, FM):
             raise ValueError("Model must be an instance of "
                              "divmachines.classifiers.FM class")
