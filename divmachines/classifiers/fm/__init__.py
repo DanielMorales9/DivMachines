@@ -434,6 +434,7 @@ class FM(Classifier):
         else:
             self._init_dataset(x)
 
+
         disable_batch = self._disable or self.batch_size is None
         if self.batch_size is None:
             self.batch_size = len(self._dataset)

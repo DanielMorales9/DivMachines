@@ -10,12 +10,12 @@ import os
 
 UPL = 3
 N_JOBS = 3
-N_ITER = 10
+N_ITER = 1
 TOP = 5
 FACTORS = 10
 USERS_BATCH = 10
 LEARNING_RATE = .001
-BATCH_SIZE = 768
+BATCH_SIZE = 2048
 VERBOSE = True
 USE_CUDA = False
 SPARSE = True
@@ -90,7 +90,8 @@ if not os.path.exists(train_path):
     x = interactions[:, :-1]
     y = interactions[:, -1]
 
-    model.fit(x, y, dic={'users': 0, 'items': 1}, n_users=n_users, n_items=n_items)
+    model.fit(x, y, dic={'users': 0, 'items': 1},
+              n_users=n_users, n_items=n_items)
 
     model.save(MODEL_PATH)
     train.to_csv(train_path, index=USE_CUDA)

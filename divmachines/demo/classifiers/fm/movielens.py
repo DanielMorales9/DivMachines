@@ -13,7 +13,8 @@ n_items = np.unique(train[["item"]].values).shape[0]
 model = FM(n_iter=100,
            learning_rate=1e-1,
            sparse=False,
-           n_jobs=4,
+           batch_size=1024,
+           n_jobs=2,
            verbose=True,
            early_stopping=True)
 

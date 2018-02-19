@@ -15,8 +15,8 @@ train = pd.read_csv('../../../../data/ua.base', delimiter='\t', names=cols)
 
 logger = TLogger()
 
-model = MF(n_iter=1,
-           n_jobs=8,
+model = MF(n_iter=100,
+           n_jobs=2,
            batch_size=1000,
            learning_rate=0.60653066,
            use_cuda=False,
@@ -53,8 +53,8 @@ model = MF(n_iter=1,
            model="./time.pth.tar",
            verbose=True)
 
-x = interactions[1000:, :-1]
-y = interactions[1000:, -1]
+x = interactions[:100, :-1]
+y = interactions[:100, -1]
 print(model.predict(x))
 plt.plot(logger.epochs, logger.losses)
 plt.show()
