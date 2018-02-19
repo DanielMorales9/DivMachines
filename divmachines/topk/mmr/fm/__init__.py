@@ -237,7 +237,7 @@ class FM_MMR(Classifier):
     def save(self, path):
         torch.save(self.dump, path)
 
-    def predict(self, x, top=10, b=0.5):
+    def predict(self, x, top=10, b=0.5, rank=None):
         """
         Predicts
 
@@ -253,6 +253,8 @@ class FM_MMR(Classifier):
             System-level Diversity.
             It controls the trade-off for all users between
             accuracy and diversity.
+        rank: ndarray, optional
+            pre-computed rank according to x
         Returns
         -------
         topk: ndarray
@@ -263,9 +265,12 @@ class FM_MMR(Classifier):
         if isinstance(self._model, str):
             self._initialize()
 
-        # prediction of the relevance of all the item catalog
-        # for the users supplied
-        predictions = self._model.predict(x).reshape(n_users, n_items)
+        if rank is None:
+            # prediction of the relevance of all the item catalog
+            # for the users supplied
+            rank = self._model.predict(x).reshape(n_users, n_items)
+        else:
+            self._model.init_predict(x)
 
         items = np.array([x[i, 1] for i in sorted(
             np.unique(x[:, 1], return_index=True)[1])])
@@ -275,7 +280,7 @@ class FM_MMR(Classifier):
         else:
             x = self.dataset.copy()
 
-        re_ranking = self._mmr(x, n_users, n_items, top, b, predictions, items)
+        re_ranking = self._mmr(x, n_users, n_items, top, b, rank, items)
         return re_ranking
 
     def _mmr(self, x, n_users, n_items, top, b,

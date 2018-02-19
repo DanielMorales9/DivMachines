@@ -344,6 +344,8 @@ class FM_LFP(Classifier):
             System-level Diversity.
             It controls the trade-off for all users between
             accuracy and diversity.
+        rank: ndarray, optional
+            pre-computed rank according to x
         Returns
         -------
         topk: ndarray
@@ -357,12 +359,12 @@ class FM_LFP(Classifier):
             file = self._model
             self._initialize()
 
-        if not rank:
+        if rank is None:
             # prediction of the relevance of all the item catalog
             # for the users supplied
             rank = self._model.predict(x).reshape(n_users, n_items)
         else:
-            self._model.init_predict()
+            self._model.init_predict(x)
 
         if load:
             self._build_user_index()
