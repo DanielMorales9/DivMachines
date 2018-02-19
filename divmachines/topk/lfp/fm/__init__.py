@@ -328,7 +328,7 @@ class FM_LFP(Classifier):
     def save(self, path):
         torch.save(self.dump, path)
 
-    def predict(self, x, top=10, b=0.5):
+    def predict(self, x, top=10, b=0.5, rank=None):
         """
         Predicts
 
@@ -357,9 +357,12 @@ class FM_LFP(Classifier):
             file = self._model
             self._initialize()
 
-        # prediction of the relevance of all the item catalog
-        # for the users supplied
-        rank = self._model.predict(x).reshape(n_users, n_items)
+        if not rank:
+            # prediction of the relevance of all the item catalog
+            # for the users supplied
+            rank = self._model.predict(x).reshape(n_users, n_items)
+        else:
+            self._model.init_predict()
 
         if load:
             self._build_user_index()

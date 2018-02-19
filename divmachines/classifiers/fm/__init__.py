@@ -413,6 +413,12 @@ class FM(Classifier):
     def save(self, path):
         torch.save(self.dump, path)
 
+    def init_predict(self, x):
+        if isinstance(self._model, str):
+            self._initialize(x)
+        else:
+            self._init_dataset(x)
+
     def predict(self, x, **kwargs):
         """
         Make predictions: given a user id, compute the recommendation
@@ -429,11 +435,7 @@ class FM(Classifier):
         if len(x.shape) == 1:
             x = np.array([x])
 
-        if isinstance(self._model, str):
-            self._initialize(x)
-        else:
-            self._init_dataset(x)
-
+        self.init_predict(x)
 
         disable_batch = self._disable or self.batch_size is None
         if self.batch_size is None:
