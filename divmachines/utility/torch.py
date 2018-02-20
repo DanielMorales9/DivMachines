@@ -3,7 +3,7 @@ import torch
 
 def gpu(tensor, gpu=False, device=None):
     if gpu:
-        return tensor.cuda(device_id=device)
+        return tensor.cuda(device=device)
     else:
         return tensor
 

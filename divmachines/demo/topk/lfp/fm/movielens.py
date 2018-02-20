@@ -75,6 +75,7 @@ if not os.path.exists(MODEL_PATH):
                    use_cuda=USE_CUDA,
                    verbose=VERBOSE,
                    sparse=SPARSE,
+                   device_id=0,
                    logger=logger,
                    early_stopping=STOP)
 
@@ -113,6 +114,7 @@ model0 = FM(n_iter=N_ITER,
             n_jobs=N_JOBS,
             batch_size=BATCH_SIZE,
             n_factors=FACTORS,
+            device_id=0,
             learning_rate=LEARNING_RATE,
             use_cuda=USE_CUDA,
             verbose=VERBOSE,
