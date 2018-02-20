@@ -43,6 +43,10 @@ class FM(Classifier):
         Random state to use when fitting.
     use_cuda: boolean, optional
         Run the models on a GPU.
+    device_id: int, optional
+        GPU device ID to which the tensors are sent.
+        If set use_cuda must be True.
+        By Default uses all GPU available.
     logger: :class:`divmachines.logging`, optional
         A logger instance for logging during the training process
     n_jobs: int, optional
@@ -78,6 +82,7 @@ class FM(Classifier):
                  batch_size=None,
                  random_state=None,
                  use_cuda=False,
+                 device_id=None,
                  logger=None,
                  n_jobs=0,
                  shuffle=True,
@@ -114,6 +119,9 @@ class FM(Classifier):
         self._early_stopping = early_stopping
         self._n_iter_no_change = n_iter_no_change
         self._tol = tol
+        if device_id is not None and not self.use_cuda:
+            raise ValueError("use_cuda flag must be true")
+        self._device_id = device_id
         set_seed(self._random_state.randint(-10 ** 8, 10 ** 8),
                  cuda=self.use_cuda)
 
@@ -151,13 +159,15 @@ class FM(Classifier):
 
     @property
     def model(self):
-        if self.use_cuda and torch.cuda.device_count() > 1:
+        if self.use_cuda and torch.cuda.device_count() > 1 and \
+                self._device_id is None:
             return self._model.module
         return self._model
 
     @model.getter
     def model(self):
-        if self.use_cuda and torch.cuda.device_count() > 1:
+        if self.use_cuda and torch.cuda.device_count() > 1 and \
+                self._device_id is None:
             return self._model.module
         return self._model
 
@@ -171,13 +181,15 @@ class FM(Classifier):
 
     @property
     def v(self):
-        if self.use_cuda and torch.cuda.device_count() > 1:
+        if self.use_cuda and torch.cuda.device_count() > 1 and \
+                self._device_id is None:
             return self._model.module.v
         return self._model.v
 
     @v.getter
     def v(self):
-        if self.use_cuda and torch.cuda.device_count() > 1:
+        if self.use_cuda and torch.cuda.device_count() > 1 and \
+                self._device_id is None:
             return self._model.module.v
         return self._model.v
 
@@ -284,12 +296,14 @@ class FM(Classifier):
             self._model = FactorizationMachine(self.n_features,
                                                n_factors=self.n_factors)
         if not isinstance(self._model, torch.nn.DataParallel):
-            if self.use_cuda and torch.cuda.device_count() > 1:
+            if self.use_cuda and torch.cuda.device_count() > 1 and \
+                    self._device_id is None:
                 self._model = torch.nn.DataParallel(gpu(self._model,
                                                         self.use_cuda))
             else:
                 self._model = gpu(self._model,
-                                  self.use_cuda)
+                                  self.use_cuda,
+                                  self._device_id)
 
     def fit(self,
             x,
@@ -348,8 +362,12 @@ class FM(Classifier):
                                                       leave=False,
                                                       disable=disable_batch):
                 batch_size = batch_tensor.shape[0]
-                batch_tensor = gpu(batch_tensor, self.use_cuda)
-                batch_ratings = gpu(batch_ratings, self.use_cuda)
+                batch_tensor = gpu(batch_tensor,
+                                   self.use_cuda,
+                                   self._device_id)
+                batch_ratings = gpu(batch_ratings,
+                                    self.use_cuda,
+                                    self._device_id)
 
                 observations_var = Variable(batch_tensor)
                 rating_var = Variable(batch_ratings)
@@ -451,7 +469,9 @@ class FM(Classifier):
                                desc="Prediction",
                                leave=False,
                                disable=disable_batch):
-            var = Variable(gpu(batch_data, self.use_cuda))
+            var = Variable(gpu(batch_data,
+                               self.use_cuda,
+                               self._device_id))
             out[(i*self.batch_size):((i+1)*self.batch_size)] = \
                 cpu(self._model(var), self.use_cuda).data.numpy()
             i += 1

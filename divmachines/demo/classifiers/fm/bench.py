@@ -13,7 +13,7 @@ from divmachines.classifiers import FM
 model = FM(n_iter=10,
            batch_size=1000,
            learning_rate=1e-1,
-           n_jobs=4,
+           n_jobs=3,
            sparse=True,
            verbose=True)
 
@@ -33,9 +33,9 @@ from divmachines.classifiers import FM
 model = FM(n_iter=10, 
            batch_size=1000,
            learning_rate=1e-1,
-           n_jobs=4, 
+           n_jobs=3, 
            verbose=True,
-           sparse=True)
+           sparse=False)
 
 interactions = train[['user', 'item', 'rating']].values
 

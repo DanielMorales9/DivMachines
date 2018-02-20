@@ -44,6 +44,10 @@ class FM_SeqRank(Classifier):
         Random state to use when fitting.
     use_cuda: boolean, optional
         Run the models on a GPU.
+    device_id: int, optional
+        GPU device ID to which the tensors are sent.
+        If set use_cuda must be True.
+        By Default uses all GPU available.
     logger: :class:`divmachines.logging`, optional
         A logger instance for logging during the training process
     n_jobs: int, optional
@@ -73,6 +77,7 @@ class FM_SeqRank(Classifier):
                  batch_size=None,
                  random_state=None,
                  use_cuda=False,
+                 device_id=None,
                  logger=None,
                  n_jobs=0,
                  pin_memory=False,
@@ -96,8 +101,13 @@ class FM_SeqRank(Classifier):
         self._pin_memory = pin_memory
         self._verbose = verbose
         self._early_stopping = early_stopping
+        self._user_index = None
         self._n_iter_no_change = n_iter_no_change
         self._tol = tol
+        if device_id is not None and not self._use_cuda:
+            raise ValueError("use_cuda flag must be true")
+        self._device_id = device_id
+
 
     @property
     def n_users(self):
@@ -154,6 +164,7 @@ class FM_SeqRank(Classifier):
                              batch_size=self._batch_size,
                              random_state=self._random_state,
                              use_cuda=self._use_cuda,
+                             device_id=self._device_id,
                              logger=self._logger,
                              n_jobs=self._n_jobs,
                              pin_memory=self._pin_memory,
@@ -173,6 +184,7 @@ class FM_SeqRank(Classifier):
                              batch_size=self._batch_size,
                              random_state=self._random_state,
                              use_cuda=self._use_cuda,
+                             device_id=self._device_id,
                              logger=self._logger,
                              n_jobs=self._n_jobs,
                              pin_memory=self._pin_memory,
@@ -294,11 +306,11 @@ class FM_SeqRank(Classifier):
             self.zero_users(x)
             x = x.reshape(n_users, n_items, self.n_features)
             x = gpu(_tensor_swap(rank, torch.from_numpy(x)),
-                    self._use_cuda)
+                    self._use_cuda, self._device_id)
 
         predictions = np.sort(predictions)[:, ::-1].copy()
         pred = gpu(torch.from_numpy(predictions),
-                   self._use_cuda).float()
+                   self._use_cuda, self._device_id).float()
 
         v = self._model.v.data
 
@@ -343,7 +355,8 @@ class FM_SeqRank(Classifier):
                 .sum(1)
             wm = gpu(torch.from_numpy(
                 np.array([1 / (2 ** m) for m in range(k)],
-                         dtype=np.float32)), self._use_cuda) \
+                         dtype=np.float32)), self._use_cuda,
+                self._device_id) \
                 .unsqueeze(-1) \
                 .expand(k, self._n_factors)
             unranked = prod[k:, :]
@@ -373,7 +386,8 @@ class FM_SeqRank(Classifier):
                       disable=not self._verbose):
             prod_numpy = np.zeros((n_items, self._n_factors),
                                   dtype=np.float32)
-            prod = gpu(torch.from_numpy(prod_numpy), self._use_cuda)
+            prod = gpu(torch.from_numpy(prod_numpy),
+                       self._use_cuda, self._device_id)
 
             if ranking:
                 ranking(u)
@@ -388,8 +402,8 @@ class FM_SeqRank(Classifier):
             for batch, i in tqdm(data_loader,
                                  disable=not self._verbose,
                                  desc="Rank", leave=False):
-                batch = gpu(batch, self._use_cuda)
-                i = gpu(i, self._use_cuda)
+                batch = gpu(batch, self._use_cuda, self._device_id)
+                i = gpu(i, self._use_cuda, self._device_id)
                 batch_size = list(batch.shape)[0]
                 prod[i, :] = (batch.squeeze()
                               .unsqueeze(-1)
@@ -399,7 +413,7 @@ class FM_SeqRank(Classifier):
 
             wm = gpu(torch.from_numpy(
                 np.array([1 / (2 ** m) for m in range(k)],
-                         dtype=np.float32)), self._use_cuda) \
+                         dtype=np.float32)), self._use_cuda, self._device_id) \
                 .unsqueeze(-1) \
                 .expand(k, self._n_factors)
             unranked = prod[k:, :]

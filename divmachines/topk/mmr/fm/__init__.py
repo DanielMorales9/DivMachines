@@ -44,6 +44,10 @@ class FM_MMR(Classifier):
         Random state to use when fitting.
     use_cuda: boolean, optional
         Run the models on a GPU.
+    device_id: int, optional
+        GPU device ID to which the tensors are sent.
+        If set use_cuda must be True.
+        By Default uses all GPU available.
     logger: :class:`divmachines.logging`, optional
         A logger instance for logging during the training process
     n_jobs: int, optional
@@ -73,6 +77,7 @@ class FM_MMR(Classifier):
                  batch_size=None,
                  random_state=None,
                  use_cuda=False,
+                 device_id=None,
                  logger=None,
                  n_jobs=0,
                  pin_memory=False,
@@ -96,8 +101,13 @@ class FM_MMR(Classifier):
         self._pin_memory = pin_memory
         self._verbose = verbose
         self._early_stopping = early_stopping
+        self._user_index = None
         self._n_iter_no_change = n_iter_no_change
         self._tol = tol
+        if device_id is not None and not self._use_cuda:
+            raise ValueError("use_cuda flag must be true")
+        self._device_id = device_id
+
 
     @property
     def n_users(self):
@@ -154,6 +164,7 @@ class FM_MMR(Classifier):
                              batch_size=self._batch_size,
                              random_state=self._random_state,
                              use_cuda=self._use_cuda,
+                             device_id=self._device_id,
                              logger=self._logger,
                              n_jobs=self._n_jobs,
                              pin_memory=self._pin_memory,
@@ -173,6 +184,7 @@ class FM_MMR(Classifier):
                              batch_size=self._batch_size,
                              random_state=self._random_state,
                              use_cuda=self._use_cuda,
+                             device_id=self._device_id,
                              logger=self._logger,
                              n_jobs=self._n_jobs,
                              pin_memory=self._pin_memory,
@@ -292,11 +304,11 @@ class FM_MMR(Classifier):
             self.zero_users(x)
             x = x.reshape(n_users, n_items, self.n_features)
             x = gpu(_tensor_swap(rank, torch.from_numpy(x)),
-                    self._use_cuda)
+                    self._use_cuda, self._device_id)
 
         predictions = np.sort(predictions)[:, ::-1].copy()
         pred = gpu(torch.from_numpy(predictions),
-                   self._use_cuda).float()
+                   self._use_cuda, self._device_id).float()
 
         v = self._model.v.data
 
@@ -327,7 +339,8 @@ class FM_MMR(Classifier):
     def _mmr_objective(self, b, k, n_items, n_users, pred, v, x):
         corr = self._correlation(v, k, x, n_users, n_items)
         max_corr_per_user = np.sort(corr, 1)[:, -1, :].copy()
-        max_corr = gpu(torch.from_numpy(max_corr_per_user), self._use_cuda)
+        max_corr = gpu(torch.from_numpy(max_corr_per_user),
+                       self._use_cuda, self._device_id)
         values = torch.mul(pred[:, k:], b) - torch.mul(max_corr, 1 - b)
         values = values.cpu().numpy()
         return values
@@ -335,7 +348,8 @@ class FM_MMR(Classifier):
     def _sparse_mmr_objective(self, b, k, n_items, n_users, pred, v, x, rank):
         corr = self._sparse_correlation(v, k, x, n_users, n_items, rank)
         max_corr_per_user = np.sort(corr, 1)[:, -1, :].copy()
-        max_corr = gpu(torch.from_numpy(max_corr_per_user), self._use_cuda)
+        max_corr = gpu(torch.from_numpy(max_corr_per_user),
+                       self._use_cuda, self._device_id)
         values = torch.mul(pred[:, k:], b) - torch.mul(max_corr, 1 - b)
         values = values.cpu().numpy()
         return values
@@ -381,7 +395,8 @@ class FM_MMR(Classifier):
                       disable=not self._verbose):
             prod_numpy = np.zeros((n_items, self._n_factors),
                                   dtype=np.float32)
-            prod = gpu(torch.from_numpy(prod_numpy), self._use_cuda)
+            prod = gpu(torch.from_numpy(prod_numpy),
+                       self._use_cuda, self._device_id)
 
             if ranking:
                 ranking(u)
@@ -396,8 +411,10 @@ class FM_MMR(Classifier):
             for batch, i in tqdm(dataloader,
                                  disable=not self._verbose,
                                  desc="Rank", leave=False):
-                batch = gpu(batch, self._use_cuda)
-                i = gpu(i, self._use_cuda)
+                batch = gpu(batch, self._use_cuda,
+                            self._device_id)
+                i = gpu(i, self._use_cuda,
+                        self._device_id)
                 batch_size = list(batch.shape)[0]
                 prod[i, :] = (batch.squeeze()
                               .unsqueeze(-1)

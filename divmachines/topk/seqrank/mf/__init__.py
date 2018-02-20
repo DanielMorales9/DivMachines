@@ -18,7 +18,7 @@ class MF_SeqRank(Classifier):
     Seq Rank for Matrix Factorization Model
     with MF-Correlation
 
-        Parameters
+   Parameters
     ----------
     model: classifier, str or optional
         An instance of `divmachines.classifier.lfp.FM`.
@@ -45,6 +45,10 @@ class MF_SeqRank(Classifier):
         Random state to use when fitting.
     use_cuda: boolean, optional
         Run the models on a GPU.
+    device_id: int, optional
+        GPU device ID to which the tensors are sent.
+        If set use_cuda must be True.
+        By Default uses all GPU available.
     logger: :class:`divmachines.logging`, optional
         A logger instance for logging during the training process
     n_jobs: int, optional
@@ -53,6 +57,9 @@ class MF_SeqRank(Classifier):
     early_stopping: bool, optional
         Performs a dump every time to enable early stopping.
         Default False.
+        n_iter_no_change : int, optional, default 10
+        Maximum number of epochs to not meet ``tol`` improvement.
+        Only effective when solver='sgd' or 'adam'
     n_iter_no_change : int, optional, default 10
         Maximum number of epochs to not meet ``tol`` improvement.
         Only effective when solver='sgd' or 'adam'
@@ -74,6 +81,7 @@ class MF_SeqRank(Classifier):
                  batch_size=None,
                  random_state=None,
                  use_cuda=False,
+                 device_id=None,
                  logger=None,
                  n_jobs=0,
                  pin_memory=False,
@@ -97,8 +105,11 @@ class MF_SeqRank(Classifier):
         self._pin_memory = pin_memory
         self._verbose = verbose
         self._early_stopping = early_stopping
-        self._n_iter_no_change = n_iter_no_change
         self._tol = tol
+        self._n_iter_no_change = n_iter_no_change
+        if device_id is not None and not self._use_cuda:
+            raise ValueError("use_cuda flag must be true")
+        self._device_id = device_id
 
     @property
     def n_users(self):
@@ -135,6 +146,7 @@ class MF_SeqRank(Classifier):
                              batch_size=self._batch_size,
                              random_state=self._random_state,
                              use_cuda=self._use_cuda,
+                             device_id=self._device_id,
                              logger=self._logger,
                              n_jobs=self._n_jobs,
                              pin_memory=self._pin_memory,
@@ -154,6 +166,7 @@ class MF_SeqRank(Classifier):
                              batch_size=self._batch_size,
                              random_state=self._random_state,
                              use_cuda=self._use_cuda,
+                             device_id=self._device_id,
                              logger=self._logger,
                              n_jobs=self._n_jobs,
                              pin_memory=self._pin_memory,
@@ -163,7 +176,7 @@ class MF_SeqRank(Classifier):
                              tol=self._tol)
         elif not isinstance(self._model, MF):
             raise ValueError("Model must be an instance of "
-                             "divmachines.classifiers.FM class")
+                             "divmachines.classifiers.lfp.MF class")
 
     def _init_dataset(self, x):
         self._rev_item_index = {}
@@ -291,8 +304,12 @@ class MF_SeqRank(Classifier):
     def _compute_delta_f(self, x, y, k, b, rank, users):
         # Initialize Variables
         # and other coefficients
-        u_idx = Variable(gpu(torch.from_numpy(users), self._use_cuda))
-        i_idx = Variable(gpu(torch.from_numpy(rank), self._use_cuda))
+        u_idx = Variable(gpu(torch.from_numpy(users),
+                             self._use_cuda,
+                             self._device_id))
+        i_idx = Variable(gpu(torch.from_numpy(rank),
+                             self._use_cuda,
+                             self._device_id))
 
         n_users = rank.shape[0]
         n_items = rank.shape[1]
@@ -300,7 +317,8 @@ class MF_SeqRank(Classifier):
         wk = 1/(2**k)
         wm = Variable(gpu(torch.from_numpy(
             np.array([1 / (2 ** m) for m in range(k)],
-                     dtype=np.float32)), self._use_cuda)) \
+                     dtype=np.float32)), self._use_cuda,
+            self._device_id)) \
             .unsqueeze(1).expand(k, self._n_factors)
 
         i_ranked = (y(i_idx[:, :k]) * wm).unsqueeze(2)

@@ -1,9 +1,9 @@
 import torch
 
 
-def gpu(tensor, gpu=False):
+def gpu(tensor, gpu=False, device=None):
     if gpu:
-        return tensor.cuda()
+        return tensor.cuda(device_id=device)
     else:
         return tensor
 

@@ -193,7 +193,6 @@ class SparseDataset(Dataset):
                                          lengths=self._lengths)
             self._n_features = self._n_features or n_feats
             self._sparse_x = list2dic(d, rows, cols)
-        self._zero = np.zeros(self._n_features, dtype=np.float32)
 
     @property
     def n_features(self):
@@ -247,7 +246,7 @@ class SparseDataset(Dataset):
         return self._len
 
     def __getitem__(self, item):
-        copy = self._zero.copy()
+        copy = np.zeros(self._n_features, dtype=np.float32)
         for d, col in self._sparse_x[item]:
             copy[col] = d
         if self._y is None:

@@ -49,6 +49,10 @@ class MF(Classifier):
         Random state to use when fitting.
     use_cuda: boolean, optional
         Run the model on a GPU.
+    device_id: int, optional
+        GPU device ID to which the tensors are sent.
+        If set use_cuda must be True.
+        By Default uses all GPU available.
     logger: :class:`divmachines.logging`, optional
         A logger instance for logging during the training process
     n_jobs: int, optional
@@ -81,6 +85,7 @@ class MF(Classifier):
                  batch_size=None,
                  random_state=None,
                  use_cuda=False,
+                 device_id=None,
                  logger=None,
                  n_jobs=0,
                  pin_memory=False,
@@ -110,6 +115,9 @@ class MF(Classifier):
         self._early_stopping = early_stopping
         self._n_iter_no_change = n_iter_no_change
         self._tol = tol
+        if device_id is not None and not self.use_cuda:
+            raise ValueError("use_cuda flag must be true")
+        self._device_id = device_id
         set_seed(self._random_state.randint(-10 ** 8, 10 ** 8),
                  cuda=self.use_cuda)
 
@@ -242,11 +250,14 @@ class MF(Classifier):
                                                          self.n_factors,
                                                          self._sparse)
         if not isinstance(self._model, torch.nn.DataParallel):
-            if self.use_cuda and torch.cuda.device_count() > 1:
+            if self.use_cuda and torch.cuda.device_count() > 1 and \
+                    self._device_id is None:
                 self._model = torch.nn.DataParallel(gpu(self._model,
                                                         self.use_cuda))
             else:
-                self._model = gpu(self._model, self.use_cuda)
+                self._model = gpu(self._model,
+                                  self.use_cuda,
+                                  self._device_id)
 
     def fit(self, x, y, dic=None, n_users=None, n_items=None):
         """
@@ -292,9 +303,15 @@ class MF(Classifier):
                                                  leave=False,
                                                  disable=disable_batch):
                 batch_size = batch_data.shape[0]
-                user_var = Variable(gpu(batch_data[:, 0], self.use_cuda))
-                item_var = Variable(gpu(batch_data[:, 1], self.use_cuda))
-                rating_var = Variable(gpu(batch_rating, self.use_cuda).float(),
+                user_var = Variable(gpu(batch_data[:, 0],
+                                        self.use_cuda,
+                                        self._device_id))
+                item_var = Variable(gpu(batch_data[:, 1],
+                                        self.use_cuda,
+                                        self._device_id))
+                rating_var = Variable(gpu(batch_rating,
+                                          self.use_cuda,
+                                          self._device_id).float(),
                                       requires_grad=False)
 
                 # forward step
@@ -389,9 +406,14 @@ class MF(Classifier):
                                leave=False,
                                desc="Prediction",
                                disable=disable_batch):
-            user_var = Variable(gpu(batch_data[:, 0], self.use_cuda))
-            item_var = Variable(gpu(batch_data[:, 1], self.use_cuda))
-            out[(i*self.batch_size):((i+1)*self.batch_size)] = self._model(user_var, item_var) \
+            user_var = Variable(gpu(batch_data[:, 0],
+                                    self.use_cuda,
+                                    self._device_id))
+            item_var = Variable(gpu(batch_data[:, 1],
+                                    self.use_cuda,
+                                    self._device_id))
+            out[(i*self.batch_size):((i+1)*self.batch_size)] = \
+                self._model(user_var, item_var) \
                 .cpu().data.numpy()
             i += 1
 

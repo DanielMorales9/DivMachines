@@ -1,12 +1,13 @@
-import torch
 import numpy as np
 import pandas as pd
+import torch
 from torch.autograd.variable import Variable
+from tqdm import tqdm
+
 from divmachines.classifiers import Classifier
 from divmachines.classifiers.mf import MF
 from divmachines.utility.helper import _swap_k, index, re_index
 from divmachines.utility.torch import gpu
-from tqdm import tqdm
 
 ITEMS = 'items'
 USERS = 'users'
@@ -48,6 +49,10 @@ class MF_LFP(Classifier):
         Random state to use when fitting.
     use_cuda: boolean, optional
         Run the models on a GPU.
+    device_id: int, optional
+        GPU device ID to which the tensors are sent.
+        If set use_cuda must be True.
+        By Default uses all GPU available.
     logger: :class:`divmachines.logging`, optional
         A logger instance for logging during the training process
     n_jobs: int, optional
@@ -80,6 +85,7 @@ class MF_LFP(Classifier):
                  batch_size=None,
                  random_state=None,
                  use_cuda=False,
+                 device_id=None,
                  logger=None,
                  n_jobs=0,
                  pin_memory=False,
@@ -105,6 +111,9 @@ class MF_LFP(Classifier):
         self._early_stopping = early_stopping
         self._tol = tol
         self._n_iter_no_change = n_iter_no_change
+        if device_id is not None and not self._use_cuda:
+            raise ValueError("use_cuda flag must be true")
+        self._device_id = device_id
 
     @property
     def n_users(self):
@@ -141,6 +150,7 @@ class MF_LFP(Classifier):
                              batch_size=self._batch_size,
                              random_state=self._random_state,
                              use_cuda=self._use_cuda,
+                             device_id=self._device_id,
                              logger=self._logger,
                              n_jobs=self._n_jobs,
                              pin_memory=self._pin_memory,
@@ -160,6 +170,7 @@ class MF_LFP(Classifier):
                              batch_size=self._batch_size,
                              random_state=self._random_state,
                              use_cuda=self._use_cuda,
+                             device_id=self._device_id,
                              logger=self._logger,
                              n_jobs=self._n_jobs,
                              pin_memory=self._pin_memory,
@@ -311,13 +322,19 @@ class MF_LFP(Classifier):
     def _compute_delta_f(self, x, y, k, b, var, rank, users):
         # Initialize Variables
         # and other coefficients
-        u_idx = Variable(gpu(torch.from_numpy(users), self._use_cuda))
-        i_idx = Variable(gpu(torch.from_numpy(rank), self._use_cuda))
+        u_idx = Variable(gpu(torch.from_numpy(users),
+                             self._use_cuda,
+                             self._device_id))
+        i_idx = Variable(gpu(torch.from_numpy(rank),
+                             self._use_cuda,
+                             self._device_id))
 
         wk = 1/(2**k)
         wm = Variable(gpu(torch.from_numpy(
             np.array([1 / (2 ** m) for m in range(k)],
-                     dtype=np.float32)), self._use_cuda)) \
+                     dtype=np.float32)),
+            self._use_cuda,
+            self._device_id)) \
             .unsqueeze(1).expand(k, self._n_factors)
 
         i_ranked = (y(i_idx[:, :k]) * wm).transpose(0, 1).unsqueeze(0)
@@ -336,7 +353,7 @@ class MF_LFP(Classifier):
                                  len(users),
                                  rank.shape[1])
 
-        delta_f = torch.mul(term0 - term1 - term2, wk)\
+        delta_f = torch.mul(term0 - term1 - term2, wk) \
             .sum(2).transpose(0, 1)
 
         return delta_f.cpu().data.numpy()
@@ -377,7 +394,9 @@ class MF_LFP(Classifier):
         var_v = torch.from_numpy(self._var)
         var = torch.nn.Embedding(var_v.size(0), var_v.size(1))
         var.weight = torch.nn.Parameter(var_v)
-        var = gpu(var, self._use_cuda)
+        var = gpu(var,
+                  self._use_cuda,
+                  self._device_id)
         return var
 
     def _estimate_variance(self, x):
@@ -395,9 +414,11 @@ class MF_LFP(Classifier):
             user_profile = g.values[:, 1].astype(np.int64)
             upl = user_profile.shape[0]
             user_idx = Variable(gpu(torch.from_numpy(np.array([u])),
-                                    self._use_cuda))
+                                    self._use_cuda,
+                                    self._device_id))
             item_idx = Variable(gpu(torch.from_numpy(user_profile),
-                                    self._use_cuda))
+                                    self._use_cuda,
+                                    self._device_id))
             diff = x(user_idx) - y(item_idx)
 
             prod = torch.pow(diff, 2).sum(0)

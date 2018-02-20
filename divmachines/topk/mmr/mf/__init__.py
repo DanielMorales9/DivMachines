@@ -16,7 +16,7 @@ class MF_MMR(Classifier):
     """
     Maximal Marginal Relevance with Matrix Factorization Correlation measure
 
-    Parameters
+   Parameters
     ----------
     model: classifier, str or optional
         An instance of `divmachines.classifier.lfp.FM`.
@@ -43,6 +43,10 @@ class MF_MMR(Classifier):
         Random state to use when fitting.
     use_cuda: boolean, optional
         Run the models on a GPU.
+    device_id: int, optional
+        GPU device ID to which the tensors are sent.
+        If set use_cuda must be True.
+        By Default uses all GPU available.
     logger: :class:`divmachines.logging`, optional
         A logger instance for logging during the training process
     n_jobs: int, optional
@@ -51,6 +55,9 @@ class MF_MMR(Classifier):
     early_stopping: bool, optional
         Performs a dump every time to enable early stopping.
         Default False.
+        n_iter_no_change : int, optional, default 10
+        Maximum number of epochs to not meet ``tol`` improvement.
+        Only effective when solver='sgd' or 'adam'
     n_iter_no_change : int, optional, default 10
         Maximum number of epochs to not meet ``tol`` improvement.
         Only effective when solver='sgd' or 'adam'
@@ -72,6 +79,7 @@ class MF_MMR(Classifier):
                  batch_size=None,
                  random_state=None,
                  use_cuda=False,
+                 device_id=None,
                  logger=None,
                  n_jobs=0,
                  pin_memory=False,
@@ -95,8 +103,11 @@ class MF_MMR(Classifier):
         self._pin_memory = pin_memory
         self._verbose = verbose
         self._early_stopping = early_stopping
-        self._n_iter_no_change = n_iter_no_change
         self._tol = tol
+        self._n_iter_no_change = n_iter_no_change
+        if device_id is not None and not self._use_cuda:
+            raise ValueError("use_cuda flag must be true")
+        self._device_id = device_id
 
     @property
     def n_users(self):
@@ -133,6 +144,7 @@ class MF_MMR(Classifier):
                              batch_size=self._batch_size,
                              random_state=self._random_state,
                              use_cuda=self._use_cuda,
+                             device_id=self._device_id,
                              logger=self._logger,
                              n_jobs=self._n_jobs,
                              pin_memory=self._pin_memory,
@@ -152,6 +164,7 @@ class MF_MMR(Classifier):
                              batch_size=self._batch_size,
                              random_state=self._random_state,
                              use_cuda=self._use_cuda,
+                             device_id=self._device_id,
                              logger=self._logger,
                              n_jobs=self._n_jobs,
                              pin_memory=self._pin_memory,
@@ -161,7 +174,7 @@ class MF_MMR(Classifier):
                              tol=self._tol)
         elif not isinstance(self._model, MF):
             raise ValueError("Model must be an instance of "
-                             "divmachines.classifiers.FM class")
+                             "divmachines.classifiers.lfp.MF class")
 
     def _init_dataset(self, x):
         self._rev_item_index = {}
@@ -274,7 +287,7 @@ class MF_MMR(Classifier):
         rank = np.argsort(-predictions, 1)
         predictions = np.sort(predictions)[:, ::-1].copy()
         pred = gpu(torch.from_numpy(predictions),
-                   self._use_cuda).float()
+                   self._use_cuda, self._device_id).float()
         re_index(items, rank)
 
         y = self._model.y
@@ -293,13 +306,17 @@ class MF_MMR(Classifier):
     def _mmr_objective(self, b, k, pred, rank, y):
         corr = self._correlation(y, k, rank)
         max_corr_per_user = np.sort(corr, 1)[:, -1, :].copy()
-        max_corr = gpu(torch.from_numpy(max_corr_per_user), self._use_cuda)
+        max_corr = gpu(torch.from_numpy(max_corr_per_user),
+                       self._use_cuda,
+                       self._device_id)
         values = torch.mul(pred[:, k:], b) - torch.mul(max_corr, 1 - b)
         values = values.cpu().numpy()
         return values
 
     def _correlation(self, y, k, rank):
-        i_idx = Variable(gpu(torch.from_numpy(rank), self._use_cuda))
+        i_idx = Variable(gpu(torch.from_numpy(rank),
+                             self._use_cuda,
+                             self._device_id))
 
         i_ranked = (y(i_idx[:, :k])).unsqueeze(2)
         i_unranked = y(i_idx[:, k:]).unsqueeze(1)
