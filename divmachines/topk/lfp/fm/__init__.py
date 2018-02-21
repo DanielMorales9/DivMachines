@@ -216,45 +216,57 @@ class FM_LFP(Classifier):
                     self._user_index[k[len(USERS):]] = v
 
     def _sparse_variance_computation(self):
-        v = self._model.v.data
-        Nu = gpu(torch.from_numpy(
-            np.zeros(self.n_users, dtype=np.int64)),
-            self._use_cuda,
-            self._device_id)
-        variance = gpu(torch.from_numpy(
-            np.zeros((self.n_users, self._n_factors),
-                     dtype=np.float32)), self._use_cuda,
-            self._device_id)
+        v = self._model.v.cpu().data.numpy().T
+        Nu = np.zeros(self.n_users, dtype=np.int)
+        variance = np.zeros((self.n_users, self._n_factors),
+                            dtype=np.float32)
 
-        loader = DataLoader(self._model._dataset,
-                            shuffle=False,
-                            batch_size=self._batch_size,
-                            num_workers=self._n_jobs)
-        for x, _ in tqdm(loader,
+        for x, _ in tqdm(self.dataset,
                          desc="Variance Estimate",
                          leave=False,
                          disable=not self._verbose):
-            x = gpu(x, self._use_cuda,
-                    self._device_id)
-            idx = torch.nonzero(x)
-            mask = gpu(torch.ByteTensor(*idx.shape).zero_(), self._use_cuda,
-                       self._device_id)
-            mask[:, 1] = idx[:, 1] < self.n_users
-            u_idx = torch.masked_select(idx, mask)
-            user_factors = v[u_idx, :]
-            x[:, u_idx] = 0
+            u_idx = list(filter(lambda k: k < self.n_users, np.nonzero(x)[0]))[0]
+            user_factors = v[:, u_idx]
+            x[u_idx] = 0
             Nu[u_idx] += 1
-            dot = (v.transpose(0, 1)
-                   .unsqueeze(1)
-                   .expand(self._n_factors,
-                           x.shape[0],
-                           self.n_features) * x).sum(2).transpose(0, 1)
-            variance[u_idx] += torch.pow((user_factors - dot), 2)
-        self._var = ((1.0/Nu.float())
-                     .unsqueeze(-1)
-                     .expand(self.n_users,
-                             self._n_factors) * variance) \
-            .cpu().numpy()
+            variance[u_idx] += np.square(user_factors - (v.dot(x)))
+        self._var = (variance.T * (1.0 / Nu)).T
+    #
+    # v = self._model.v.data
+    # Nu = gpu(torch.from_numpy(
+    #     np.zeros(self.n_users, dtype=np.int64)),
+    #     self._use_cuda,
+    #     self._device_id)
+    # variance = gpu(torch.from_numpy(
+    #     np.zeros((self.n_users, self._n_factors),
+    #              dtype=np.float32)), self._use_cuda,
+    #     self._device_id)
+    #
+    # loader = DataLoader(self._model._dataset,
+    #                     shuffle=False,
+    #                     batch_size=self._batch_size,
+    #                     num_workers=self._n_jobs)
+    # for x, _ in tqdm(loader,
+    #                  desc="Variance Estimate",
+    #                  leave=False,
+    #                  disable=not self._verbose):
+    #     x = gpu(x, self._use_cuda,
+    #             self._device_id)
+    #     idx = torch.nonzero(x)
+    #     mask = gpu(torch.ByteTensor(*idx.shape).zero_(), self._use_cuda,
+    #                self._device_id)
+    #     mask[:, 1] = idx[:, 1] < self.n_users
+    #     u_idx = torch.masked_select(idx, mask)
+    #     user_factors = v[u_idx, :]
+    #     x[:, u_idx] = 0
+    #     Nu[u_idx] += 1
+    #     dot = torch.mm(x, v)
+    #     variance[u_idx] += torch.pow((user_factors - dot), 2)
+    #
+    # mul = (1.0 / Nu.float()) \
+    #           .unsqueeze(-1) \
+    #           .expand(self.n_users, self._n_factors) * variance
+    # self._var = mul.cpu().numpy()
 
     def _dense_variance_computation(self):
         x = self.dataset.copy()
