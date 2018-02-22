@@ -400,7 +400,8 @@ class FM_LFP(Classifier):
         if load:
             self._build_user_index()
             variance = Embedding(self.n_users, self._n_factors)
-            variance.load_state_dict(torch.load(file)['variance'])
+            variance.load_state_dict(
+                torch.load(file, map_location=lambda storage, loc: storage)['variance'])
             self._var = variance.weight.data.numpy()
 
         items = np.array([x[i, 1] for i in sorted(
@@ -611,9 +612,10 @@ class FM_LFP(Classifier):
         # delta = torch.mul(term0 - torch.mul(term1 + term2, b), wk)
 
     def torch_variance(self):
-        var = gpu(torch.from_numpy(self._var).float(),
-                  self._use_cuda,
-                  self._device_id)
+        var = torch.from_numpy(self._var).float()
         e = Embedding(var.size(0), var.size(1))
         e.weight = Parameter(var)
-        return e
+        return gpu(e,
+                   self._use_cuda,
+                   self._device_id)
+

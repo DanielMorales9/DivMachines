@@ -285,7 +285,9 @@ class MF_LFP(Classifier):
         if load:
             self._build_indexes()
             variance = torch.nn.Embedding(self.n_users, self._n_factors)
-            variance.load_state_dict(torch.load(file)['variance'])
+            variance.load_state_dict(
+                torch.load(file,
+                           map_location=lambda storage, loc: storage)['variance'])
             self._var = variance.weight.data.numpy()
 
         self._init_dataset(x, train=False)

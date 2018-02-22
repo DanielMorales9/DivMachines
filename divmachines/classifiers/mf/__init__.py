@@ -189,10 +189,12 @@ class MF(Classifier):
                       n_items=None):
         ix = None
         if isinstance(self._model, str):
-            dic = torch.load(self._model)['dic']
-            n_users = torch.load(self._model)['n_users']
-            n_items = torch.load(self._model)['n_items']
-            ixx = torch.load(self._model)['ix']
+            self._load = torch.load(self._model,
+                                    map_location=lambda storage, loc: storage)
+            dic = self._load['dic']
+            n_users = self._load['n_users']
+            n_items = self._load['n_items']
+            ixx = self._load['ix']
             ix = IndexDictionary(ColumnDefaultFactory(ixx,
                                                       old=True,
                                                       prefix=dic.copy()))
@@ -229,7 +231,7 @@ class MF(Classifier):
     def _init_model(self):
         if self._model is not None:
             if isinstance(self._model, str):
-                model_dict = torch.load(self._model)
+                model_dict = self._load
                 sparse = model_dict["sparse"]
                 n_factors = model_dict["n_factors"]
                 n_items = model_dict["n_items"]

@@ -223,11 +223,12 @@ class FM(Classifier):
                       lengths=None):
         ix = None
         if isinstance(self._model, str):
-            dic = torch.load(self._model)['dic']
-            n_users = torch.load(self._model)['n_users']
-            n_items = torch.load(self._model)['n_items']
-            lengths = torch.load(self._model)['lengths']
-            ixx = torch.load(self._model)['ix']
+            self._load = torch.load(self._model, map_location=lambda storage, loc: storage)
+            dic = self._load['dic']
+            n_users = self._load['n_users']
+            n_items = self._load['n_items']
+            lengths = self._load['lengths']
+            ixx = self._load['ix']
             ix = IndexDictionary(FeaturesFactory(ixx,
                                                  old=True,
                                                  prefix=dic.copy()))
@@ -276,7 +277,8 @@ class FM(Classifier):
     def _init_model(self):
         if self._model is not None:
             if isinstance(self._model, str):
-                model_dict = torch.load(self._model)
+                # map the tensor to cpu
+                model_dict = self._load
                 n_features = model_dict["n_features"]
                 n_factors = model_dict["n_factors"]
                 self._model = FactorizationMachine(n_features,
@@ -358,9 +360,9 @@ class FM(Classifier):
             mini_batch_num = 0
             acc_loss = 0.0
             for batch_tensor, batch_ratings in tqdm(loader,
-                                                      desc='Batches',
-                                                      leave=False,
-                                                      disable=disable_batch):
+                                                    desc='Batches',
+                                                    leave=False,
+                                                    disable=disable_batch):
                 batch_size = batch_tensor.shape[0]
                 batch_tensor = gpu(batch_tensor,
                                    self.use_cuda,
