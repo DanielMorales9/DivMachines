@@ -41,4 +41,6 @@ class Classifier(ABC):
 
 from divmachines.classifiers.mf import MF
 from divmachines.classifiers.fm import FM
-__all__ = ["FM", "MF", "Classifier"]
+from divmachines.classifiers.fm.bpr import BPR_FM
+from divmachines.classifiers.mf.bpr import BPR_MF
+__all__ = ["FM", "MF", "Classifier", "BPR_FM", "BPR_MF"]

@@ -5,42 +5,35 @@ from torch.autograd import Variable
 from divmachines.classifiers import Classifier
 from divmachines.utility.helper import _prepare_for_prediction
 from divmachines.logging import Logger
-from divmachines.models import SimpleMatrixFactorizationModel
+from divmachines.models import SimpleMatrixFactorizationModel, BPR
 from divmachines.utility.indexing import IndexDictionary, ColumnDefaultFactory
 from divmachines.utility.torch import set_seed, gpu
 from torch.utils.data import DataLoader
-from .dataset import DenseDataset
+from .dataset import PairDataset
 from tqdm import tqdm
 import warnings
 
 
-class MF(Classifier):
+class BPR_MF(Classifier):
     """
-    Pointwise Classifier. Uses a classic
-    matrix factorization approach, with latent vectors used
-    to represent both users and items. Their dot product gives the
-    predicted score for a user-item pair.
-    The model is trained through a set of observations of user-item
-    pairs.
+    Bayesian Personalized Ranking with Matrix Factorization
 
     Parameters
     ----------
-    model: :class: div.machines.models, str, optional
-        A matrix Factorization model or
-        the pathname of the saved model. Default None.
-    n_factors: int, optional
+     n_factors: int, optional
         Number of factors to use in user and item latent factors
+    model: :class: div.machines.models, string, optional
+        A Factorization Machine model or
+        the pathname of the saved model. Default None
     sparse: boolean, optional
-        Use sparse gradients for embedding layers.
-    loss: function, optional
-        an instance of a Pytorch optimizer or a custom loss.
+        Use sparse dataset
     l2: float, optional
         L2 loss penalty.
     learning_rate: float, optional
         Initial learning rate.
     optimizer_func: function, optional
         Function that takes in module parameters as the first argument and
-        returns an instance of a Pytorch optimizer. Overrides l2 and learning
+        returns an instance of a PyTorch optimizer. Overrides l2 and learning
         rate if supplied. If no optimizer supplied, then use SGD by default.
     n_iter: int, optional
         Number of iterations to run.
@@ -49,7 +42,7 @@ class MF(Classifier):
     random_state: instance of numpy.random.RandomState, optional
         Random state to use when fitting.
     use_cuda: boolean, optional
-        Run the model on a GPU.
+        Run the models on a GPU.
     device_id: int, optional
         GPU device ID to which the tensors are sent.
         If set use_cuda must be True.
@@ -57,13 +50,16 @@ class MF(Classifier):
     logger: :class:`divmachines.logging`, optional
         A logger instance for logging during the training process
     n_jobs: int, optional
-        Number of workers for data loading.
+        Number of jobs for data loading.
         Default is 0, it means that the data loader runs in the main process.
     pin_memory bool, optional:
         If ``True``, the data loader will copy tensors
         into CUDA pinned memory before returning them.
     verbose: bool, optional:
         If ``True``, it will print information about iterations.
+        Default False.
+    early_stopping: bool, optional
+        Performs a dump every time to enable early stopping.
         Default False.
     n_iter_no_change : int, optional, default 10
         Maximum number of epochs to not meet ``tol`` improvement.
@@ -73,14 +69,15 @@ class MF(Classifier):
         by at least ``tol`` for ``n_iter_no_change`` consecutive iterations,
         convergence is considered to be reached and training stops.
     stopping: bool, optional
+    frac: float, optional
+        Fraction of Negative Item sampling for BPR
     """
 
     def __init__(self,
-                 model=None,
                  n_factors=10,
-                 sparse=True,
+                 model=None,
+                 sparse=False,
                  n_iter=10,
-                 loss=None,
                  l2=0.0,
                  learning_rate=1e-2,
                  optimizer_func=None,
@@ -92,12 +89,12 @@ class MF(Classifier):
                  n_jobs=0,
                  pin_memory=False,
                  verbose=False,
-                 early_stopping=None,
+                 early_stopping=False,
                  n_iter_no_change=10,
                  tol=1e-4,
-                 stopping=False):
-
-        super(MF, self).__init__()
+                 stopping=False,
+                 frac=0.8):
+        super(Classifier, self).__init__()
         self.n_factors = n_factors
         self.iter = n_iter
         self.batch_size = batch_size
@@ -109,7 +106,7 @@ class MF(Classifier):
         self.use_cuda = use_cuda
         self._n_jobs = n_jobs
         self._optimizer_func = optimizer_func
-        self._loss_func = loss or torch.nn.MSELoss()
+        self._loss_func = BPR()
         self._logger = logger or Logger()
         self._dataset = None
         self._optimizer = None
@@ -119,6 +116,7 @@ class MF(Classifier):
         self._n_iter_no_change = n_iter_no_change
         self._tol = tol
         self._stopping = stopping
+        self._frac = frac
         if device_id is not None and not self.use_cuda:
             raise ValueError("use_cuda flag must be true")
         self._device_id = device_id
@@ -211,12 +209,13 @@ class MF(Classifier):
                 if self._dataset is not None:
                     self._dataset = self._dataset(x, y=y)
                 else:
-                    self._dataset = DenseDataset(x,
-                                                 y=y,
-                                                 dic=dic,
-                                                 n_users=n_users,
-                                                 n_items=n_items,
-                                                 ix=ix)
+                    self._dataset = PairDataset(x,
+                                                y=y,
+                                                frac=self._frac,
+                                                dic=dic,
+                                                n_users=n_users,
+                                                n_items=n_items,
+                                                ix=ix)
         else:
             raise TypeError("Training set must be of type dataset or of type ndarray")
 
@@ -304,32 +303,35 @@ class MF(Classifier):
                           disable=self._disable):
             mini_batch_num = 0
             acc_loss = 0.0
-            for batch_data, batch_rating in tqdm(loader,
-                                                 desc='Batches',
-                                                 leave=False,
-                                                 disable=disable_batch):
-                batch_size = batch_data.shape[0]
-                user_var = Variable(gpu(batch_data[:, 0],
+            if epoch > 0:
+                self._dataset._initialize(x, y)
+            for batch_users, batch_pos, batch_neg in tqdm(loader,
+                                                           desc='Batches',
+                                                           leave=False,
+                                                           disable=disable_batch):
+                batch_size = batch_users.shape[0]
+                user_var = Variable(gpu(batch_users,
                                         self.use_cuda,
                                         self._device_id),
                                     requires_grad=False)
-                item_var = Variable(gpu(batch_data[:, 1],
-                                        self.use_cuda,
-                                        self._device_id),
-                                    requires_grad=False)
-                rating_var = Variable(gpu(batch_rating,
-                                          self.use_cuda,
-                                          self._device_id).float(),
-                                      requires_grad=False)
+                pos_var = Variable(gpu(batch_pos,
+                                       self.use_cuda,
+                                       self._device_id),
+                                   requires_grad=False)
+                neg_var = Variable(gpu(batch_neg,
+                                       self.use_cuda,
+                                       self._device_id),
+                                   requires_grad=False)
 
                 # forward step
-                predictions = self._model(user_var, item_var)
+                pos = self._model(user_var, pos_var)
+                neg = self._model(user_var, neg_var)
 
                 # Zeroing Embeddings' gradients
                 self._optimizer.zero_grad()
 
                 # Compute Loss
-                loss = self._loss_func(predictions, rating_var)
+                loss = self._loss_func(pos, neg)
 
                 acc_loss += loss.data.cpu().numpy()[0] * batch_size
 
@@ -426,7 +428,7 @@ class MF(Classifier):
                                     self._device_id))
             out[(i*self.batch_size):((i+1)*self.batch_size)] = \
                 self._model(user_var, item_var) \
-                .cpu().data.numpy()
+                    .cpu().data.numpy()
             i += 1
 
         return out.flatten()

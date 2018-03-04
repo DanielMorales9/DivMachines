@@ -11,7 +11,7 @@ import os
 
 UPL = 3
 N_JOBS = 3
-N_ITER = 1
+N_ITER = 10
 TOP = 5
 FACTORS = 10
 USERS_BATCH = 10
@@ -19,7 +19,7 @@ LEARNING_RATE = .001
 BATCH_SIZE = 2048
 VERBOSE = True
 USE_CUDA = False
-SPARSE = True
+SPARSE = False
 STOP = True
 TRIPLETS_PATH = './../../../../../data/ua.base'
 GENRE_PATH = './../../../../../data/u.item'

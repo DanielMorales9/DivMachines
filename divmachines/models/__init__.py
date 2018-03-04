@@ -201,7 +201,8 @@ class FactorizationMachine(Module):
         return self.second_order.v
 
     def forward(self, x):
-        linear = (x * self.linear).sum(1).unsqueeze(-1)
+        mm = x * self.linear
+        linear = (mm).sum(1).unsqueeze(-1)
         interaction = self.second_order(x)
         res = self.global_bias + linear + interaction
 
@@ -235,6 +236,18 @@ class SecondOrderInteraction(Module):
         pow_v = torch.pow(self.v, 2)
         pow_sum = torch.pow(torch.mm(x, self.v), 2)
         sum_pow = torch.mm(pow_x, pow_v)
-        out = 0.5 * (pow_sum - sum_pow).sum(1)
+        out = 0.5 * ((pow_sum - sum_pow).sum(1))
 
         return out.unsqueeze(-1)
+
+
+class BPR(torch.nn.Module):
+
+    def __init__(self):
+        super(BPR, self).__init__()
+        self._sigmoid = torch.nn.Sigmoid()
+
+    def forward(self, pos, neg):
+        loss = torch.log(self._sigmoid(pos.double() - neg.double()))
+        return -loss.mean()
+

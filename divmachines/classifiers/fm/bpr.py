@@ -2,45 +2,37 @@ import numpy as np
 import torch
 from torch import optim
 from torch.autograd import Variable
-from divmachines.classifiers import Classifier
-from divmachines.utility.helper import _prepare_for_prediction
-from divmachines.logging import Logger
-from divmachines.models import SimpleMatrixFactorizationModel
-from divmachines.utility.indexing import IndexDictionary, ColumnDefaultFactory
-from divmachines.utility.torch import set_seed, gpu
 from torch.utils.data import DataLoader
-from .dataset import DenseDataset
+from .dataset import PairDataset
+from divmachines.models import FactorizationMachine, BPR
+from divmachines.classifiers import Classifier
+from divmachines.logging import Logger
+from divmachines.utility.torch import set_seed, gpu, cpu
 from tqdm import tqdm
+from divmachines.utility.indexing import FeaturesFactory, IndexDictionary
 import warnings
 
 
-class MF(Classifier):
+class BPR_FM(Classifier):
     """
-    Pointwise Classifier. Uses a classic
-    matrix factorization approach, with latent vectors used
-    to represent both users and items. Their dot product gives the
-    predicted score for a user-item pair.
-    The model is trained through a set of observations of user-item
-    pairs.
+    Bayesian Personalized Ranking with Factorization Machines
 
     Parameters
     ----------
-    model: :class: div.machines.models, str, optional
-        A matrix Factorization model or
-        the pathname of the saved model. Default None.
     n_factors: int, optional
         Number of factors to use in user and item latent factors
+    model: :class: div.machines.models, string, optional
+        A Factorization Machine model or
+        the pathname of the saved model. Default None
     sparse: boolean, optional
-        Use sparse gradients for embedding layers.
-    loss: function, optional
-        an instance of a Pytorch optimizer or a custom loss.
+        Use sparse dataset
     l2: float, optional
         L2 loss penalty.
     learning_rate: float, optional
         Initial learning rate.
     optimizer_func: function, optional
         Function that takes in module parameters as the first argument and
-        returns an instance of a Pytorch optimizer. Overrides l2 and learning
+        returns an instance of a PyTorch optimizer. Overrides l2 and learning
         rate if supplied. If no optimizer supplied, then use SGD by default.
     n_iter: int, optional
         Number of iterations to run.
@@ -49,7 +41,7 @@ class MF(Classifier):
     random_state: instance of numpy.random.RandomState, optional
         Random state to use when fitting.
     use_cuda: boolean, optional
-        Run the model on a GPU.
+        Run the models on a GPU.
     device_id: int, optional
         GPU device ID to which the tensors are sent.
         If set use_cuda must be True.
@@ -57,13 +49,16 @@ class MF(Classifier):
     logger: :class:`divmachines.logging`, optional
         A logger instance for logging during the training process
     n_jobs: int, optional
-        Number of workers for data loading.
+        Number of jobs for data loading.
         Default is 0, it means that the data loader runs in the main process.
     pin_memory bool, optional:
         If ``True``, the data loader will copy tensors
         into CUDA pinned memory before returning them.
     verbose: bool, optional:
         If ``True``, it will print information about iterations.
+        Default False.
+    early_stopping: bool, optional
+        Performs a dump every time to enable early stopping.
         Default False.
     n_iter_no_change : int, optional, default 10
         Maximum number of epochs to not meet ``tol`` improvement.
@@ -73,14 +68,15 @@ class MF(Classifier):
         by at least ``tol`` for ``n_iter_no_change`` consecutive iterations,
         convergence is considered to be reached and training stops.
     stopping: bool, optional
+    frac: float, optional
+        Fraction of Negative Item sampling for BPR
     """
 
     def __init__(self,
-                 model=None,
                  n_factors=10,
-                 sparse=True,
+                 model=None,
+                 sparse=False,
                  n_iter=10,
-                 loss=None,
                  l2=0.0,
                  learning_rate=1e-2,
                  optimizer_func=None,
@@ -92,14 +88,16 @@ class MF(Classifier):
                  n_jobs=0,
                  pin_memory=False,
                  verbose=False,
-                 early_stopping=None,
+                 early_stopping=False,
                  n_iter_no_change=10,
                  tol=1e-4,
-                 stopping=False):
+                 stopping=False,
+                 frac=0.8):
 
-        super(MF, self).__init__()
+        super(Classifier, self).__init__()
+        self._no_improvement_count = 0
         self.n_factors = n_factors
-        self.iter = n_iter
+        self.n_iter = n_iter
         self.batch_size = batch_size
         self.learning_rate = learning_rate
         self.l2 = l2
@@ -107,17 +105,21 @@ class MF(Classifier):
         self._sparse = sparse
         self._random_state = random_state or np.random.RandomState()
         self.use_cuda = use_cuda
-        self._n_jobs = n_jobs
         self._optimizer_func = optimizer_func
-        self._loss_func = loss or torch.nn.MSELoss()
+        self._loss_func = BPR()
         self._logger = logger or Logger()
-        self._dataset = None
+        self._n_jobs = n_jobs
         self._optimizer = None
+        self._dataset = None
+        self._sparse = sparse
+        self._n_items = None
+        self._n_users = None
         self._pin_memory = pin_memory
         self._disable = not verbose
         self._early_stopping = early_stopping
         self._n_iter_no_change = n_iter_no_change
         self._tol = tol
+        self._frac = frac
         self._stopping = stopping
         if device_id is not None and not self.use_cuda:
             raise ValueError("use_cuda flag must be true")
@@ -142,6 +144,14 @@ class MF(Classifier):
         return self._dataset.n_items
 
     @property
+    def n_features(self):
+        return self._dataset.n_features
+
+    @n_features.getter
+    def n_features(self):
+        return self._dataset.n_features
+
+    @property
     def index(self):
         return self._dataset.index
 
@@ -150,27 +160,48 @@ class MF(Classifier):
         return self._dataset.index
 
     @property
-    def x(self):
-        return self._model.x
+    def model(self):
+        if self.use_cuda and torch.cuda.device_count() > 1 and \
+                self._device_id is None:
+            return self._model.module
+        return self._model
 
-    @x.getter
-    def x(self):
-        return self._model.x
+    @model.getter
+    def model(self):
+        if self.use_cuda and torch.cuda.device_count() > 1 and \
+                self._device_id is None:
+            return self._model.module
+        return self._model
 
     @property
-    def y(self):
-        return self._model.y
+    def dataset(self):
+        return self._dataset.x
 
-    @x.getter
-    def y(self):
-        return self._model.y
+    @dataset.getter
+    def dataset(self):
+        return self._dataset.x
+
+    @property
+    def v(self):
+        if self.use_cuda and torch.cuda.device_count() > 1 and \
+                self._device_id is None:
+            return self._model.module.v
+        return self._model.v
+
+    @v.getter
+    def v(self):
+        if self.use_cuda and torch.cuda.device_count() > 1 and \
+                self._device_id is None:
+            return self._model.module.v
+        return self._model.v
 
     def _initialize(self,
                     x,
                     y=None,
                     dic=None,
                     n_users=None,
-                    n_items=None):
+                    n_items=None,
+                    lengths=None):
 
         self._best_loss = np.inf
         self._no_improvement_count = 0
@@ -179,8 +210,8 @@ class MF(Classifier):
                            y=y,
                            dic=dic,
                            n_users=n_users,
-                           n_items=n_items)
-
+                           n_items=n_items,
+                           lengths=lengths)
         self._init_model()
 
         self._init_optim_fun()
@@ -190,7 +221,8 @@ class MF(Classifier):
                       y=None,
                       dic=None,
                       n_users=None,
-                      n_items=None):
+                      n_items=None,
+                      lengths=None):
         ix = None
         if isinstance(self._model, str):
             self._load = torch.load(self._model,
@@ -198,27 +230,35 @@ class MF(Classifier):
             dic = self._load['dic']
             n_users = self._load['n_users']
             n_items = self._load['n_items']
+            lengths = self._load['lengths']
             ixx = self._load['ix']
-            ix = IndexDictionary(ColumnDefaultFactory(ixx,
-                                                      old=True,
-                                                      prefix=dic.copy()))
+            ix = IndexDictionary(FeaturesFactory(ixx,
+                                                 old=True,
+                                                 prefix=dic.copy()))
             # feeding the dictionary
             for k in ixx:
                 f = ix[k]
 
         if type(x).__module__ == np.__name__:
             if y is None or type(x).__module__ == np.__name__:
+
                 if self._dataset is not None:
-                    self._dataset = self._dataset(x, y=y)
+                    self._dataset(x,
+                                  y=y)
                 else:
-                    self._dataset = DenseDataset(x,
-                                                 y=y,
-                                                 dic=dic,
-                                                 n_users=n_users,
-                                                 n_items=n_items,
-                                                 ix=ix)
+                    self._dataset = PairDataset(x,
+                                                y=y,
+                                                frac=self._frac,
+                                                dic=dic,
+                                                n_users=n_users,
+                                                n_items=n_items,
+                                                lengths=lengths,
+                                                sparse=self._sparse,
+                                                ix=ix)
+
         else:
-            raise TypeError("Training set must be of type dataset or of type ndarray")
+            raise TypeError("Training set must be of type "
+                            "dataset or of type ndarray")
 
     def _init_optim_fun(self):
         if self._optimizer_func is None:
@@ -235,26 +275,26 @@ class MF(Classifier):
     def _init_model(self):
         if self._model is not None:
             if isinstance(self._model, str):
+                # map the tensor to cpu
                 model_dict = self._load
-                sparse = model_dict["sparse"]
+                n_features = model_dict["n_features"]
                 n_factors = model_dict["n_factors"]
-                n_items = model_dict["n_items"]
-                n_users = model_dict["n_users"]
-                self._model = SimpleMatrixFactorizationModel(
-                    n_users,
-                    n_items,
-                    n_factors,
-                    sparse)
-                self._model.load_state_dict(model_dict['state_dict'])
-            elif not (issubclass(type(self._model), torch.nn.Module) or
+                self._model = FactorizationMachine(n_features,
+                                                   n_factors=n_factors)
+                dic = {}
+                for m in model_dict['state_dict']:
+                    if m.startswith('module.'):
+                        dic[m[7:]] = model_dict['state_dict'][m]
+                    else:
+                        dic[m] = model_dict['state_dict'][m]
+                self._model.load_state_dict(dic)
+            elif not (isinstance(self._model, FactorizationMachine) or
                       isinstance(self._model, torch.nn.DataParallel)):
                 raise ValueError("Model must be an instance "
                                  "of FactorizationMachine")
         else:
-            self._model = SimpleMatrixFactorizationModel(self.n_users,
-                                                         self.n_items,
-                                                         self.n_factors,
-                                                         self._sparse)
+            self._model = FactorizationMachine(self.n_features,
+                                               n_factors=self.n_factors)
         if not isinstance(self._model, torch.nn.DataParallel):
             if self.use_cuda and torch.cuda.device_count() > 1 and \
                     self._device_id is None:
@@ -265,10 +305,16 @@ class MF(Classifier):
                                   self.use_cuda,
                                   self._device_id)
 
-    def fit(self, x, y, dic=None, n_users=None, n_items=None):
+    def fit(self,
+            x,
+            y,
+            dic=None,
+            n_users=None,
+            n_items=None,
+            lengths=None):
         """
-        Fit the model.
-        When called repeatedly, model fitting will resume from
+        Fit the models.
+        When called repeatedly, models fitting will resume from
         the point at which training stopped in the previous fit
         call.
 
@@ -277,63 +323,73 @@ class MF(Classifier):
         x: ndarray
             Training samples
         y: ndarray
-            Target values for samples
+            ndarray of shape(comparisons, 2).
+            List of Pairs of indexes (i, j) in which FM(i) > FM(j)
         dic: dict, optional
-            dic indicates the columns to make indexable.
+            dic indicates the columns to vectorize
+            if training samples are in raw format.
         n_users: int, optional
             Total number of users. The model will have `n_users` rows.
             Default is None, `n_users` will be inferred from `x`.
         n_items: int, optional
             Total number of items. The model will have `n_items` columns.
             Default is None, `n_items` will be inferred from `x`.
+        lengths: dic, optional
+            Dictionary of lengths of each feature in dic except for
+            users and items.
         """
 
         self._initialize(x, y=y, dic=dic,
                          n_users=n_users,
-                         n_items=n_items)
+                         n_items=n_items,
+                         lengths=lengths)
 
         disable_batch = self._disable or self.batch_size is None
-        loader = DataLoader(self._dataset,
-                            shuffle=True,
-                            batch_size=self.batch_size,
-                            num_workers=self._n_jobs)
 
-        for epoch in tqdm(range(self.iter),
+        loader = DataLoader(self._dataset,
+                            pin_memory=self._pin_memory,
+                            batch_size=self.batch_size,
+                            num_workers=self._n_jobs,
+                            shuffle=True)
+
+        for epoch in tqdm(range(self.n_iter),
                           desc='Fitting',
                           leave=False,
                           disable=self._disable):
             mini_batch_num = 0
             acc_loss = 0.0
-            for batch_data, batch_rating in tqdm(loader,
-                                                 desc='Batches',
-                                                 leave=False,
-                                                 disable=disable_batch):
-                batch_size = batch_data.shape[0]
-                user_var = Variable(gpu(batch_data[:, 0],
-                                        self.use_cuda,
-                                        self._device_id),
-                                    requires_grad=False)
-                item_var = Variable(gpu(batch_data[:, 1],
-                                        self.use_cuda,
-                                        self._device_id),
-                                    requires_grad=False)
-                rating_var = Variable(gpu(batch_rating,
-                                          self.use_cuda,
-                                          self._device_id).float(),
-                                      requires_grad=False)
+            if epoch > 0:
+                self._dataset._initialize(x, y)
+            for positive_batch, negative_batch in tqdm(loader,
+                                                       desc='Batches',
+                                                       leave=False,
+                                                       disable=disable_batch):
+                batch_size = positive_batch.shape[0]
+                positive_batch = gpu(positive_batch,
+                                     self.use_cuda,
+                                     self._device_id)
+                negative_batch = gpu(negative_batch,
+                                     self.use_cuda,
+                                     self._device_id)
+
+                positive_batch = Variable(positive_batch, requires_grad=False)
+                negative_batch = Variable(negative_batch, requires_grad=False)
 
                 # forward step
-                predictions = self._model(user_var, item_var)
+                pos = self._model(positive_batch)
+                neg = self._model(negative_batch)
 
                 # Zeroing Embeddings' gradients
                 self._optimizer.zero_grad()
 
                 # Compute Loss
-                loss = self._loss_func(predictions, rating_var)
+                loss = self._loss_func(pos, neg)
 
                 acc_loss += loss.data.cpu().numpy()[0] * batch_size
 
-                self._logger.log(loss, epoch=epoch, batch=mini_batch_num, cpu=self.use_cuda)
+                # logging
+                self._logger.log(loss, epoch, batch=mini_batch_num,
+                                 cpu=self.use_cuda)
 
                 # backward step
                 loss.backward()
@@ -355,7 +411,7 @@ class MF(Classifier):
                     self._no_improvement_count = 0
 
         if self._early_stopping:
-            self._prepare(dic)
+            self._prepare(dic, n_users, n_items, lengths)
 
     def _update_no_improvement_count(self, acc_loss):
         if acc_loss > self._best_loss - self._tol:
@@ -365,22 +421,29 @@ class MF(Classifier):
         if acc_loss < self._best_loss:
             self._best_loss = acc_loss
 
-    def _prepare(self, dic):
+    def _prepare(self, dic, n_users, n_items, lengths):
         idx = None
         if self._dataset.index:
             idx = {}
             for k, v in self._dataset.index.items():
                 idx[k] = v
         self.dump = {'state_dict': self._model.state_dict(),
-                     'sparse': self._sparse,
+                     'n_features': self.n_features,
                      'n_factors': self.n_factors,
                      'dic': dic,
-                     'n_users': self.n_users,
-                     'n_items': self.n_items,
+                     'n_users': n_users,
+                     'n_items': n_items,
+                     'lengths': lengths,
                      'ix': idx}
 
     def save(self, path):
         torch.save(self.dump, path)
+
+    def init_predict(self, x):
+        if isinstance(self._model, str):
+            self._initialize(x)
+        else:
+            self._init_dataset(x)
 
     def predict(self, x, **kwargs):
         """
@@ -388,45 +451,38 @@ class MF(Classifier):
         scores for items.
         Parameters
         ----------
-        x: ndarray
-           It will predict scores for all (user, item) pairs defined in x
+        x: ndarray or :class:`divmachines.fm.dataset`
+            samples for which predict the ratings/rank score
         Returns
         -------
-        predictions: ndarray
-            Predicted scores for all elements
+        predictions: np.array
+            Predicted scores for each sample in x
         """
+        if len(x.shape) == 1:
+            x = np.array([x])
 
-        x = _prepare_for_prediction(x, 2)
-
-        if isinstance(self._model, str):
-            self._initialize(x)
-        else:
-            self._init_dataset(x)
+        self.init_predict(x)
 
         disable_batch = self._disable or self.batch_size is None
         if self.batch_size is None:
             self.batch_size = len(self._dataset)
-
         loader = DataLoader(self._dataset,
-                            shuffle=False,
                             batch_size=self.batch_size,
+                            shuffle=False,
                             num_workers=self._n_jobs)
 
         out = np.zeros(len(x))
         i = 0
         for batch_data in tqdm(loader,
-                               leave=False,
                                desc="Prediction",
+                               leave=False,
                                disable=disable_batch):
-            user_var = Variable(gpu(batch_data[:, 0],
-                                    self.use_cuda,
-                                    self._device_id))
-            item_var = Variable(gpu(batch_data[:, 1],
-                                    self.use_cuda,
-                                    self._device_id))
-            out[(i*self.batch_size):((i+1)*self.batch_size)] = \
-                self._model(user_var, item_var) \
-                .cpu().data.numpy()
-            i += 1
+            var = Variable(gpu(batch_data,
+                               self.use_cuda,
+                               self._device_id))
+            batch_size = batch_data.shape[0]
+            out[i: i + batch_size] = \
+                cpu(self._model(var), self.use_cuda).data.numpy()
+            i += batch_size
 
-        return out.flatten()
+        return out

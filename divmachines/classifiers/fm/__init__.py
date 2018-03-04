@@ -10,6 +10,7 @@ from divmachines.logging import Logger
 from divmachines.utility.torch import set_seed, gpu, cpu
 from tqdm import tqdm
 from divmachines.utility.indexing import FeaturesFactory, IndexDictionary
+import warnings
 
 
 class FM(Classifier):
@@ -68,6 +69,7 @@ class FM(Classifier):
         Tolerance for the optimization. When the loss or score is not improving
         by at least ``tol`` for ``n_iter_no_change`` consecutive iterations,
         convergence is considered to be reached and training stops.
+    stopping: bool, optional
     """
 
     def __init__(self,
@@ -85,15 +87,15 @@ class FM(Classifier):
                  device_id=None,
                  logger=None,
                  n_jobs=0,
-                 shuffle=True,
                  pin_memory=False,
                  verbose=False,
-                 sparse_num=0,
                  early_stopping=False,
                  n_iter_no_change=10,
-                 tol=1e-4):
+                 tol=1e-4,
+                 stopping=False):
 
         super(FM, self).__init__()
+        self._no_improvement_count = 0
         self.n_factors = n_factors
         self.n_iter = n_iter
         self.batch_size = batch_size
@@ -112,13 +114,12 @@ class FM(Classifier):
         self._sparse = sparse
         self._n_items = None
         self._n_users = None
-        self._shuffle = shuffle
         self._pin_memory = pin_memory
         self._disable = not verbose
-        self._sparse_num = sparse_num
         self._early_stopping = early_stopping
         self._n_iter_no_change = n_iter_no_change
         self._tol = tol
+        self._stopping = stopping
         if device_id is not None and not self.use_cuda:
             raise ValueError("use_cuda flag must be true")
         self._device_id = device_id
@@ -371,8 +372,8 @@ class FM(Classifier):
                                     self.use_cuda,
                                     self._device_id)
 
-                observations_var = Variable(batch_tensor)
-                rating_var = Variable(batch_ratings)
+                observations_var = Variable(batch_tensor, requires_grad=False)
+                rating_var = Variable(batch_ratings, requires_grad=False)
 
                 # forward step
                 predictions = self._model(observations_var)
@@ -402,7 +403,11 @@ class FM(Classifier):
             self._update_no_improvement_count(acc_loss)
 
             if self._no_improvement_count > self._n_iter_no_change:
-                break
+                if self._stopping:
+                    warnings.warn("Stopping at epoch: %s with loss %s" % (epoch, acc_loss))
+                    break
+                else:
+                    self._no_improvement_count = 0
 
         if self._early_stopping:
             self._prepare(dic, n_users, n_items, lengths)
@@ -474,8 +479,9 @@ class FM(Classifier):
             var = Variable(gpu(batch_data,
                                self.use_cuda,
                                self._device_id))
-            out[(i*self.batch_size):((i+1)*self.batch_size)] = \
+            batch_size = batch_data.shape[0]
+            out[i: i + batch_size] = \
                 cpu(self._model(var), self.use_cuda).data.numpy()
-            i += 1
+            i += batch_size
 
-        return out.flatten()
+        return out

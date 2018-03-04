@@ -3,7 +3,7 @@ import numpy as np
 from torch.autograd.variable import Variable
 from torch.nn import Embedding, Parameter
 from divmachines.classifiers import Classifier
-from divmachines.classifiers import FM
+from divmachines.classifiers import FM, BPR_FM
 from torch.utils.data import DataLoader
 
 from divmachines.topk import Rank
@@ -31,8 +31,6 @@ class FM_LFP(Classifier):
         Number of factors to use in user and item latent factors
     sparse: boolean, optional
         Use sparse dataset
-    loss: function, optional
-        an instance of a Pytorch optimizer or a custom loss.
     l2: float, optional
         L2 loss penalty.
     learning_rate: float, optional
@@ -68,6 +66,9 @@ class FM_LFP(Classifier):
         Tolerance for the optimization. When the loss or score is not improving
         by at least ``tol`` for ``n_iter_no_change`` consecutive iterations,
         convergence is considered to be reached and training stops.
+    stopping: bool, optional
+    frac: float, optional
+        Fraction of Negative Item sampling for BPR
     """
 
     def __init__(self,
@@ -75,7 +76,6 @@ class FM_LFP(Classifier):
                  n_factors=10,
                  sparse=False,
                  n_iter=10,
-                 loss=None,
                  l2=0.0,
                  learning_rate=1e-2,
                  optimizer_func=None,
@@ -89,12 +89,13 @@ class FM_LFP(Classifier):
                  verbose=False,
                  early_stopping=False,
                  n_iter_no_change=10,
-                 tol=1e-4):
+                 tol=1e-4,
+                 stopping=False,
+                 frac=0.8):
         self._model = model
         self._n_factors = n_factors
         self._sparse = sparse
         self._n_iter = n_iter
-        self._loss = loss
         self._l2 = l2
         self._learning_rate = learning_rate
         self._optimizer_func = optimizer_func
@@ -109,6 +110,8 @@ class FM_LFP(Classifier):
         self._user_index = None
         self._n_iter_no_change = n_iter_no_change
         self._tol = tol
+        self._stopping = stopping
+        self._frac = frac
         if device_id is not None and not self._use_cuda:
             raise ValueError("use_cuda flag must be true")
         self._device_id = device_id
@@ -158,55 +161,54 @@ class FM_LFP(Classifier):
 
     def _init_model(self):
         if self._model is None:
-            self._model = FM(n_factors=self._n_factors,
-                             sparse=self._sparse,
-                             n_iter=self._n_iter,
-                             loss=self._loss,
-                             l2=self._l2,
-                             learning_rate=self._learning_rate,
-                             optimizer_func=self._optimizer_func,
-                             batch_size=self._batch_size,
-                             random_state=self._random_state,
-                             use_cuda=self._use_cuda,
-                             device_id=self._device_id,
-                             logger=self._logger,
-                             n_jobs=self._n_jobs,
-                             pin_memory=self._pin_memory,
-                             verbose=self._verbose,
-                             early_stopping=self._early_stopping,
-                             n_iter_no_change=self._n_iter_no_change,
-                             tol=self._tol)
+            self._model = BPR_FM(n_factors=self._n_factors,
+                                 sparse=self._sparse,
+                                 n_iter=self._n_iter,
+                                 l2=self._l2,
+                                 learning_rate=self._learning_rate,
+                                 optimizer_func=self._optimizer_func,
+                                 batch_size=self._batch_size,
+                                 random_state=self._random_state,
+                                 use_cuda=self._use_cuda,
+                                 device_id=self._device_id,
+                                 logger=self._logger,
+                                 n_jobs=self._n_jobs,
+                                 pin_memory=self._pin_memory,
+                                 verbose=self._verbose,
+                                 early_stopping=self._early_stopping,
+                                 n_iter_no_change=self._n_iter_no_change,
+                                 tol=self._tol,
+                                 stopping=self._stopping,
+                                 frac=self._frac)
         elif isinstance(self._model, str):
-            self._model = FM(model=self._model,
-                             n_factors=self._n_factors,
-                             sparse=self._sparse,
-                             n_iter=self._n_iter,
-                             loss=self._loss,
-                             l2=self._l2,
-                             learning_rate=self._learning_rate,
-                             optimizer_func=self._optimizer_func,
-                             batch_size=self._batch_size,
-                             random_state=self._random_state,
-                             use_cuda=self._use_cuda,
-                             device_id=self._device_id,
-                             logger=self._logger,
-                             n_jobs=self._n_jobs,
-                             pin_memory=self._pin_memory,
-                             verbose=self._verbose,
-                             early_stopping=self._early_stopping,
-                             n_iter_no_change=self._n_iter_no_change,
-                             tol=self._tol)
-        elif not isinstance(self._model, FM):
+            self._model = BPR_FM(model=self._model,
+                                 n_factors=self._n_factors,
+                                 sparse=self._sparse,
+                                 n_iter=self._n_iter,
+                                 l2=self._l2,
+                                 learning_rate=self._learning_rate,
+                                 optimizer_func=self._optimizer_func,
+                                 batch_size=self._batch_size,
+                                 random_state=self._random_state,
+                                 use_cuda=self._use_cuda,
+                                 device_id=self._device_id,
+                                 logger=self._logger,
+                                 n_jobs=self._n_jobs,
+                                 pin_memory=self._pin_memory,
+                                 verbose=self._verbose,
+                                 early_stopping=self._early_stopping,
+                                 n_iter_no_change=self._n_iter_no_change,
+                                 tol=self._tol,
+                                 stopping=self._stopping,
+                                 frac=self._frac)
+        elif not isinstance(self._model, BPR_FM) and \
+                not isinstance(self._model, FM):
             raise ValueError("Model must be an instance of "
                              "divmachines.classifiers.FM class")
 
     def _init_dataset(self, x):
         self._build_user_index()
-
-        if self._sparse:
-            self._sparse_variance_computation()
-        else:
-            self._dense_variance_computation()
+        self._variance_computation()
 
     def _build_user_index(self):
         if not self._user_index:
@@ -215,101 +217,24 @@ class FM_LFP(Classifier):
                 if k.startswith(USERS):
                     self._user_index[k[len(USERS):]] = v
 
-    def _sparse_variance_computation(self):
+    def _variance_computation(self):
         v = self._model.v.cpu().data.numpy().T
         Nu = np.zeros(self.n_users, dtype=np.int)
         variance = np.zeros((self.n_users, self._n_factors),
                             dtype=np.float32)
 
-        for x, _ in tqdm(self.dataset,
-                         desc="Variance Estimate",
-                         leave=False,
-                         disable=not self._verbose):
+        for x in tqdm(self.dataset,
+                      desc="Variance Estimate",
+                      leave=False,
+                      disable=not self._verbose):
+            if self._sparse:
+                x, _ = x
             u_idx = list(filter(lambda k: k < self.n_users, np.nonzero(x)[0]))[0]
             user_factors = v[:, u_idx]
             x[u_idx] = 0
             Nu[u_idx] += 1
             variance[u_idx] += np.square(user_factors - (v.dot(x)))
         self._var = (variance.T * (1.0 / Nu)).T
-    #
-    # v = self._model.v.data
-    # Nu = gpu(torch.from_numpy(
-    #     np.zeros(self.n_users, dtype=np.int64)),
-    #     self._use_cuda,
-    #     self._device_id)
-    # variance = gpu(torch.from_numpy(
-    #     np.zeros((self.n_users, self._n_factors),
-    #              dtype=np.float32)), self._use_cuda,
-    #     self._device_id)
-    #
-    # loader = DataLoader(self._model._dataset,
-    #                     shuffle=False,
-    #                     batch_size=self._batch_size,
-    #                     num_workers=self._n_jobs)
-    # for x, _ in tqdm(loader,
-    #                  desc="Variance Estimate",
-    #                  leave=False,
-    #                  disable=not self._verbose):
-    #     x = gpu(x, self._use_cuda,
-    #             self._device_id)
-    #     idx = torch.nonzero(x)
-    #     mask = gpu(torch.ByteTensor(*idx.shape).zero_(), self._use_cuda,
-    #                self._device_id)
-    #     mask[:, 1] = idx[:, 1] < self.n_users
-    #     u_idx = torch.masked_select(idx, mask)
-    #     user_factors = v[u_idx, :]
-    #     x[:, u_idx] = 0
-    #     Nu[u_idx] += 1
-    #     dot = torch.mm(x, v)
-    #     variance[u_idx] += torch.pow((user_factors - dot), 2)
-    #
-    # mul = (1.0 / Nu.float()) \
-    #           .unsqueeze(-1) \
-    #           .expand(self.n_users, self._n_factors) * variance
-    # self._var = mul.cpu().numpy()
-
-    def _dense_variance_computation(self):
-        x = self.dataset.copy()
-        nz = list(filter(lambda k: k[1] < self.n_users,
-                         [(r, c) for r, c in zip(*np.nonzero(x))]))
-        self.zero_users(x)
-        d = {}
-        for r, c in nz:
-            d.setdefault(c, []).append(r)
-        # getting parameter from the model
-        v = self._model.v.cpu().data.numpy()
-        # (t, n)
-        x = gpu(torch.from_numpy(x), self._use_cuda,
-                self._device_id)
-        X = gpu(Embedding(x.size(0), x.size(1)), self._use_cuda,
-                self._device_id)
-        X.weight = Parameter(x)
-        # (n, f)
-        V = Variable(gpu(torch.from_numpy(v), self._use_cuda,
-                         self._device_id))
-        var = np.zeros((self.n_users, self._n_factors),
-                       dtype=np.float)
-        var = gpu(torch.from_numpy(var), self._use_cuda,
-                  self._device_id)
-        for k, val in d.items():
-            idx = Variable(gpu(torch.from_numpy(np.array(val)),
-                               self._use_cuda,
-                               self._device_id))
-            i = X(idx).size(0)
-
-            prod = (X(idx)
-                    .unsqueeze(2)
-                    .expand(i,
-                            self.n_features,
-                            self._n_factors) *
-                    V.unsqueeze(0)
-                    .expand(i,
-                            self.n_features,
-                            self._n_factors)).sum(1)
-            diff = V[k, :] - prod
-            a = torch.pow(diff, 2).sum(0)
-            var[k, :] = torch.div(a, len(val)).data
-        self._var = var.cpu().numpy()
 
     def fit(self, x, y, dic=None,
             n_users=None,

@@ -5,7 +5,7 @@ from torch.autograd.variable import Variable
 from tqdm import tqdm
 
 from divmachines.classifiers import Classifier
-from divmachines.classifiers.mf import MF
+from divmachines.classifiers import BPR_MF
 from divmachines.utility.helper import _swap_k, index, re_index
 from divmachines.utility.torch import gpu
 
@@ -71,6 +71,9 @@ class MF_LFP(Classifier):
         Tolerance for the optimization. When the loss or score is not improving
         by at least ``tol`` for ``n_iter_no_change`` consecutive iterations,
         convergence is considered to be reached and training stops.
+    stopping: bool, optional
+    frac: float, optional
+        Fraction of Negative Item sampling for BPR
     """
 
     def __init__(self,
@@ -92,7 +95,9 @@ class MF_LFP(Classifier):
                  verbose=False,
                  early_stopping=False,
                  n_iter_no_change=10,
-                 tol=1e-4):
+                 tol=1e-4,
+                 stopping=True,
+                 frac=0.8):
         self._model = model
         self._n_factors = n_factors
         self._sparse = sparse
@@ -111,6 +116,8 @@ class MF_LFP(Classifier):
         self._early_stopping = early_stopping
         self._tol = tol
         self._n_iter_no_change = n_iter_no_change
+        self._stopping = stopping
+        self._frac = frac
         if device_id is not None and not self._use_cuda:
             raise ValueError("use_cuda flag must be true")
         self._device_id = device_id
@@ -140,45 +147,47 @@ class MF_LFP(Classifier):
 
     def _init_model(self):
         if self._model is None:
-            self._model = MF(n_factors=self._n_factors,
-                             sparse=self._sparse,
-                             n_iter=self._n_iter,
-                             loss=self._loss,
-                             l2=self._l2,
-                             learning_rate=self._learning_rate,
-                             optimizer_func=self._optimizer_func,
-                             batch_size=self._batch_size,
-                             random_state=self._random_state,
-                             use_cuda=self._use_cuda,
-                             device_id=self._device_id,
-                             logger=self._logger,
-                             n_jobs=self._n_jobs,
-                             pin_memory=self._pin_memory,
-                             verbose=self._verbose,
-                             early_stopping=self._early_stopping,
-                             n_iter_no_change=self._n_iter_no_change,
-                             tol=self._tol)
+            self._model = BPR_MF(n_factors=self._n_factors,
+                                 sparse=self._sparse,
+                                 n_iter=self._n_iter,
+                                 l2=self._l2,
+                                 learning_rate=self._learning_rate,
+                                 optimizer_func=self._optimizer_func,
+                                 batch_size=self._batch_size,
+                                 random_state=self._random_state,
+                                 use_cuda=self._use_cuda,
+                                 device_id=self._device_id,
+                                 logger=self._logger,
+                                 n_jobs=self._n_jobs,
+                                 pin_memory=self._pin_memory,
+                                 verbose=self._verbose,
+                                 early_stopping=self._early_stopping,
+                                 n_iter_no_change=self._n_iter_no_change,
+                                 tol=self._tol,
+                                 stopping=self._stopping,
+                                 frac=self._frac)
         elif isinstance(self._model, str):
-            self._model = MF(model=self._model,
-                             n_factors=self._n_factors,
-                             sparse=self._sparse,
-                             n_iter=self._n_iter,
-                             loss=self._loss,
-                             l2=self._l2,
-                             learning_rate=self._learning_rate,
-                             optimizer_func=self._optimizer_func,
-                             batch_size=self._batch_size,
-                             random_state=self._random_state,
-                             use_cuda=self._use_cuda,
-                             device_id=self._device_id,
-                             logger=self._logger,
-                             n_jobs=self._n_jobs,
-                             pin_memory=self._pin_memory,
-                             verbose=self._verbose,
-                             early_stopping=self._early_stopping,
-                             n_iter_no_change=self._n_iter_no_change,
-                             tol=self._tol)
-        elif not isinstance(self._model, MF):
+            self._model = BPR_MF(model=self._model,
+                                 n_factors=self._n_factors,
+                                 sparse=self._sparse,
+                                 n_iter=self._n_iter,
+                                 l2=self._l2,
+                                 learning_rate=self._learning_rate,
+                                 optimizer_func=self._optimizer_func,
+                                 batch_size=self._batch_size,
+                                 random_state=self._random_state,
+                                 use_cuda=self._use_cuda,
+                                 device_id=self._device_id,
+                                 logger=self._logger,
+                                 n_jobs=self._n_jobs,
+                                 pin_memory=self._pin_memory,
+                                 verbose=self._verbose,
+                                 early_stopping=self._early_stopping,
+                                 n_iter_no_change=self._n_iter_no_change,
+                                 tol=self._tol,
+                                 stopping=self._stopping,
+                                 frac=self._frac)
+        elif not isinstance(self._model, BPR_MF):
             raise ValueError("Model must be an instance of "
                              "divmachines.classifiers.lfp.MF class")
 

@@ -67,6 +67,7 @@ class MF_SeqRank(Classifier):
         Tolerance for the optimization. When the loss or score is not improving
         by at least ``tol`` for ``n_iter_no_change`` consecutive iterations,
         convergence is considered to be reached and training stops.
+    stopping: bool, optional
     """
 
     def __init__(self,
@@ -88,7 +89,8 @@ class MF_SeqRank(Classifier):
                  verbose=False,
                  early_stopping=False,
                  n_iter_no_change=10,
-                 tol=1e-4):
+                 tol=1e-4,
+                 stopping=False):
         self._model = model
         self._n_factors = n_factors
         self._sparse = sparse
@@ -107,6 +109,7 @@ class MF_SeqRank(Classifier):
         self._early_stopping = early_stopping
         self._tol = tol
         self._n_iter_no_change = n_iter_no_change
+        self._stopping = stopping
         if device_id is not None and not self._use_cuda:
             raise ValueError("use_cuda flag must be true")
         self._device_id = device_id
@@ -153,7 +156,8 @@ class MF_SeqRank(Classifier):
                              verbose=self._verbose,
                              early_stopping=self._early_stopping,
                              n_iter_no_change=self._n_iter_no_change,
-                             tol=self._tol)
+                             tol=self._tol,
+                             stopping=self._stopping)
         elif isinstance(self._model, str):
             self._model = MF(model=self._model,
                              n_factors=self._n_factors,
@@ -173,7 +177,8 @@ class MF_SeqRank(Classifier):
                              verbose=self._verbose,
                              early_stopping=self._early_stopping,
                              n_iter_no_change=self._n_iter_no_change,
-                             tol=self._tol)
+                             tol=self._tol,
+                             stopping=self._stopping)
         elif not isinstance(self._model, MF):
             raise ValueError("Model must be an instance of "
                              "divmachines.classifiers.lfp.MF class")
